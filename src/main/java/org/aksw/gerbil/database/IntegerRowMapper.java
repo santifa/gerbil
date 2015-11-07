@@ -16,13 +16,14 @@
  */
 package org.aksw.gerbil.database;
 
+import org.springframework.jdbc.core.RowMapper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.springframework.jdbc.core.RowMapper;
-
 public class IntegerRowMapper implements RowMapper<Integer> {
 
+    @Deprecated
     @Override
     public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
         return rs.getInt(1);

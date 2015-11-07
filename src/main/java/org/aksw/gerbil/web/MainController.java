@@ -16,15 +16,7 @@
  */
 package org.aksw.gerbil.web;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-
+import com.google.common.collect.Lists;
 import org.aksw.gerbil.Experimenter;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.database.ResultNameToIdMapping;
@@ -55,7 +47,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.common.collect.Lists;
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 @Controller
 public class MainController {
@@ -144,6 +142,8 @@ public class MainController {
     @RequestMapping("/execute")
     public @ResponseBody String execute(@RequestParam(value = "experimentData") String experimentData) {
         LOGGER.debug("Got request on /execute with experimentData={}", experimentData);
+
+        // parse json input
         Object obj = JSONValue.parse(experimentData);
         JSONObject configuration = (JSONObject) obj;
         String type = (String) configuration.get("type");
@@ -158,6 +158,8 @@ public class MainController {
         for (int i = 0; i < jsonDataset.size(); i++) {
             datasets[i] = (String) jsonDataset.get(i);
         }
+
+        // build task configuration
         ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length];
         int count = 0;
         ExperimentType expType = ExperimentType.valueOf(type);
@@ -169,6 +171,8 @@ public class MainController {
                 ++count;
             }
         }
+
+        // run the experiment
         String experimentId = IDCreator.getInstance().createID();
         Experimenter exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId);
         exp.setAnnotatorOutputWriter(annotatorOutputWriter);

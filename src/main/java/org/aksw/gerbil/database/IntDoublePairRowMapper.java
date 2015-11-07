@@ -16,13 +16,15 @@
  */
 package org.aksw.gerbil.database;
 
+import org.springframework.jdbc.core.RowMapper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.springframework.jdbc.core.RowMapper;
-
 public class IntDoublePairRowMapper implements RowMapper<IntDoublePair> {
 
+
+    @Deprecated
     @Override
     public IntDoublePair mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new IntDoublePair(rs.getInt(1), rs.getDouble(2));

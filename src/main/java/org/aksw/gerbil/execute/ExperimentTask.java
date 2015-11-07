@@ -101,7 +101,7 @@ public class ExperimentTask implements Task {
             }
 
             // Create annotator
-            annotator = (Annotator) configuration.annotatorConfig.getAnnotator(configuration.type);
+            annotator = configuration.annotatorConfig.getAnnotator(configuration.type);
             if (annotator == null) {
                 throw new GerbilException("annotator=\"" + configuration.annotatorConfig.getName()
                         + "\" experimentType=\"" + configuration.type.name() + "\".",
