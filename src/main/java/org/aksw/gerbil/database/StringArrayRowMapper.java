@@ -16,10 +16,10 @@
  */
 package org.aksw.gerbil.database;
 
+import org.springframework.jdbc.core.RowMapper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import org.springframework.jdbc.core.RowMapper;
 
 public class StringArrayRowMapper implements RowMapper<String[]> {
 
@@ -29,6 +29,7 @@ public class StringArrayRowMapper implements RowMapper<String[]> {
         this.columns = columns;
     }
 
+    @Deprecated
     @Override
     public String[] mapRow(ResultSet rs, int rowNum) throws SQLException {
         String result[] = new String[columns.length];
