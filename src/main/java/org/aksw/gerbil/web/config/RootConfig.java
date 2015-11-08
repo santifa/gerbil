@@ -16,18 +16,13 @@
  */
 package org.aksw.gerbil.web.config;
 
-import java.io.File;
-import java.io.IOException;
-
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
-import org.aksw.gerbil.semantic.sameas.ErrorFixingSameAsRetriever;
-import org.aksw.gerbil.semantic.sameas.FileBasedCachingSameAsRetriever;
-import org.aksw.gerbil.semantic.sameas.HTTPBasedSameAsRetriever;
-import org.aksw.gerbil.semantic.sameas.InMemoryCachingSameAsRetriever;
-import org.aksw.gerbil.semantic.sameas.MultipleSameAsRetriever;
-import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
+import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
 import org.aksw.gerbil.semantic.subclass.SimpleSubClassInferencer;
 import org.aksw.gerbil.semantic.subclass.SubClassInferencer;
@@ -47,8 +42,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * This is the root {@link Configuration} class that is processed by the Spring
@@ -83,6 +78,8 @@ public class RootConfig {
 
     private static final String ANNOTATOR_OUTPUT_WRITER_USAGE_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.printAnnotatorResults";
     private static final String ANNOTATOR_OUTPUT_WRITER_DIRECTORY_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.outputDirectory";
+
+    private static final String FILTER_SERVICE = "org.aksw.gerbil.util.filter.service";
 
     // {
     // // FIXME this is an extremely ugly workaround to be able to log the
@@ -164,6 +161,14 @@ public class RootConfig {
 
     public static @Bean EvaluatorFactory createEvaluatorFactory(SubClassInferencer inferencer) {
         return new EvaluatorFactory(inferencer);
+    }
+
+    public static @Bean FilterFactory createFilterFactory() {
+        if (GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
+            return new FilterFactory(GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
+        } else {
+            return null;
+        }
     }
 
     public static AnnotatorOutputWriter getAnnotatorOutputWriter() {
