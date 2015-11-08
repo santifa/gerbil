@@ -26,6 +26,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
+import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.IDCreator;
@@ -96,6 +97,9 @@ public class MainController {
 
     @Autowired
     private AdapterManager adapterManager;
+
+    @Autowired
+    private FilterFactory filterHolder;
 
     // DataID URL is generated automatically in the experiment method?
     private DataIDGenerator dataIdGenerator;
