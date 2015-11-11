@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.TypeFilter;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,21 +20,23 @@ public class FilterFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(FilterFactory.class);
 
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
-    private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.basic.";
-    private static final String FILTER_ADVANCED = "org.aksw.gerbil.util.filter.advanced.";
-    private static final String FILTER_COMPOSED = "org.aksw.gerbil.util.filter.composed.";
+    private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
 
     private EntityResolutionService service;
 
     private List<EntityFilter> filters = new ArrayList<>(42);
 
-    public FilterFactory(String serviceUrl) {
+    public FilterFactory(EntityResolutionService service) {
+        // initialize entity resolver
         List<String> prefixSet = getPrefixSet();
-        this.service = new DbpediaEntityResolution(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
-        registerFilterType(TypeFilter.class, getBasicResolver());
+        service.setPrefixSet(prefixSet.toArray(new String[prefixSet.size()]));
+        this.service = service;
+
+        // initialize filter
+        registerFilter(SparqlFilter.class, getBasicResolver());;
     }
 
-    public static <T, E> void registerFilterType(Class<E> filter, ConfigResolver<T> resolver) {
+    public static <T, E> void registerFilter(Class<E> filter, ConfigResolver<T> resolver) {
         List<T> configurations = resolver.resolve();
         for (T c : configurations) {
             try {
@@ -66,7 +68,6 @@ public class FilterFactory {
                     return ++counter;
                 }
                 return -1;
-
             }
         }.resolve();
     }

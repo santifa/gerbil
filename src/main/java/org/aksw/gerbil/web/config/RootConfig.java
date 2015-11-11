@@ -21,6 +21,8 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
+import org.aksw.gerbil.filter.DbpediaEntityResolution;
+import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
@@ -165,7 +167,10 @@ public class RootConfig {
 
     public static @Bean FilterFactory createFilterFactory() {
         if (GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
-            return new FilterFactory(GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
+            EntityResolutionService dbpedia = new DbpediaEntityResolution(
+                    GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
+
+            return new FilterFactory(dbpedia);
         } else {
             return null;
         }

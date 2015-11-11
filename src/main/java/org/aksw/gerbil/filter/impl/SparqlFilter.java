@@ -7,11 +7,11 @@ import java.util.List;
 /**
  * Created by ratzeputz on 08.11.15.
  */
-public class TypeFilter<FilterConfiguration> implements EntityFilter {
+public class SparqlFilter<FilterConfiguration> implements EntityFilter {
 
     private FilterConfiguration conf;
 
-    public TypeFilter(FilterConfiguration conf) {
+    public SparqlFilter(FilterConfiguration conf) {
         this.conf = conf;
     }
 
