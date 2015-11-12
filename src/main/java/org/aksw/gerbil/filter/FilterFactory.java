@@ -43,6 +43,7 @@ public class FilterFactory {
                 for (Constructor co : filter.getConstructors()) {
                     if (co.getParameterTypes().length == 1 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
                         System.out.println(co.toGenericString());
+
                     }
                 }
 
@@ -52,7 +53,9 @@ public class FilterFactory {
             /* catch (NoSuchMethodException e) {
                 LOGGER.error("Filter configuration " + c + " for " + filter.getClass() + " could not be loaded", e.getMessage(), e);
             }*/
-            LOGGER.error("loaded " + filter + " with " + c);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Filter " + filter + " with " + c + " loaded.");
+            }
         }
     }
 

@@ -35,12 +35,11 @@ public class CachedResult {
      * @param entities      the entities
      * @throws NoSuchAlgorithmException the no such algorithm exception
      */
-    public CachedResult(String filterName, String datasetName, String annotatorName, String[] entities) throws NoSuchAlgorithmException {
+    public CachedResult(String filterName, String datasetName, String annotatorName, String[] entities) {
         this.filterName = filterName;
         this.datasetName = datasetName;
         this.annotatorName = annotatorName;
         this.entities = entities;
-        this.checksum = generateMd5Checksum();
     }
 
     /**
@@ -51,12 +50,11 @@ public class CachedResult {
      * @param entities    the entities
      * @throws NoSuchAlgorithmException the no such algorithm exception
      */
-    public CachedResult(String filterName, String datasetName, String[] entities) throws NoSuchAlgorithmException {
+    public CachedResult(String filterName, String datasetName, String[] entities) {
         this.datasetName = datasetName;
         this.filterName = filterName;
         this.entities = entities;
         this.annotatorName = "gt";
-        this.checksum = generateMd5Checksum();
     }
 
     /**
@@ -75,8 +73,8 @@ public class CachedResult {
     /**
      * Instantiates a new Cached result.
      *
-     * @param filterName    the filter name
-     * @param datasetName   the dataset name
+     * @param filterName  the filter name
+     * @param datasetName the dataset name
      */
     public CachedResult(String filterName, String datasetName) {
         this.datasetName = datasetName;
@@ -130,12 +128,25 @@ public class CachedResult {
     }
 
     /**
+     * Sets checksum for this cached object.
+     * Note: To create a checksum use the provided implementation.
+     * The checksum is used for validate if a newer version has to be stored,
+     * so the checksum should be taken over all entities and not the filtered ones.
+     *
+     * @param checksum the checksum
+     */
+    public void setChecksum(String checksum) {
+        this.checksum = checksum;
+    }
+
+    /**
      * Generate md 5 checksum over the entities.
      *
+     * @param entities the entities
      * @return the string
      * @throws NoSuchAlgorithmException the no such algorithm exception
      */
-    public String generateMd5Checksum() throws NoSuchAlgorithmException {
+    public static String generateMd5Checksum(String[] entities) throws NoSuchAlgorithmException {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -143,8 +154,8 @@ public class CachedResult {
             throw new NoSuchAlgorithmException("Expected a MD5 implmentation. " + e.getMessage(), e);
         }
 
-        String entities = Arrays.toString(getEntities());
-        md.update(entities.getBytes(Charset.forName("utf8")));
+        String entityRep = Arrays.toString(entities);
+        md.update(entityRep.getBytes(Charset.forName("utf8")));
         byte[] digest = md.digest();
         StringBuilder builder = new StringBuilder();
         for (byte b : digest) {

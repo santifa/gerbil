@@ -3,11 +3,11 @@ package org.aksw.gerbil.filter.cache;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.aksw.gerbil.config.GerbilConfiguration;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.*;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -103,7 +103,24 @@ public class FilterCache {
      */
     public boolean isCached(String filterName, String datasetName, String annotatorName) {
         return new CachedResult(filterName, datasetName, annotatorName).getCacheFile(cacheLocation).exists();
+    }
 
+    public boolean isVersionCached(String filterName, String datasetName, String md5sum) {
+        if (isCached(filterName, datasetName)) {
+            CachedResult res = getCachedResults(new CachedResult(filterName, datasetName));
+            return StringUtils.equals(md5sum, res.getChecksum());
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isVersionCached(String filterName, String datasetName, String annotatorName, String md5sum) {
+        if (isCached(filterName, datasetName, annotatorName)) {
+            CachedResult res = getCachedResults(new CachedResult(filterName, datasetName, annotatorName));
+            return StringUtils.equals(md5sum, res.getChecksum());
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -115,7 +132,8 @@ public class FilterCache {
      * @return the string [ ] or an empty array if nothing is cached.
      */
     public String[] getCachedResults(String filterName, String datasetName, String annotatorName) {
-        return getCachedResults(new CachedResult(filterName, datasetName, annotatorName));
+        CachedResult res = getCachedResults(new CachedResult(filterName, datasetName, annotatorName));
+        return res != null ? res.getEntities() : new String[0];
     }
 
     /**
@@ -126,50 +144,15 @@ public class FilterCache {
      * @return the string [ ] or an empty array if nothing is cached.
      */
     public String[] getCachedResults(String filterName, String datasetName) {
-        return getCachedResults(new CachedResult(filterName, datasetName));
+        CachedResult res = getCachedResults(new CachedResult(filterName, datasetName));
+        return res != null ? res.getEntities() : new String[0];
     }
 
-    private synchronized String[] getCachedResults(CachedResult result) {
-        result = deserializeResult(result.getCacheFile(cacheLocation));
-        return result != null ? result.getEntities() : new String[0];
+    private synchronized CachedResult getCachedResults(CachedResult result) {
+        return deserializeResult(result.getCacheFile(cacheLocation));
     }
 
-    /**
-     * Cache annotator results entities.
-     *
-     * @param entities      the entities
-     * @param filterName    the filter name
-     * @param datasetName   the dataset name
-     * @param annotatorName the annotator name
-     */
-    public void cache(String[] entities, String filterName, String datasetName, String annotatorName) {
-        CachedResult obj;
-        try {
-            obj = new CachedResult(filterName, datasetName, annotatorName, entities);
-            cache(obj);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Cache object generation failed. " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Cache goldstandard entities.
-     *
-     * @param entities    the entities
-     * @param filterName  the filter name
-     * @param datasetName the dataset name
-     */
-    public void cache(String[] entities, String filterName, String datasetName) {
-        CachedResult obj;
-        try {
-            obj = new CachedResult(filterName, datasetName, entities);
-            cache(obj);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Cache object generation failed. " + e.getMessage(), e);
-        }
-    }
-
-    private void cache(CachedResult result) {
+    public void cache(CachedResult result) {
         File cacheFile = result.getCacheFile(cacheLocation);
 
         if (!cacheFiles.contains(cacheFile)) {
@@ -178,7 +161,7 @@ public class FilterCache {
         } else {
             // check if we have a new result version
             CachedResult cachedResult = deserializeResult(cacheFile);
-            if (cachedResult == null || !cachedResult.getChecksum().equals(result.getChecksum())) {
+            if (cachedResult == null || !StringUtils.equals(cachedResult.getChecksum(), result.getChecksum())) {
                 serializeResult(result, cacheFile);
                 cacheFiles.add(cacheFile);
             } else {
