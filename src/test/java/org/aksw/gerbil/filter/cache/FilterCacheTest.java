@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -16,23 +17,33 @@ public class FilterCacheTest {
 
     private final File cacheLocation = new File("gerbil_data/cache/filter");
 
+    private final String[] entities1 = new String[] {"http://dbpedia.org/resource/Victoria_Beckham",
+            "http://dbpedia.org/resource/Victoria", "http://dbpedia.org/resource/Victoria_Beck"};
+
+    private final String[] entities2 = new String[] {"http://dbpedia.org/resource/Victoria_Beckham",
+            "http://dbpedia.org/resource/Victoria"};
+
     @Test
     public void testCacheGoldStandard() throws Exception {
         FilterCache cache = FilterCache.getInstance();
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckham"}, "a filter", "gold1");
-        assertTrue(new File(cacheLocation, "a_filter_gt_gold1").exists());
+        CachedResult res = new CachedResult("a filter", "gold1", new String[] {"http://dbpedia.org/resource/Victoria_Beckham"});
+        cache.cache(res);
+        assertTrue(res.getCacheFile(cacheLocation).exists());
     }
 
     @Test
     public void testCacheAnnotatorResults() throws Exception {
         FilterCache cache = FilterCache.getInstance();
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckman"}, "a filter", "gold1", "anno");
-        assertTrue(new File(cacheLocation, "a_filter_anno_gold1").exists());
+        CachedResult res = new CachedResult("a filter", "gold1", "anno", new String[] {"http://dbpedia.org/resource/Victoria_Beckman"});
+        res.setChecksum(CachedResult.generateMd5Checksum(entities1));
+        cache.cache(res);
+        assertTrue(res.getCacheFile(cacheLocation).exists());
 
         // recache if object is newer
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beck"}, "a filter", "gold1", "anno");
-        CachedResult expected = new CachedResult("a filter", "gold2", "anno", new String[] {"http://dbpedia.org/resource/Victoria_Beck"});
-        assertTrue(cache.isCached("a filter", "gold1", "anno"));
+        CachedResult expected = new CachedResult("a filter", "gold1", "anno", new String[] {"http://dbpedia.org/resource/Victoria_Beck"});
+        expected.setChecksum(CachedResult.generateMd5Checksum(entities2));
+        cache.cache(expected);
+        assertTrue(cache.isVersionCached("a filter", "gold1", "anno", CachedResult.generateMd5Checksum(entities2)));
         assertArrayEquals(expected.getEntities(), cache.getCachedResults("a filter", "gold1", "anno"));
     }
 
@@ -40,23 +51,29 @@ public class FilterCacheTest {
     public void testComplexCacheOperations() throws Exception {
         FilterCache cache = FilterCache.getInstance();
 
-        // store some results
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckham"}, "a filter", "gold1");
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckman"}, "a filter", "gold2");
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckham"}, "a filter", "gold1", "anno1");
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckman"}, "a filter", "gold2", "anno1");
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckfrau"}, "a filter", "gold1", "anno2");
-        cache.cache(new String[] {"http://dbpedia.org/resource/Victoria_Beckmen"}, "a filter", "gold2", "anno2");
+        CachedResult res1 = new CachedResult("a filter", "gold1", entities1);
+        res1.setChecksum(CachedResult.generateMd5Checksum(entities1));
+        CachedResult res2 = new CachedResult("a filter", "gold2", entities2);
+        res2.setChecksum(CachedResult.generateMd5Checksum(entities2));
+        CachedResult res3 = new CachedResult("a filter", "gold2", "anno1", entities2);
+        res3.setChecksum(CachedResult.generateMd5Checksum(entities2));
 
+        cache.cache(res1);
+        cache.cache(res2);
+        cache.cache(res3);
+
+        System.out.println(CachedResult.generateMd5Checksum(entities2));
+        System.out.println(CachedResult.generateMd5Checksum(entities1));
+        System.out.println(CachedResult.generateMd5Checksum(entities1));
         // some results are cached
-        assertTrue(cache.isCached("a filter", "gold1"));
-        assertTrue(cache.isCached("a filter", "gold1", "anno1"));
+        assertTrue(cache.isVersionCached("a filter", "gold1", CachedResult.generateMd5Checksum(entities1)));
+        assertFalse(cache.isVersionCached("a filter", "gold1", CachedResult.generateMd5Checksum(entities2)));
+        assertTrue(cache.isCached("a filter", "gold2", "anno1"));
+
 
         // check if results are cached properly
-        CachedResult expected = new CachedResult("a filter", "gold2", new String[] {"http://dbpedia.org/resource/Victoria_Beckman"});
-        CachedResult expected2 = new CachedResult("a filter", "gold2", "anno1", new String[] {"http://dbpedia.org/resource/Victoria_Beckman"});
-        assertArrayEquals(expected.getEntities(), cache.getCachedResults("a filter", "gold2"));
-        assertArrayEquals(expected2.getEntities(), cache.getCachedResults("a filter", "gold2", "anno1"));
+        assertArrayEquals(res1.getEntities(), cache.getCachedResults("a filter", "gold1"));
+        assertArrayEquals(res3.getEntities(), cache.getCachedResults("a filter", "gold2", "anno1"));
     }
 
 }

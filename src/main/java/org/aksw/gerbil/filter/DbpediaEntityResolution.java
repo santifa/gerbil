@@ -2,18 +2,20 @@ package org.aksw.gerbil.filter;
 
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import org.aksw.gerbil.filter.cache.CachedResult;
+import org.aksw.gerbil.filter.cache.FilterCache;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * A DbpediaEntityResolution performs regular sparql queries and returns
  * the entity types preserving owl#Thing.
- *
+ * <p/>
  * Created by Henrik Jürges on 07.11.15.
  */
 public class DbpediaEntityResolution implements EntityResolutionService {
@@ -26,12 +28,17 @@ public class DbpediaEntityResolution implements EntityResolutionService {
 
     private String[] prefixes;
 
-    private boolean cached = false;
+    private FilterCache cache;
 
-    private final static String ONTOLOGY_START = "http://www.w3.org/2002/07/owl#Thing";
     private final static String PREFIX = "PREFIX";
-    private final static String TYPE_QUERY = "SELECT ?type WHERE { ?name a ?type . } LIMIT 2";
 
+    private final static String HEAD = "SELECT ?v WHERE { values ?v { ";
+
+    /**
+     * Instantiates a new Dbpedia entity resolution.
+     *
+     * @param serviceUrl the service url
+     */
     public DbpediaEntityResolution(String serviceUrl) {
         this.serviceUrl = serviceUrl;
     }
@@ -49,88 +56,114 @@ public class DbpediaEntityResolution implements EntityResolutionService {
     }
 
     @Override
-    public void initialize(boolean precache, boolean cache, String cacheLocation) {
-        this.cached = cache;
-    }
-
-
-
-
-    public void resolveEntities(String[] entities) {
-
-    }
-
-
-
-
-
-    @Override
-    public String getType(String entityName) throws NoSuchElementException {
-        // FIXME ugly workaround for replacing entities, querysolutionmap is not working
-        Query query = QueryFactory.create(prefixSet + StringUtils.replace(TYPE_QUERY, "?name", "<" + entityName + ">"));
-
-        try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {
-            ResultSet result = qexec.execSelect();
-
-            // fetch first two types
-            while (result.hasNext()) {
-                QuerySolution sol = result.next();
-                RDFNode type = sol.get("?type");
-
-                // if we don't have the owl#Thing type, we have our first type to return
-                if (!StringUtils.equals(ONTOLOGY_START, type.asResource().getURI())) {
-                    return shortenUri(type.asResource().getNameSpace(), type.asResource().getLocalName());
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Could not retrieve type of entity " + entityName, e.getMessage(), e);
-            throw new NoSuchElementException("Could not retrieve type of entity " + entityName + e.getMessage());
-        }
-
-        // we found nothing
-        throw new NoSuchElementException("Could not retrieve type of entity " + entityName);
+    public void initCache(FilterCache cache) {
+        this.cache = cache;
     }
 
     @Override
-    public String[] getAllTypes(String entityName) throws NoSuchElementException {
-        List<String> types = new ArrayList<>();
-        // FIXME ugly workaround for replacing entities, querysolutionmap is not working
-        Query query = QueryFactory.create(prefixSet + StringUtils.replace(TYPE_QUERY, "?name", "<" + entityName + ">"));
+    public void precache() {
 
-        try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {
-            ResultSet result = qexec.execSelect();
+    }
 
-            // fetch first two types
-            while (result.hasNext()) {
-                QuerySolution sol = result.next();
-                RDFNode type = sol.get("?type");
+    @Override
+    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName,String annotatorName) {
+        String[] result;
 
-                // if we don't have the owl#Thing type, we have our first type to return
-                if (!StringUtils.equals(ONTOLOGY_START, type.asResource().getURI())) {
-                    types.add(shortenUri(type.asResource().getNameSpace(), type.asResource().getLocalName()));
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Could not retrieve type of entity " + entityName, e.getMessage(), e);
-            throw new NoSuchElementException("Could not retrieve type of entity " + entityName + e.getMessage());
-        }
-
-        // test if we found something
-        if (types.size() > 0) {
-            return types.toArray(new String[types.size()]);
+        if (cache != null && isCached(entities, conf.getName(), datasetName, annotatorName)) {
+            result = getFromCache(conf.getName(), datasetName, annotatorName);
         } else {
-            throw new NoSuchElementException("Could not retrieve type of entity " + entityName);
+            result = resolve(entities, conf.getFilter());
+            cacheResults(entities, conf.getName(), datasetName, annotatorName);
         }
-
+        return result;
     }
 
-    // replacing namespaces with prefixes
-    private String shortenUri(String namespace, String localName) {
-        for (int i = 0; i < prefixes.length; i++) {
-            if (StringUtils.contains(prefixes[i], namespace)) {
-                return StringUtils.substringBefore(prefixes[i], ":") + ":" + localName;
+    @Override
+    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+        String[] result;
+
+        if (cache != null && isCached(entities, conf.getName(), datasetName, "")) {
+            result = getFromCache(conf.getName(), datasetName, "");
+        } else {
+            result = resolve(entities, conf.getFilter());
+            cacheResults(entities, conf.getName(), datasetName, "");
+        }
+        return result;
+    }
+
+    private void cacheResults(String[] entities, String filterName, String datasetName, String annotatorName) {
+        try {
+            String md5sum = CachedResult.generateMd5Checksum(entities);
+
+            if (StringUtils.isEmpty(annotatorName)) {
+                CachedResult result = new CachedResult(filterName, datasetName, entities);
+                result.setChecksum(md5sum);
+                cache.cache(result);
+            } else {
+                CachedResult result = new CachedResult(filterName, datasetName, annotatorName, entities);
+                result.setChecksum(md5sum);
+                cache.cache(result);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("Caching results failed. Moving on. " + e.getMessage(), e);
+        }
+    }
+
+    private String[] resolve(String[] entities, String filter) {
+        List<String> result = new ArrayList<>();
+        String queryString = buildQuery(entities, filter);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Filter query is: " + queryString);
+        }
+        Query query = QueryFactory.create(queryString);
+
+        try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {
+            ResultSet queryResult = qexec.execSelect();
+
+            while (queryResult.hasNext()) {
+                QuerySolution solution = queryResult.nextSolution();
+                RDFNode node = solution.get("v");
+                result.add(node.asResource().getURI());
             }
         }
-        return namespace + localName;
+
+        return result.toArray(new String[result.size()]);
     }
+
+    private String buildQuery(String[] entities, String filter) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(prefixSet).append(HEAD);
+        for (int i = 0; i < entities.length; i++) {
+            builder.append("<").append(entities[i]).append(">").append(" ");
+        }
+        builder.append("} ").append(filter);
+        return builder.toString();
+    }
+
+    // checks whether the resolution is cached
+    private boolean isCached(String[] entities, String filterName, String datasetName, String annotatorName) {
+        boolean result = false;
+        try {
+            String md5sum = CachedResult.generateMd5Checksum(entities);
+            if (StringUtils.isEmpty(annotatorName)) {
+                result = cache.isVersionCached(filterName, datasetName, md5sum);
+            } else {
+                result = cache.isVersionCached(filterName, datasetName, annotatorName, md5sum);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            LOGGER.error("MD5 checksum algorithm not found. Could not fetch if result is cached or not." +
+                    "Assuming not. " + e.getMessage(), e);
+        }
+        return result;
+    }
+
+    // retrieves entites from cache
+    private String[] getFromCache(String filterName, String datasetName, String annotatorName) {
+        if (StringUtils.isEmpty(annotatorName)) {
+            return cache.getCachedResults(filterName, datasetName);
+        } else {
+            return cache.getCachedResults(filterName, datasetName, annotatorName);
+        }
+    }
+
 }

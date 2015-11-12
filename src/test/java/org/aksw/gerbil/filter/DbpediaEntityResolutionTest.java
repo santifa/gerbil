@@ -1,12 +1,12 @@
 package org.aksw.gerbil.filter;
 
-import it.uniroma1.lcl.jlt.util.Arrays;
+import org.aksw.gerbil.filter.cache.FilterCache;
 import org.junit.Test;
 
-import java.util.NoSuchElementException;
+import java.util.Arrays;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test the {@link DbpediaEntityResolution}
@@ -19,38 +19,33 @@ public class DbpediaEntityResolutionTest {
 
     private final String prefix = "foaf:<http://xmlns.com/foaf/0.1/>";
 
-    private final String entityName = "http://dbpedia.org/resource/Victoria_Beckham";
+    private final String[] entitiesPerson = new String[] {"http://dbpedia.org/resource/Victoria_Beckham",
+            "http://dbpedia.org/resource/John_P._Kennedy"};
+
+    private final FilterConfiguration conf1 = new FilterConfiguration("person-filter", "?v a foaf:Person . }");
+
+    private final FilterConfiguration conf2 = new FilterConfiguration("person-agent", "?v a foaf:Agent . }");
+
+    private final String annotatorName = "spotlight";
+
+    private final String datasetName = "kore50";
 
     @Test
-    public void testGetTypeWithoutPrefixes() throws Exception {
-        DbpediaEntityResolution provider = new DbpediaEntityResolution(service);
-        provider.setPrefixSet(new String[0]);
-        String expected = "http://xmlns.com/foaf/0.1/Person";
-        assertEquals(expected, provider.getType(entityName));
+    public void testResolveEntitiesAnnotator() throws Exception {
+       DbpediaEntityResolution resolution = new DbpediaEntityResolution(service);
+       resolution.initCache(FilterCache.getInstance());
+       resolution.setPrefixSet(new String[] { prefix });
+       String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
+        assertArrayEquals(entitiesPerson, result);
     }
 
     @Test
-    public void testGetType() throws Exception {
-        DbpediaEntityResolution provider = new DbpediaEntityResolution(service);
-        provider.setPrefixSet(new String[] {prefix});
-        String expected = "foaf:Person";
-        assertEquals(expected, provider.getType(entityName));
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testGetTypGettingNothing() {
-        DbpediaEntityResolution provider = new DbpediaEntityResolution(service);
-        provider.setPrefixSet(new String[] {prefix});
-        String expected = "";
-        assertEquals(expected, provider.getType("http://dbpedia.org/resourc"));
-    }
-
-    @Test
-    public void testGetAllTypes() throws Exception {
-        DbpediaEntityResolution provider = new DbpediaEntityResolution(service);
-        provider.setPrefixSet(new String[] {prefix, "dbpedia-owl:<http://dbpedia.org/ontology/Person>"});
-        String[] types = provider.getAllTypes(entityName);
-        assertTrue(Arrays.contains(types, "dbpedia-owl:Person") &&
-            Arrays.contains(types, "foaf:Person"));
+    public void testResolveEntitiesGoldstandard() throws Exception {
+        DbpediaEntityResolution resolution = new DbpediaEntityResolution(service);
+        resolution.initCache(FilterCache.getInstance());
+        resolution.setPrefixSet(new String[] { prefix });
+        String[] result = resolution.resolveEntities(entitiesPerson, conf2, datasetName);
+        System.out.println(Arrays.toString(result));
+        assertTrue(result.length == 0);
     }
 }

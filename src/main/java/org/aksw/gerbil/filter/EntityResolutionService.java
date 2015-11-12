@@ -1,11 +1,10 @@
 package org.aksw.gerbil.filter;
 
-import java.util.NoSuchElementException;
+import org.aksw.gerbil.filter.cache.FilterCache;
 
 /**
- * An entity resolution service looks up the entity name or id and
- * returns the found type or an empty string. As well as searching
- * for same as types.
+ * An entity resolution service looks up a number of entities
+ * for a filter definition. The service caches entities for shorter response.
  * <p/>
  * Created by Henrik Jürges on 07.11.15.
  */
@@ -19,30 +18,31 @@ public interface EntityResolutionService {
      */
     void setPrefixSet(String[] prefixes);
 
-    /**
-     * Initialize a entity resolution service.
-     *
-     * @param precache      true if the goldstandard has to be prechached
-     * @param cache         true if for caching goldstandard and annotator results
-     * @param cacheLocation the cache location
-     */
-    void initialize(boolean precache, boolean cache, String cacheLocation);
+    void initCache(FilterCache cache);
 
     /**
-     * Gets the first found type.
-     *
-     * @param entityName the entity name
-     * @return the found type
-     * @throws NoSuchElementException the no such element exception
+     * Precache goldstandard.
      */
-    String getType(String entityName) throws NoSuchElementException;
+    void precache();
 
     /**
-     * Get all types connected to the entity.
+     * Resolve entities from an annotator result.
      *
-     * @param entityName the entity name
-     * @return the array of all types
-     * @throws NoSuchElementException the no such element exception
+     * @param entities      the entities
+     * @param conf          the conf
+     * @param datasetName   the dataset name
+     * @param annotatorName the annotator name
+     * @return the string [ ]
      */
-    String[] getAllTypes(String entityName) throws NoSuchElementException ;
+    String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName);
+
+    /**
+     * Resolve entities from a gold standard.
+     *
+     * @param entities    the entities
+     * @param conf        the conf
+     * @param datasetName the dataset name
+     * @return the string [ ]
+     */
+    String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName);
 }
