@@ -10,18 +10,12 @@ import java.util.List;
  * <p/>
  * Created by Henrik Jürges on 07.11.15.
  *
- * @param <T> the type parameter
  */
-public interface EntityFilter<T extends Marking> {
+public interface EntityFilter {
 
-    /**
-     * Filter a list of lists. The matching should be done one the gold standard,
-     * discarding also every result found by the annotator. By contract the list order
-     * should be the same as before.
-     *
-     * @param goldStandard    the gold standard
-     * @param annotatorResult the annotator result
-     * @return the list
-     */
-    List<List<T>> filterEntities(List<List<T>> goldStandard, List<List<T>> annotatorResult);
+    FilterConfiguration getConfig();
+
+    <E extends Marking> List<E> filterGoldstandard(List<E> entities, String datasetName);
+
+    <E extends Marking> List<E> filterAnnotatorResults(List<E> entities, String datasetName, String annotatorName);
 }

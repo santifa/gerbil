@@ -16,14 +16,6 @@
  */
 package org.aksw.gerbil.annotator.http;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
 import org.aksw.gerbil.Experimenter;
 import org.aksw.gerbil.annotator.AnnotatorConfigurationImpl;
 import org.aksw.gerbil.annotator.SingletonAnnotatorConfigImpl;
@@ -35,6 +27,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.http.HttpManagement;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
@@ -50,15 +43,19 @@ import org.aksw.simba.topicmodeling.concurrent.reporter.LogReporter;
 import org.aksw.simba.topicmodeling.concurrent.reporter.Reporter;
 import org.aksw.simba.topicmodeling.concurrent.tasks.Task;
 import org.aksw.simba.topicmodeling.concurrent.tasks.TaskObserver;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.simpleframework.http.core.ContainerServer;
 import org.simpleframework.transport.Server;
 import org.simpleframework.transport.connect.Connection;
 import org.simpleframework.transport.connect.SocketConnection;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 public class HttpBasedAnnotatorTest implements TaskObserver {
 
@@ -154,7 +151,7 @@ public class HttpBasedAnnotatorTest implements TaskObserver {
         ExperimentTaskConfiguration configs[] = new ExperimentTaskConfiguration[10 * NUMBER_OF_DATASETS];
         for (int i = 0; i < configs.length; ++i) {
             configs[i] = new ExperimentTaskConfiguration((((i & 1) == 0) ? fastAnnotator : slowAnnotator),
-                    datasets[i / 10], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH);
+                    datasets[i / 10], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, new NullFilter().getConfig());
         }
 
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
@@ -197,7 +194,7 @@ public class HttpBasedAnnotatorTest implements TaskObserver {
         ExperimentTaskConfiguration configs[] = new ExperimentTaskConfiguration[2 * NUMBER_OF_DATASETS];
         for (int i = 0; i < configs.length; ++i) {
             configs[i] = new ExperimentTaskConfiguration((((i & 1) == 0) ? fastAnnotator : slowAnnotator),
-                    datasets[i >> 1], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH);
+                    datasets[i >> 1], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, new NullFilter().getConfig());
         }
 
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();

@@ -16,17 +16,7 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.aksw.gerbil.annotator.A2KBAnnotator;
-import org.aksw.gerbil.annotator.Annotator;
-import org.aksw.gerbil.annotator.C2KBAnnotator;
-import org.aksw.gerbil.annotator.D2KBAnnotator;
-import org.aksw.gerbil.annotator.EntityRecognizer;
-import org.aksw.gerbil.annotator.EntityTyper;
-import org.aksw.gerbil.annotator.OKETask1Annotator;
-import org.aksw.gerbil.annotator.OKETask2Annotator;
+import org.aksw.gerbil.annotator.*;
 import org.aksw.gerbil.annotator.decorator.ErrorCountingAnnotatorDecorator;
 import org.aksw.gerbil.annotator.decorator.TimeMeasuringAnnotatorDecorator;
 import org.aksw.gerbil.database.ExperimentDAO;
@@ -36,29 +26,22 @@ import org.aksw.gerbil.datatypes.ErrorTypes;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentTaskState;
-import org.aksw.gerbil.evaluate.DoubleEvaluationResult;
-import org.aksw.gerbil.evaluate.EvaluationResult;
-import org.aksw.gerbil.evaluate.EvaluationResultContainer;
-import org.aksw.gerbil.evaluate.Evaluator;
-import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.evaluate.IntEvaluationResult;
-import org.aksw.gerbil.evaluate.SubTaskResult;
+import org.aksw.gerbil.evaluate.*;
 import org.aksw.gerbil.evaluate.impl.FMeasureCalculator;
 import org.aksw.gerbil.exceptions.GerbilException;
+import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.semantic.sameas.DatasetBasedSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.MultipleSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
-import org.aksw.gerbil.transfer.nif.Document;
-import org.aksw.gerbil.transfer.nif.Marking;
-import org.aksw.gerbil.transfer.nif.Meaning;
-import org.aksw.gerbil.transfer.nif.MeaningSpan;
-import org.aksw.gerbil.transfer.nif.Span;
-import org.aksw.gerbil.transfer.nif.TypedSpan;
+import org.aksw.gerbil.transfer.nif.*;
 import org.aksw.gerbil.transfer.nif.data.TypedNamedEntity;
 import org.aksw.simba.topicmodeling.concurrent.tasks.Task;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This is a single experiment designed as {@link Task} to be able to run
@@ -78,14 +61,17 @@ public class ExperimentTask implements Task {
     private ExperimentTaskState taskState = null;
     private AnnotatorOutputWriter annotatorOutputWriter = null;
     private SameAsRetriever globalRetriever = null;
+    private EntityFilter filter = null;
 
+    //TODO think about a filter per task
     public ExperimentTask(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever globalRetriever,
-            org.aksw.gerbil.evaluate.EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration) {
+                          EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, EntityFilter filter) {
         this.experimentDAO = experimentDAO;
         this.configuration = configuration;
         this.experimentTaskId = experimentTaskId;
         this.evFactory = evFactory;
         this.globalRetriever = globalRetriever;
+        this.filter = filter;
     }
 
     @Override
@@ -193,8 +179,7 @@ public class ExperimentTask implements Task {
     /**
      * Prepares the given annotator results for the evaluation, i.e., performs a
      * sameAs retrieval if it is needed for the experiment type.
-     * 
-     * @param dataset
+     *
      */
     @SuppressWarnings("deprecation")
     protected void prepareAnnotatorResults(List<? extends List<? extends Meaning>> results,
@@ -306,6 +291,7 @@ public class ExperimentTask implements Task {
                 List<List<MeaningSpan>> goldStandard = new ArrayList<List<MeaningSpan>>(dataset.size());
                 D2KBAnnotator linker = ((D2KBAnnotator) annotator);
 
+                //TODO insert fix filter loop
                 for (Document document : dataset.getInstances()) {
                     // reduce the document to a text and a list of Spans
                     results.add(linker.performD2KBTask(DocumentInformationReducer.reduceToTextAndSpans(document)));

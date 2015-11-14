@@ -1,11 +1,13 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.transfer.nif.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class FilterFactory {
 
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
+    private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
 
     private EntityResolutionService service;
 
@@ -32,33 +35,55 @@ public class FilterFactory {
         service.setPrefixSet(prefixSet.toArray(new String[prefixSet.size()]));
         this.service = service;
 
-        // initialize filter
-        registerFilter(SparqlFilter.class, getBasicResolver());;
+        // initialize null object
+        addNull();
     }
 
-    public static <T, E> void registerFilter(Class<E> filter, ConfigResolver<T> resolver) {
+
+    public FilterFactory() {
+        addNull();
+    }
+
+    private void addNull() {
+        filters.add(new NullFilter());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Filter " + NullFilter.class.getName() + " loaded with " + new NullFilter().getConfig() + " configuration.");
+        }
+    }
+
+    public <T, E extends EntityFilter> void registerFilter(Class<E> filter, ConfigResolver<T> resolver) {
         List<T> configurations = resolver.resolve();
         for (T c : configurations) {
+
             try {
                 for (Constructor co : filter.getConstructors()) {
                     if (co.getParameterTypes().length == 1 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
-                        System.out.println(co.toGenericString());
+                        filters.add((EntityFilter) co.newInstance(c));
 
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Filter " + filter + " with " + c + " loaded.");
+                        }
                     }
                 }
-
-            } finally {
-
-            }
-            /* catch (NoSuchMethodException e) {
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
                 LOGGER.error("Filter configuration " + c + " for " + filter.getClass() + " could not be loaded", e.getMessage(), e);
-            }*/
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Filter " + filter + " with " + c + " loaded.");
             }
         }
     }
 
+    public boolean hasToBePrechached() {
+        return GerbilConfiguration.getInstance().getBoolean(PRECACHE);
+    }
+
+    public void precache(List<Document> datasets) {
+        for (Document doc : datasets) {
+            System.out.println("document: " + doc);
+        }
+    }
+
+    public List<EntityFilter> getFilters() {
+        return filters;
+    }
 
     // returns a set of prefixes defined in the filter.properties
     private static final List<String> getPrefixSet() {
@@ -75,7 +100,7 @@ public class FilterFactory {
         }.resolve();
     }
 
-    private static final ConfigResolver<FilterConfiguration> getBasicResolver() {
+    public static final ConfigResolver<FilterConfiguration> getBasicResolver() {
         return new ConfigResolver<FilterConfiguration>() {
 
             @Override
@@ -89,6 +114,15 @@ public class FilterFactory {
                 return -1;
             }
         };
+    }
+
+    public EntityFilter getFilterByConfig(FilterConfiguration filterConfig) {
+        for (EntityFilter f : filters) {
+            if (f.getConfig().equals(filterConfig)) {
+                return f;
+            }
+        }
+        return new NullFilter();
     }
 
     public abstract static class ConfigResolver<T> {

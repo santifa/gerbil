@@ -16,18 +16,19 @@
  */
 package org.aksw.gerbil;
 
-import java.util.Arrays;
-
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.execute.ExperimentTask;
+import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.ExpTaskConfigComparator;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 public class Experimenter implements Runnable {
 
@@ -40,6 +41,7 @@ public class Experimenter implements Runnable {
     private EvaluatorFactory evFactory;
     private AnnotatorOutputWriter annotatorOutputWriter = null;
     private SameAsRetriever globalRetriever = null;
+    private FilterFactory filterFactory = null;
 
     /**
      * Constructor
@@ -67,29 +69,41 @@ public class Experimenter implements Runnable {
         this.globalRetriever = globalRetriever;
     }
 
+    public Experimenter(Overseer overseer, ExperimentDAO experimentDAO, SameAsRetriever globalRetriever, EvaluatorFactory evFactory,
+                        ExperimentTaskConfiguration configs[], String experimentId, FilterFactory filterFactory) {
+        this.configs = configs;
+        this.experimentId = experimentId;
+        this.experimentDAO = experimentDAO;
+        this.overseer = overseer;
+        this.evFactory = evFactory;
+        this.globalRetriever = globalRetriever;
+        this.filterFactory = filterFactory;
+    }
+
     @Override
     public void run() {
         Arrays.sort(configs, new ExpTaskConfigComparator());
         try {
+
             int taskId;
             for (int i = 0; i < configs.length; ++i) {
-                if (couldHaveCachedResult(configs[i])) {
-                    taskId = experimentDAO.connectCachedResultOrCreateTask(configs[i].annotatorConfig.getName(),
-                            configs[i].datasetConfig.getName(), configs[i].type.name(), configs[i].matching.name(),
-                            experimentId);
-                } else {
-                    taskId = experimentDAO.createTask(configs[i].annotatorConfig.getName(),
-                            configs[i].datasetConfig.getName(), configs[i].type.name(), configs[i].matching.name(),
-                            experimentId);
-                }
-                // If there is no experiment task result in the database
-                if (taskId != ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED) {
-                    // Create an executer which performs the task
-                    ExperimentTask task = new ExperimentTask(taskId, experimentDAO, globalRetriever, evFactory,
-                            configs[i]);
-                    task.setAnnotatorOutputWriter(annotatorOutputWriter);
-                    overseer.startTask(task);
-                }
+                    if (couldHaveCachedResult(configs[i])) {
+                        taskId = experimentDAO.connectCachedResultOrCreateTask(configs[i].annotatorConfig.getName(),
+                                configs[i].datasetConfig.getName(), configs[i].type.name(), configs[i].matching.name(),
+                                experimentId, configs[i].filter.getName());
+                    } else {
+                        taskId = experimentDAO.createTask(configs[i].annotatorConfig.getName(),
+                                configs[i].datasetConfig.getName(), configs[i].type.name(), configs[i].matching.name(),
+                                experimentId, configs[i].filter.getName());
+                    }
+                    // If there is no experiment task result in the database
+                    if (taskId != ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED) {
+                        // Create an executer which performs the task
+                        ExperimentTask task = new ExperimentTask(taskId, experimentDAO, globalRetriever, evFactory,
+                                configs[i], filterFactory.getFilterByConfig(configs[i].filter));
+                        task.setAnnotatorOutputWriter(annotatorOutputWriter);
+                        overseer.startTask(task);
+                    }
             }
             LOGGER.info("Experimenter finished the creation of tasks for experiment \"" + experimentId + "\"");
         } catch (Exception e) {

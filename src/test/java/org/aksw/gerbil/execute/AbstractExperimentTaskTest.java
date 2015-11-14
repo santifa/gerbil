@@ -16,13 +16,12 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.concurrent.Semaphore;
-
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.web.config.RootConfig;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
@@ -34,6 +33,8 @@ import org.aksw.simba.topicmodeling.concurrent.tasks.TaskObserver;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Semaphore;
 
 public abstract class AbstractExperimentTaskTest {
 
@@ -49,7 +50,7 @@ public abstract class AbstractExperimentTaskTest {
     public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever sameAsRetriever,
             EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, TaskObserver observer) {
         ExperimentTask task = new ExperimentTask(experimentTaskId, experimentDAO, sameAsRetriever, evFactory,
-                configuration);
+                configuration, new NullFilter());
         Overseer overseer = new SimpleOverseer();
         overseer.addObserver(observer);
         @SuppressWarnings("unused")

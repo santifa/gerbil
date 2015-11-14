@@ -16,12 +16,8 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
+import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.RDFS;
 import org.aksw.gerbil.annotator.TestOKETask2Annotator;
 import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
@@ -29,6 +25,7 @@ import org.aksw.gerbil.dataset.impl.nif.NIFFileDatasetConfig;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.subclass.SubClassInferencer;
 import org.aksw.gerbil.transfer.nif.Document;
@@ -41,8 +38,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.hp.hpl.jena.vocabulary.OWL;
-import com.hp.hpl.jena.vocabulary.RDFS;
+import java.util.*;
 
 @RunWith(Parameterized.class)
 public class OKEChallengeTask2Test extends AbstractExperimentTaskTest {
@@ -374,7 +370,7 @@ public class OKEChallengeTask2Test extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(new TestOKETask2Annotator(
-                Arrays.asList(annotatorResults)), dataset, ExperimentType.OKE_Task2, matching);
+                Arrays.asList(annotatorResults)), dataset, ExperimentType.OKE_Task2, matching, new NullFilter().getConfig());
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(inferencer), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }

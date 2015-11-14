@@ -16,17 +16,13 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import org.aksw.gerbil.annotator.TestEntityRecognizer;
 import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -37,6 +33,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @RunWith(Parameterized.class)
 public class EntityRecognitionTest extends AbstractExperimentTaskTest {
@@ -106,7 +107,7 @@ public class EntityRecognitionTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(new TestEntityRecognizer(
                 Arrays.asList(annotatorResults)), new TestDataset(Arrays.asList(goldStandards), ExperimentType.ERec),
-                ExperimentType.ERec, matching);
+                ExperimentType.ERec, matching, new NullFilter().getConfig());
         runTest(experimentTaskId, experimentDAO, null, new EvaluatorFactory(), configuration, new F1MeasureTestingObserver(
                 this, experimentTaskId, experimentDAO, expectedResults));
     }

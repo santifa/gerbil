@@ -16,11 +16,6 @@
  */
 package org.aksw.gerbil.database;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
 import org.aksw.gerbil.datatypes.ErrorTypes;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
@@ -35,6 +30,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * 
@@ -53,13 +53,13 @@ public class ExperimentDAOImplJUnitTest {
 
     @Test
     public void testTaskCreation() {
-        int taskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456");
+        int taskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456", "nofilter");
         Assert.assertTrue(taskId > 0);
     }
 
     @Test
     public void testStateSettingAndGetting() {
-        int taskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-456");
+        int taskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-456", "nofilter");
         int expectedState = (new Random()).nextInt();
         this.dao.setExperimentState(taskId, expectedState);
         int retrievedState = this.dao.getExperimentState(taskId);
@@ -70,11 +70,11 @@ public class ExperimentDAOImplJUnitTest {
     public void testTaskCaching() throws InterruptedException {
         final long DURABILITY = 500;
         dao.setResultDurability(500);
-        int firstTaskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456");
+        int firstTaskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456", "nofilter");
         // create the same task and test whether the already existing one is
         // reused
         int secondTaskId = this.dao.connectCachedResultOrCreateTask("annotator1", "dataset1", "type1", "matching1",
-                "id-23457");
+                "id-23457", "nofilter");
         Assert.assertTrue(secondTaskId + " != " + ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED,
                 secondTaskId == ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED);
 
@@ -82,7 +82,7 @@ public class ExperimentDAOImplJUnitTest {
         // be reused
         Thread.sleep(DURABILITY);
         int thirdTaskId = this.dao.connectCachedResultOrCreateTask("annotator1", "dataset1", "type1", "matching1",
-                "id-23458");
+                "id-23458", "nofilter");
         Assert.assertFalse(ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED == thirdTaskId);
         Assert.assertFalse(firstTaskId == thirdTaskId);
 
@@ -90,7 +90,7 @@ public class ExperimentDAOImplJUnitTest {
         // for which the third shouldn't be reused
         this.dao.setExperimentState(thirdTaskId, ErrorTypes.SERVER_STOPPED_WHILE_PROCESSING.getErrorCode());
         int fourthTaskId = this.dao.connectCachedResultOrCreateTask("annotator1", "dataset1", "type1", "matching1",
-                "id-23459");
+                "id-23459", "nofilter");
         Assert.assertFalse(ExperimentDAO.CACHED_EXPERIMENT_TASK_CAN_BE_USED == fourthTaskId);
         Assert.assertFalse(thirdTaskId == fourthTaskId);
     }
@@ -117,7 +117,7 @@ public class ExperimentDAOImplJUnitTest {
         int taskId;
         for (ExperimentTaskResult result : results) {
             taskId = this.dao.createTask(result.getAnnotator(), result.getDataset(), result.getType().name(), result
-                    .getMatching().name(), EXPERIMENT_ID);
+                    .getMatching().name(), EXPERIMENT_ID, "nofilter");
             if (result.state == ExperimentDAO.TASK_FINISHED) {
                 this.dao.setExperimentTaskResult(taskId, result);
             } else {
@@ -155,7 +155,7 @@ public class ExperimentDAOImplJUnitTest {
 
     @Test
     public void testSetRunningExperimentsToError() {
-        int firstTaskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456");
+        int firstTaskId = this.dao.createTask("annotator1", "dataset1", "type1", "matching1", "id-23456", "nofilter");
         int retrievedState = this.dao.getExperimentState(firstTaskId);
         Assert.assertEquals(ExperimentDAO.TASK_STARTED_BUT_NOT_FINISHED_YET, retrievedState);
         // simulate a restart of the server... this would cause a rerun of the
@@ -182,7 +182,7 @@ public class ExperimentDAOImplJUnitTest {
                 { "annotator2", "dataset1", ExperimentType.D2KB.name(), Matching.WEAK_ANNOTATION_MATCH.name() } };
         int taskId;
         for (int i = 0; i < tasks.length; ++i) {
-            taskId = this.dao.createTask(tasks[i][0], tasks[i][1], tasks[i][2], tasks[i][3], "id-" + i);
+            taskId = this.dao.createTask(tasks[i][0], tasks[i][1], tasks[i][2], tasks[i][3], "id-" + i, "nofilter");
             if (i != 1) {
                 this.dao.setExperimentState(taskId, ExperimentDAO.TASK_FINISHED);
             }

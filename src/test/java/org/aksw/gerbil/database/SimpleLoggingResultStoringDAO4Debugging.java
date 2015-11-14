@@ -16,13 +16,12 @@
  */
 package org.aksw.gerbil.database;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.aksw.gerbil.datatypes.ExperimentTaskResult;
-
 import com.carrotsearch.hppc.IntIntOpenHashMap;
 import com.carrotsearch.hppc.IntObjectOpenHashMap;
+import org.aksw.gerbil.datatypes.ExperimentTaskResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleLoggingResultStoringDAO4Debugging extends SimpleLoggingDAO4Debugging {
 
@@ -65,7 +64,7 @@ public class SimpleLoggingResultStoringDAO4Debugging extends SimpleLoggingDAO4De
 
     @Override
     protected ExperimentTaskResult getLatestExperimentTaskResult(String experimentType, String matching,
-            String annotatorName, String datasetName) {
+            String annotatorName, String datasetName, String filterName) {
         return null;
     }
 

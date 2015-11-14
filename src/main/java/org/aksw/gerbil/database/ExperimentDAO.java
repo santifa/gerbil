@@ -16,11 +16,11 @@
  */
 package org.aksw.gerbil.database;
 
-import java.io.Closeable;
-import java.util.List;
-
 import org.aksw.gerbil.datatypes.ErrorTypes;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
+
+import java.io.Closeable;
+import java.util.List;
 
 /**
  * This interface defines the methods a class has to implement for making the
@@ -115,7 +115,7 @@ public interface ExperimentDAO extends Closeable {
      *         newly created experiment task.
      */
     public int connectCachedResultOrCreateTask(String annotatorName, String datasetName, String experimentType,
-            String matching, String experimentId);
+            String matching, String experimentId, String filterName);
 
     /**
      * Creates a new experiment task with the given preferences, sets its GERBIL version value using the current
@@ -135,7 +135,7 @@ public interface ExperimentDAO extends Closeable {
      * @return the id of the newly created experiment task.
      */
     public int createTask(String annotatorName, String datasetName, String experimentType, String matching,
-            String experimentId);
+            String experimentId, String filterName);
 
     /**
      * This method updates the result of the already existing experiment task,

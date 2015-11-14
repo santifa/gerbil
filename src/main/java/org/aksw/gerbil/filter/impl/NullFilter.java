@@ -7,28 +7,27 @@ import org.aksw.gerbil.transfer.nif.Marking;
 import java.util.List;
 
 /**
- * Created by ratzeputz on 08.11.15.
+ * A basic id filter, it returns it's input and is used for an unfiltered task result.
+ *
+ * Created by Henrik Jürges on 13.11.15.
  */
-public class SparqlFilter implements EntityFilter {
+public class NullFilter implements EntityFilter {
 
-    private FilterConfiguration conf;
+    private final static FilterConfiguration CONF = new FilterConfiguration("nofilter", "");
 
-    public SparqlFilter(FilterConfiguration conf) {
-        this.conf = conf;
-    }
 
     @Override
     public FilterConfiguration getConfig() {
-        return conf;
+        return CONF;
     }
 
     @Override
     public <E extends Marking> List<E> filterGoldstandard(List<E> entities, String datasetName) {
-        return null;
+        return entities;
     }
 
     @Override
     public <E extends Marking> List<E> filterAnnotatorResults(List<E> entities, String datasetName, String annotatorName) {
-        return null;
+        return entities;
     }
 }

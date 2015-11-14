@@ -16,14 +16,13 @@
  */
 package org.aksw.gerbil;
 
-import java.util.concurrent.Semaphore;
-
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.database.SimpleLoggingDAO4Debugging;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.AnnotatorsConfig;
@@ -37,6 +36,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Semaphore;
 
 @Ignore
 public class SingleRunTest implements TaskObserver {
@@ -74,7 +75,7 @@ public class SingleRunTest implements TaskObserver {
         overseer.addObserver(this);
 
         ExperimentTaskConfiguration taskConfigs[] = new ExperimentTaskConfiguration[] {
-                new ExperimentTaskConfiguration(annotatorConfig, datasetConfig, EXPERIMENT_TYPE, MATCHING) };
+                new ExperimentTaskConfiguration(annotatorConfig, datasetConfig, EXPERIMENT_TYPE, MATCHING, new NullFilter().getConfig()) };
 
         Experimenter experimenter = new Experimenter(overseer, new SimpleLoggingDAO4Debugging(),
                 RootConfig.createSameAsRetriever(), new EvaluatorFactory(), taskConfigs, "SingleRunTest");
