@@ -16,9 +16,7 @@
  */
 package org.aksw.gerbil.annotator.decorator;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import it.unipi.di.acube.batframework.utils.AnnotationException;
 import org.aksw.gerbil.annotator.Annotator;
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.annotator.EntityRecognizer;
@@ -33,6 +31,7 @@ import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.ExperimentTask;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -41,7 +40,8 @@ import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
-import it.unipi.di.acube.batframework.utils.AnnotationException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ErrorCountingAnnotatorDecoratorTest {
 
@@ -50,7 +50,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTask task = new ExperimentTask(1, db, null, new EvaluatorFactory(),
                 new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH));
+                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, new NullFilter().getConfig()), new NullFilter());
         task.run();
         ExperimentTaskResult result = db.getTaskResult(1);
         Assert.assertNotNull(result);
@@ -63,7 +63,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTask task = new ExperimentTask(2, db, null, new EvaluatorFactory(),
                 new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH));
+                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, new NullFilter().getConfig()), new NullFilter());
         task.run();
         Assert.assertTrue(db.getExperimentState(2) < 0);
     }

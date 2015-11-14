@@ -24,6 +24,7 @@ import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.DbpediaEntityResolution;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
 import org.aksw.gerbil.semantic.subclass.SimpleSubClassInferencer;
@@ -170,9 +171,11 @@ public class RootConfig {
             EntityResolutionService dbpedia = new DbpediaEntityResolution(
                     GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
 
-            return new FilterFactory(dbpedia);
+            FilterFactory filter = new FilterFactory(dbpedia);
+            filter.registerFilter(SparqlFilter.class, FilterFactory.getBasicResolver());
+            return filter;
         } else {
-            return null;
+            return new FilterFactory();
         }
     }
 

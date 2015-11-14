@@ -16,13 +16,13 @@
  */
 package org.aksw.gerbil.database;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleLoggingDAO4Debugging extends AbstractExperimentDAO {
 
@@ -37,12 +37,12 @@ public class SimpleLoggingDAO4Debugging extends AbstractExperimentDAO {
 
     @Override
     public int createTask(String annotatorName, String datasetName, String experimentType, String matching,
-            String experimentId) {
+            String experimentId, String filterName) {
         int taskId = nextTaskId;
         ++nextTaskId;
         LOGGER.info("creating task " + taskId + "annotatorName=\"" + annotatorName + "\", datasetName=\"" + datasetName
                 + "\", experimentType=\"" + experimentType.toString() + "\", String matching=\"" + matching
-                + "\", experimentId)");
+                + "\", experimentId\", filterName=\"" + filterName +"\")");
         return taskId;
     }
 
@@ -67,7 +67,7 @@ public class SimpleLoggingDAO4Debugging extends AbstractExperimentDAO {
 
     @Override
     protected int getCachedExperimentTaskId(String annotatorName, String datasetName, String experimentType,
-            String matching) {
+                                            String matching, String filterName) {
         return AbstractExperimentDAO.EXPERIMENT_TASK_NOT_CACHED;
     }
 
@@ -103,7 +103,7 @@ public class SimpleLoggingDAO4Debugging extends AbstractExperimentDAO {
 
     @Override
     protected ExperimentTaskResult getLatestExperimentTaskResult(String experimentType, String matching,
-            String annotatorName, String datasetName) {
+            String annotatorName, String datasetName, String filterName) {
         return null;
     }
 

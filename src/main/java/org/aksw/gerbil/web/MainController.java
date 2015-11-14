@@ -21,14 +21,19 @@ import org.aksw.gerbil.Experimenter;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.database.ResultNameToIdMapping;
 import org.aksw.gerbil.dataid.DataIDGenerator;
+import org.aksw.gerbil.dataset.Dataset;
+import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
+import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
+import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.utils.IDCreator;
 import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.RootConfig;
@@ -73,13 +78,34 @@ public class MainController {
             }
             isInitialized = true;
         }
+
         // Simply call the dataset mapping so that it has to be instantiated
         // DatasetMapping.getDatasetsForExperimentType(ExperimentType.EExt);
+    }
+
+    // precache dataset gold standard
+    private static synchronized void precacheGoldstandard(FilterFactory filterFactory, AdapterManager adapterManager) {
+        if (filterFactory.hasToBePrechached()) {
+            for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
+                for (ExperimentType type : ExperimentType.values()) {
+
+                    try {
+                        Dataset dataset = conf.getDataset(type);
+                        List<Document> documents = dataset.getInstances();
+                    } catch (GerbilException e) {
+                        LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
     }
 
     @PostConstruct
     public void init() {
         initialize(dao);
+        if (filterFactory.hasToBePrechached()) {
+            precacheGoldstandard(filterFactory, adapterManager);
+        }
     }
 
     @Autowired
@@ -99,7 +125,7 @@ public class MainController {
     private AdapterManager adapterManager;
 
     @Autowired
-    private FilterFactory filterHolder;
+    private FilterFactory filterFactory;
 
     // DataID URL is generated automatically in the experiment method?
     private DataIDGenerator dataIdGenerator;
@@ -169,16 +195,19 @@ public class MainController {
         ExperimentType expType = ExperimentType.valueOf(type);
         for (String annotator : annotators) {
             for (String dataset : datasets) {
-                configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
-                        adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching));
-                LOGGER.debug("Created config: {}", configs[count]);
-                ++count;
+                for (EntityFilter filter : filterFactory.getFilters()) {
+                    configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
+                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), filter.getConfig());
+                    LOGGER.debug("Created config: {}", configs[count]);
+                    ++count;
+                }
             }
         }
 
         // run the experiment
         String experimentId = IDCreator.getInstance().createID();
-        Experimenter exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId);
+        Experimenter exp;
+        exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId, filterFactory);
         exp.setAnnotatorOutputWriter(annotatorOutputWriter);
         exp.run();
 

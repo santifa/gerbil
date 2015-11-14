@@ -16,21 +16,14 @@
  */
 package org.aksw.gerbil.evaluate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.RDFS;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.evaluate.impl.ConfidenceScoreEvaluatorDecorator;
-import org.aksw.gerbil.evaluate.impl.DoubleResultComparator;
-import org.aksw.gerbil.evaluate.impl.FMeasureCalculator;
-import org.aksw.gerbil.evaluate.impl.HierarchicalFMeasureCalculator;
-import org.aksw.gerbil.evaluate.impl.InKBClassBasedFMeasureCalculator;
-import org.aksw.gerbil.evaluate.impl.SpanMergingEvaluatorDecorator;
-import org.aksw.gerbil.evaluate.impl.SubTaskAverageCalculator;
+import org.aksw.gerbil.evaluate.impl.*;
 import org.aksw.gerbil.evaluate.impl.filter.MarkingFilteringEvaluatorDecorator;
 import org.aksw.gerbil.evaluate.impl.filter.SearcherBasedNotMatchingMarkingFilter;
 import org.aksw.gerbil.matching.Matching;
@@ -55,9 +48,9 @@ import org.aksw.gerbil.utils.filter.TypeBasedMarkingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.vocabulary.OWL;
-import com.hp.hpl.jena.vocabulary.RDFS;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class EvaluatorFactory {
 
@@ -175,15 +168,15 @@ public class EvaluatorFactory {
                             "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#Role"));
 
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.ERec, configuration.matching);
+                    ExperimentType.ERec, configuration.matching, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     (Evaluator<TypedNamedEntity>) createEvaluator(ExperimentType.ERec, subTaskConfig, dataset)));
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.D2KB, Matching.STRONG_ENTITY_MATCH);
+                    ExperimentType.D2KB, Matching.STRONG_ENTITY_MATCH, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     (Evaluator<TypedNamedEntity>) createEvaluator(ExperimentType.D2KB, subTaskConfig, dataset)));
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.ETyping, Matching.STRONG_ENTITY_MATCH);
+                    ExperimentType.ETyping, Matching.STRONG_ENTITY_MATCH, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     (Evaluator<TypedNamedEntity>) createEvaluator(ExperimentType.ETyping, subTaskConfig, dataset,
                             okeClassifierTask1, inferencer)));
@@ -202,7 +195,7 @@ public class EvaluatorFactory {
             // sub task 1, find the correct type of the entity (use only
             // entities, without a class type!)
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.ETyping, Matching.STRONG_ENTITY_MATCH);
+                    ExperimentType.ETyping, Matching.STRONG_ENTITY_MATCH, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     new MarkingFilteringEvaluatorDecorator<>(
                             new TypeBasedMarkingFilter<TypedNamedEntity>(false, classTypes),
@@ -211,7 +204,7 @@ public class EvaluatorFactory {
             // sub task 2, find the correct position of the type in the text
             // (use only entities with a class type!)
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.ERec, configuration.matching);
+                    ExperimentType.ERec, configuration.matching, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     new MarkingFilteringEvaluatorDecorator<>(
                             new TypeBasedMarkingFilter<TypedNamedEntity>(true, classTypes),
@@ -247,11 +240,11 @@ public class EvaluatorFactory {
         case Sa2KB: // falls through
         case A2KB: {
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.ERec, configuration.matching);
+                    ExperimentType.ERec, configuration.matching, configuration.filter);
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,
                     createEvaluator(ExperimentType.ERec, subTaskConfig, dataset)));
             subTaskConfig = new ExperimentTaskConfiguration(configuration.annotatorConfig, configuration.datasetConfig,
-                    ExperimentType.D2KB, Matching.STRONG_ENTITY_MATCH);
+                    ExperimentType.D2KB, Matching.STRONG_ENTITY_MATCH, configuration.filter);
             // evaluators.add(createEvaluator(ExperimentType.ELink,
             // configuration, dataset));
             evaluators.add(new SubTaskEvaluator<>(subTaskConfig,

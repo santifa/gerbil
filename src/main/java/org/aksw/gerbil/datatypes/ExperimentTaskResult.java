@@ -16,16 +16,15 @@
  */
 package org.aksw.gerbil.datatypes;
 
+import com.carrotsearch.hppc.IntDoubleOpenHashMap;
+import org.aksw.gerbil.database.ExperimentDAO;
+import org.aksw.gerbil.matching.Matching;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import org.aksw.gerbil.database.ExperimentDAO;
-import org.aksw.gerbil.matching.Matching;
-
-import com.carrotsearch.hppc.IntDoubleOpenHashMap;
 
 public class ExperimentTaskResult {
 
@@ -42,6 +41,7 @@ public class ExperimentTaskResult {
     public long timestamp;
     public String annotator;
     public String dataset;
+    public String filter;
     public ExperimentType type;
     public Matching matching;
     public int idInDb;
@@ -57,16 +57,16 @@ public class ExperimentTaskResult {
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
             double results[], int state, int errorCount, long timestamp) {
-        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, -1, null);
+        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, -1, null, "nofilter");
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
             double results[], int state, int errorCount, long timestamp, int idInDb) {
-        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, idInDb, null);
+        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, idInDb, null, "nofilter");
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
-            double results[], int state, int errorCount, long timestamp, int idInDb, String gerbilVersion) {
+            double results[], int state, int errorCount, long timestamp, int idInDb, String gerbilVersion, String filter) {
         this.annotator = annotator;
         this.dataset = dataset;
         this.type = type;
@@ -77,12 +77,13 @@ public class ExperimentTaskResult {
         this.timestamp = timestamp;
         this.idInDb = idInDb;
         this.gerbilVersion = gerbilVersion;
+        this.filter = filter;
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
             double results[], int state, int errorCount) {
         this(annotator, dataset, type, matching, results, state, errorCount, (new java.util.Date()).getTime(), -1,
-                null);
+                null, "nofilter");
     }
 
     public ExperimentTaskResult(ExperimentTaskConfiguration configuration, double results[], int state,
@@ -201,6 +202,14 @@ public class ExperimentTaskResult {
         this.gerbilVersion = gerbilVersion;
     }
 
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -240,6 +249,7 @@ public class ExperimentTaskResult {
         int result = 1;
         result = prime * result + ((annotator == null) ? 0 : annotator.hashCode());
         result = prime * result + ((dataset == null) ? 0 : dataset.hashCode());
+        result = prime * result + ((filter == null) ? 0 : filter.hashCode());
         result = prime * result + errorCount;
         result = prime * result + ((matching == null) ? 0 : matching.hashCode());
         result = prime * result + Arrays.hashCode(results);
