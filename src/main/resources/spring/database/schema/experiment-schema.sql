@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS Experiments (
 );
 
 DROP INDEX IF EXISTS ExperimentTaskConfig;
-CREATE INDEX ExperimentTaskConfig ON ExperimentTasks (matching,experimentType,annotatorName,datasetName);
+CREATE INDEX ExperimentTaskConfig ON ExperimentTasks (matching,experimentType,annotatorName,datasetName,filterName);
 
 -- Changes from version 1.0.0 to 1.1.0
 CREATE TABLE IF NOT EXISTS ExperimentTasks_Version (

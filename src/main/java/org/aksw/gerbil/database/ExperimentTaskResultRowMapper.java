@@ -16,13 +16,13 @@
  */
 package org.aksw.gerbil.database;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.matching.Matching;
 import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Creates {@link ExperimentTaskResult} instances from a given {@link ResultSet}. Note that the following mapping is
@@ -58,11 +58,11 @@ public class ExperimentTaskResultRowMapper implements RowMapper<ExperimentTaskRe
         } catch (Exception e) {
             // nothing to do
         }
-        return new ExperimentTaskResult(resultSet.getString(1), resultSet.getString(2),
-                ExperimentType.valueOf(resultSet.getString(3)), Matching.valueOf(resultSet.getString(4)),
-                new double[] { resultSet.getDouble(5), resultSet.getDouble(6), resultSet.getDouble(7),
-                        resultSet.getDouble(8), resultSet.getDouble(9), resultSet.getDouble(10) },
-                resultSet.getInt(11), resultSet.getInt(12), resultSet.getTimestamp(13).getTime(), idInDatabase);
+        return new ExperimentTaskResult(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3),
+                ExperimentType.valueOf(resultSet.getString(4)), Matching.valueOf(resultSet.getString(5)),
+                new double[] { resultSet.getDouble(6), resultSet.getDouble(7), resultSet.getDouble(8),
+                        resultSet.getDouble(9), resultSet.getDouble(10), resultSet.getDouble(11) },
+                resultSet.getInt(12), resultSet.getInt(13), resultSet.getTimestamp(14).getTime(), idInDatabase);
     }
 
 }

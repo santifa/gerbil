@@ -58,7 +58,7 @@ public class ExperimentDAOImpl extends AbstractExperimentDAO {
     private final static String GET_LATEST_EXPERIMENT_TASKS = "SELECT DISTINCT annotatorName, datasetName, filterName FROM ExperimentTasks WHERE experimentType=:experimentType AND matching=:matching";
     @Deprecated
     private final static String GET_LATEST_EXPERIMENT_TASK_RESULT = "SELECT annotatorName, datasetName, filterName, experimentType, matching, microF1, microPrecision, microRecall, macroF1, macroPrecision, macroRecall, state, errorCount, lastChanged FROM ExperimentTasks WHERE annotatorName=:annotatorName AND datasetName=:datasetName AND experimentType=:experimentType AND matching=:matching AND state<>:unfinishedState ORDER BY lastChanged DESC LIMIT 1";
-    private final static String GET_LATEST_EXPERIMENT_TASK_RESULTS = "SELECT tasks.annotatorName, tasks.datasetName, task.filterName, tasks.experimentType, tasks.matching, tasks.microF1, tasks.microPrecision, tasks.microRecall, tasks.macroF1, tasks.macroPrecision, tasks.macroRecall, tasks.state, tasks.errorCount, tasks.lastChanged, tasks.id FROM ExperimentTasks tasks, (SELECT datasetName, annotatorName, MAX(lastChanged) AS lastChanged FROM ExperimentTasks WHERE experimentType=:experimentType AND matching=:matching AND state<>:unfinishedState GROUP BY datasetName, annotatorName) pairs WHERE tasks.annotatorName=pairs.annotatorName AND tasks.datasetName=pairs.datasetName AND tasks.experimentType=:experimentType AND tasks.matching=:matching AND tasks.lastChanged=pairs.lastChanged";
+    private final static String GET_LATEST_EXPERIMENT_TASK_RESULTS = "SELECT tasks.annotatorName, tasks.datasetName, filterName, tasks.experimentType, tasks.matching, tasks.microF1, tasks.microPrecision, tasks.microRecall, tasks.macroF1, tasks.macroPrecision, tasks.macroRecall, tasks.state, tasks.errorCount, tasks.lastChanged, tasks.id FROM ExperimentTasks tasks, (SELECT datasetName, annotatorName, MAX(lastChanged) AS lastChanged FROM ExperimentTasks WHERE experimentType=:experimentType AND matching=:matching AND state<>:unfinishedState GROUP BY datasetName, annotatorName) pairs WHERE tasks.annotatorName=pairs.annotatorName AND tasks.datasetName=pairs.datasetName AND tasks.experimentType=:experimentType AND tasks.matching=:matching AND tasks.lastChanged=pairs.lastChanged";
     private final static String GET_RUNNING_EXPERIMENT_TASKS = "SELECT annotatorName, datasetName, filterName, experimentType, matching, microF1, microPrecision, microRecall, macroF1, macroPrecision, macroRecall, state, errorCount, lastChanged FROM ExperimentTasks WHERE state=:unfinishedState";
     private final static String SHUTDOWN = "SHUTDOWN";
 
@@ -136,12 +136,13 @@ public class ExperimentDAOImpl extends AbstractExperimentDAO {
     @Override
     public int createTask(String annotatorName, String datasetName, String experimentType, String matching,
             String experimentId, String filterName) {
-        MapSqlParameterSource params = createTaskParameters(annotatorName, datasetName, experimentType, matching, filterName);
+        MapSqlParameterSource params = createTaskParameters(annotatorName, datasetName, filterName, experimentType, matching);
         params.addValue("state", ExperimentDAO.TASK_STARTED_BUT_NOT_FINISHED_YET);
         java.util.Date today = new java.util.Date();
         params.addValue("lastChanged", new java.sql.Timestamp(today.getTime()));
         params.addValue("version", GerbilConfiguration.getGerbilVersion());
         KeyHolder keyHolder = new GeneratedKeyHolder();
+        LOGGER.error("create task " + annotatorName + " " + datasetName + " " + filterName + " " + experimentType + " " + matching);
         this.template.update(INSERT_TASK, params, keyHolder);
         Integer generatedKey = (Integer) keyHolder.getKey();
         if (experimentId != null) {
@@ -339,7 +340,7 @@ public class ExperimentDAOImpl extends AbstractExperimentDAO {
 
     protected void insertSubTask(ExperimentTaskResult subTask, int experimentTaskId) {
         subTask.idInDb = createTask(subTask.annotator, subTask.dataset, subTask.type.name(), subTask.matching.name(),
-                null, subTask.getFilter());
+                null, subTask.filter);
         setExperimentTaskResult(subTask.idInDb, subTask);
         addSubTaskRelation(experimentTaskId, subTask.idInDb);
     }

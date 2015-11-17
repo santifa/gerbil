@@ -24,6 +24,7 @@ import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.DbpediaEntityResolution;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.cache.FilterCache;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
@@ -83,6 +84,7 @@ public class RootConfig {
     private static final String ANNOTATOR_OUTPUT_WRITER_DIRECTORY_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.outputDirectory";
 
     private static final String FILTER_SERVICE = "org.aksw.gerbil.util.filter.service";
+    private static final String FILTER = "org.aksw.gerbil.util.filter.cache";
 
     // {
     // // FIXME this is an extremely ugly workaround to be able to log the
@@ -167,9 +169,15 @@ public class RootConfig {
     }
 
     public static @Bean FilterFactory createFilterFactory() {
-        if (GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
+        if (GerbilConfiguration.getInstance().getBoolean(FILTER) &&
+                GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
             EntityResolutionService dbpedia = new DbpediaEntityResolution(
                     GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
+            try {
+                dbpedia.initCache(FilterCache.getInstance());
+            } catch (IOException e) {
+                LOGGER.error("Could not create cache.");
+            }
 
             FilterFactory filter = new FilterFactory(dbpedia);
             filter.registerFilter(SparqlFilter.class, FilterFactory.getBasicResolver());

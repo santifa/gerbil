@@ -1,6 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.transfer.nif.Marking;
 
@@ -22,12 +23,15 @@ public class NullFilter implements EntityFilter {
     }
 
     @Override
-    public <E extends Marking> List<E> filterGoldstandard(List<E> entities, String datasetName) {
+    public void setEntityResolution(EntityResolutionService service) { }
+
+    @Override
+    public <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName) {
         return entities;
     }
 
     @Override
-    public <E extends Marking> List<E> filterAnnotatorResults(List<E> entities, String datasetName, String annotatorName) {
+    public <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName) {
         return entities;
     }
 }

@@ -99,7 +99,7 @@ public abstract class AbstractExperimentDAO implements ExperimentDAO {
             LOGGER.warn("The durability of results is <= 0. I won't be able to cache results.");
         }
         if (experimentTaskId == EXPERIMENT_TASK_NOT_CACHED) {
-            return createTask(annotatorName, datasetName, experimentType, filterName, matching, experimentId);
+            return createTask(annotatorName, datasetName, experimentType, matching, experimentId, filterName);
         } else {
             LOGGER.debug("Could reuse cached task (id={}).", experimentTaskId);
             connectExistingTaskWithExperiment(experimentTaskId, experimentId);

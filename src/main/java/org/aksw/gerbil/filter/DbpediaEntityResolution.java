@@ -86,7 +86,7 @@ public class DbpediaEntityResolution implements EntityResolutionService {
             result = getFromCache(conf.getName(), datasetName, "");
         } else {
             result = resolve(entities, conf.getFilter());
-            cacheResults(entities, conf.getName(), datasetName, "");
+            cacheResults(result, conf.getName(), datasetName, "");
         }
         return result;
     }
@@ -166,4 +166,11 @@ public class DbpediaEntityResolution implements EntityResolutionService {
         }
     }
 
+    @Override
+    public String toString() {
+        return "DbpediaEntityResolution{" +
+                "prefixSet='" + prefixSet + '\'' +
+                ", serviceUrl='" + serviceUrl + '\'' +
+                '}';
+    }
 }

@@ -63,7 +63,6 @@ public class ExperimentTask implements Task {
     private SameAsRetriever globalRetriever = null;
     private EntityFilter filter = null;
 
-    //TODO think about a filter per task
     public ExperimentTask(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever globalRetriever,
                           EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, EntityFilter filter) {
         this.experimentDAO = experimentDAO;
@@ -112,7 +111,7 @@ public class ExperimentTask implements Task {
 
             taskState = new ExperimentTaskState(dataset.size());
             // perform experiment
-            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState);
+            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState, filter);
 
             // create result object
             // FIXME Fix this workaround
@@ -131,6 +130,7 @@ public class ExperimentTask implements Task {
             LOGGER.error("Error while trying to execute experiment.", e);
         } finally {
             IOUtils.closeQuietly(annotator);
+            LOGGER.error("Finished " + configuration);
         }
     }
 
@@ -282,7 +282,8 @@ public class ExperimentTask implements Task {
 
     @SuppressWarnings({ "deprecation" })
     protected EvaluationResult runExperiment(Dataset dataset, Annotator annotator,
-            List<Evaluator<? extends Marking>> evaluators, ExperimentTaskState state) throws GerbilException {
+                                             List<Evaluator<? extends Marking>> evaluators,
+                                             ExperimentTaskState state, EntityFilter filter) throws GerbilException {
         EvaluationResult evalResult = null;
         switch (configuration.type) {
         case D2KB: {
@@ -301,6 +302,8 @@ public class ExperimentTask implements Task {
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 prepareAnnotatorResults(results, globalRetriever);
                 evalResult = evaluate(evaluators, results, goldStandard);
             } catch (GerbilException e) {
@@ -325,6 +328,8 @@ public class ExperimentTask implements Task {
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 prepareAnnotatorResults(results, globalRetriever);
                 evalResult = evaluate(evaluators, results, goldStandard);
             } catch (GerbilException e) {
@@ -349,6 +354,8 @@ public class ExperimentTask implements Task {
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 prepareAnnotatorResults(results, globalRetriever);
                 evalResult = evaluate(evaluators, results, goldStandard);
             } catch (GerbilException e) {
@@ -373,6 +380,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(Span.class));
                     taskState.increaseExperimentStepCount();
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
@@ -396,6 +405,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedSpan.class));
                     taskState.increaseExperimentStepCount();
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
@@ -420,6 +431,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
@@ -445,6 +458,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
+                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }

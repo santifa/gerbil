@@ -190,7 +190,7 @@ public class MainController {
         }
 
         // build task configuration
-        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length];
+        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length * filterFactory.getFilters().size()];
         int count = 0;
         ExperimentType expType = ExperimentType.valueOf(type);
         for (String annotator : annotators) {
@@ -198,7 +198,7 @@ public class MainController {
                 for (EntityFilter filter : filterFactory.getFilters()) {
                     configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
                             adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), filter.getConfig());
-                    LOGGER.debug("Created config: {}", configs[count]);
+                    LOGGER.error("Created config: {}", configs[count]);
                     ++count;
                 }
             }
