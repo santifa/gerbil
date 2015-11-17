@@ -192,6 +192,7 @@ public class ExperimentDAOImplJUnitTest {
         Assert.assertEquals(1, results.size());
         Assert.assertEquals("annotator1", results.get(0).annotator);
         Assert.assertEquals("dataset1", results.get(0).dataset);
+        Assert.assertEquals("nofilter", results.get(0).filter);
         Assert.assertEquals(0, results.get(0).state);
     }
 }

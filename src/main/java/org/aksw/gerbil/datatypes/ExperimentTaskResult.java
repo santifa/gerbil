@@ -55,14 +55,14 @@ public class ExperimentTaskResult {
      */
     public String stateMsg = null;
 
-    public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
+    public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching, String filter,
             double results[], int state, int errorCount, long timestamp) {
-        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, -1, null, "nofilter");
+        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, -1, null, filter);
     }
 
-    public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
+    public ExperimentTaskResult(String annotator, String dataset, String filter, ExperimentType type, Matching matching,
             double results[], int state, int errorCount, long timestamp, int idInDb) {
-        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, idInDb, null, "nofilter");
+        this(annotator, dataset, type, matching, results, state, errorCount, timestamp, idInDb, null, filter);
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
@@ -78,6 +78,7 @@ public class ExperimentTaskResult {
         this.idInDb = idInDb;
         this.gerbilVersion = gerbilVersion;
         this.filter = filter;
+        System.out.println("created" + this);
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,
@@ -89,7 +90,8 @@ public class ExperimentTaskResult {
     public ExperimentTaskResult(ExperimentTaskConfiguration configuration, double results[], int state,
             int errorCount) {
         this(configuration.annotatorConfig.getName(), configuration.datasetConfig.getName(), configuration.type,
-                configuration.matching, results, state, errorCount, (new java.util.Date()).getTime());
+                configuration.matching, configuration.filter.getName(),
+                results, state, errorCount, (new java.util.Date()).getTime());
     }
 
     public double[] getResults() {

@@ -58,11 +58,10 @@ public class FilterFactory {
             try {
                 for (Constructor co : filter.getConstructors()) {
                     if (co.getParameterTypes().length == 1 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
-                        filters.add((EntityFilter) co.newInstance(c));
-
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Filter " + filter + " with " + c + " loaded.");
-                        }
+                        EntityFilter eFilter = (EntityFilter) co.newInstance(c);
+                        eFilter.setEntityResolution(service);
+                        filters.add(eFilter);
+                        LOGGER.info("Filter " + filter + " with " + c + " loaded.");
                     }
                 }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {

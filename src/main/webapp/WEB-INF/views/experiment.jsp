@@ -69,6 +69,7 @@
 				<tr>
 					<th>Annotator</th>
 					<th>Dataset</th>
+					<th>Filter</th>
 					<c:if test="${hasSubTasks}">
 						<th></th>
 					</c:if>
@@ -94,6 +95,7 @@
 						<tr>
 							<td>${task.annotator}</td>
 							<td>${task.dataset}</td>
+							<td>${task.filter}</td>
 							<c:if test="${hasSubTasks}">
 								<td></td>
 							</c:if>
@@ -126,6 +128,7 @@
 							<tr>
 								<td>${task.annotator}</td>
 								<td>${task.dataset}</td>
+								<td>${task.filter}</td>
 								<td>${subTask.type.label}</td>
 								<td><fmt:formatNumber type="number" maxFractionDigits="4"
 										value="${subTask.microF1Measure}" /></td>
@@ -154,6 +157,7 @@
 						<tr>
 							<td>${task.annotator}</td>
 							<td>${task.dataset}</td>
+							<td>${taks.filter}</td>
 							<c:if test="${hasSubTasks}">
 								<td></td>
 							</c:if>

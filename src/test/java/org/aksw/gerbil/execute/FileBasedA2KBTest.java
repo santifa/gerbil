@@ -16,10 +16,6 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.aksw.gerbil.annotator.TestA2KBAnnotator;
 import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.dataset.Dataset;
@@ -29,6 +25,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.exceptions.GerbilException;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.UriKBClassifier;
@@ -39,6 +36,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * This class tests the entity linking evaluation.
@@ -102,7 +103,7 @@ public class FileBasedA2KBTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
-                loadAnnotatorFile(annotatorFileName, false), dataset, EXPERIMENT_TYPE, matching);
+                loadAnnotatorFile(annotatorFileName, false), dataset, EXPERIMENT_TYPE, matching, new NullFilter().getConfig());
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }
@@ -113,7 +114,7 @@ public class FileBasedA2KBTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
-                loadAnnotatorFile(annotatorFileName, true), dataset, EXPERIMENT_TYPE, matching);
+                loadAnnotatorFile(annotatorFileName, true), dataset, EXPERIMENT_TYPE, matching, new NullFilter().getConfig());
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResultWithoutConfidence));
     }
