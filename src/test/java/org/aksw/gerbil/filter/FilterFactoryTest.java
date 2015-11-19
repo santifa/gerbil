@@ -4,7 +4,7 @@ import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.filter.cache.FilterCache;
-import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.impl.NormalFilter;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
@@ -44,30 +44,33 @@ public class FilterFactoryTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
-        service = new DbpediaEntityResolution(serviceUrl);
+        service = new SparqlEntityResolution(serviceUrl);
         service.initCache(FilterCache.getInstance());
     }
 
     @Test
     public void testRegisterFilter() throws Exception {
-        final FilterConfiguration expected = new FilterConfiguration("name filter", "?v rdf:type foaf:Person . }");
+        final FilterConfiguration conf = new FilterConfiguration("name filter", "?v rdf:type foaf:Person . }");
+        final NormalFilter expected = new NormalFilter(conf);
+        expected.setEntityResolution(service);
         FilterFactory factory = new FilterFactory(service);
-        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
+        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
             @Override
             int resolve(int counter, List<FilterConfiguration> result) {
-                result.add(expected);
+                result.add(conf);
                 return -1;
             }
         });
-        Assert.assertTrue(factory.getFilters().size() == 2);
-        Assert.assertEquals(expected, factory.getFilters().get(1).getConfig());
+        FilterHolder holder = factory.getFilters();
+        Assert.assertTrue(holder.getFilterList().size() == 2);
+        Assert.assertEquals(expected, holder.getFilterList().get(1));
 
     }
 
     @Test
     public void testPrecache() throws Exception {
         FilterFactory factory = new FilterFactory(service);
-        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
+        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
             @Override
             int resolve(int counter, List<FilterConfiguration> result) {
                 result.add(new FilterConfiguration("place filter", "?v rdf:type dbo:Place . }"));
@@ -75,6 +78,6 @@ public class FilterFactoryTest {
             }
         });
         Dataset test = new TestDataset(INSTANCES, ExperimentType.ERec);
-        factory.precache(test.getInstances(), "test");
+        factory.getFilters().cacheGoldstandard(test.getInstances(), "test");
     }
 }

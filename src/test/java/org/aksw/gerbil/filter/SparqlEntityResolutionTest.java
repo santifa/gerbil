@@ -9,11 +9,11 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test the {@link DbpediaEntityResolution}
+ * Test the {@link SparqlEntityResolution}
  *
  * Created by Henrik Jürges on 08.11.15.
  */
-public class DbpediaEntityResolutionTest {
+public class SparqlEntityResolutionTest {
 
     private final String service = "http://dbpedia.org/sparql";
 
@@ -32,7 +32,7 @@ public class DbpediaEntityResolutionTest {
 
     @Test
     public void testResolveEntitiesAnnotator() throws Exception {
-       DbpediaEntityResolution resolution = new DbpediaEntityResolution(service);
+       SparqlEntityResolution resolution = new SparqlEntityResolution(service);
        resolution.initCache(FilterCache.getInstance());
        resolution.setPrefixSet(new String[] { prefix });
        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
@@ -41,7 +41,7 @@ public class DbpediaEntityResolutionTest {
 
     @Test
     public void testResolveEntitiesGoldstandard() throws Exception {
-        DbpediaEntityResolution resolution = new DbpediaEntityResolution(service);
+        SparqlEntityResolution resolution = new SparqlEntityResolution(service);
         resolution.initCache(FilterCache.getInstance());
         resolution.setPrefixSet(new String[] { prefix });
         String[] result = resolution.resolveEntities(entitiesPerson, conf2, datasetName);
