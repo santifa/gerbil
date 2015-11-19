@@ -17,19 +17,12 @@
 package org.aksw.gerbil.web;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
+import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.utils.DatasetMetaData;
 import org.aksw.gerbil.utils.DatasetMetaDataMapping;
@@ -43,6 +36,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.*;
 
 @Controller
 public class ExperimentOverviewController {
@@ -70,25 +65,28 @@ public class ExperimentOverviewController {
 	@Qualifier("datasets")
 	private AdapterList<DatasetConfiguration> datasets;
 
+    @Autowired
+    private FilterFactory filterFactory;
+
 	@RequestMapping("/experimentoverview")
 	public @ResponseBody String experimentoverview(@RequestParam(value = "experimentType") String experimentType,
-			@RequestParam(value = "matching") String matchingString) {
-		LOGGER.debug("Got request on /experimentoverview(experimentType={}, matching={}", experimentType,
-				matchingString);
+			@RequestParam(value = "matching") String matchingString, @RequestParam(value = "filter") String filterName) {
+		LOGGER.debug("Got request on /experimentoverview(experimentType={}, matching={}, filter={}", experimentType,
+				matchingString, filterName);
 		Matching matching = MainController.getMatching(matchingString);
 		ExperimentType eType = ExperimentType.valueOf(experimentType);
 
 		String annotatorNames[] = loadAnnotators(eType);
 		String datasetNames[] = loadDatasets(eType);
 
-		double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames);
+		double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames, filterName);
 		double correlations[][] = calculateCorrelations(results, datasetNames);
 		return generateJson(results, correlations, annotatorNames, datasetNames);
 
 	}
 
 	private double[][] loadLatestResults(ExperimentType experimentType, Matching matching, String[] annotatorNames,
-			String[] datasetNames) {
+			String[] datasetNames, String filterName) {
 		Map<String, Integer> annotator2Index = new HashMap<String, Integer>();
 		for (int i = 0; i < annotatorNames.length; ++i) {
 			annotator2Index.put(annotatorNames[i], i);
@@ -99,7 +97,7 @@ public class ExperimentOverviewController {
 		}
 
 		List<ExperimentTaskResult> expResults = dao.getLatestResultsOfExperiments(experimentType.name(),
-				matching.name());
+				matching.name(), filterName);
 		double results[][] = new double[annotatorNames.length][datasetNames.length];
 		for (int i = 0; i < results.length; ++i) {
 			Arrays.fill(results[i], NOT_AVAILABLE_SENTINAL);
