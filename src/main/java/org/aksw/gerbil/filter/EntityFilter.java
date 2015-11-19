@@ -20,4 +20,6 @@ public interface EntityFilter {
     <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName);
 
     <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName);
+
+    <E extends Marking> void cache(List<List<E>> entities, String datasetName);
 }

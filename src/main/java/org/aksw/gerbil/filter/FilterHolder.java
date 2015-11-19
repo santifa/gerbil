@@ -25,11 +25,6 @@ public final class FilterHolder {
         this.isCacheGolstandard = isCacheGoldstandard;
     }
 
-    public  FilterHolder(List<EntityFilter> filterList) {
-        this.filterList = filterList;
-        this.isCacheGolstandard = false;
-    }
-
     public List<EntityFilter> getFilterList() {
         return filterList;
     }
@@ -42,7 +37,7 @@ public final class FilterHolder {
 
         for (EntityFilter f : filterList) {
             if (!f.getConfig().equals(NullFilter.CONF)) {
-                f.filterGoldstandard(goldstandard, datasetName);
+                f.cache(goldstandard, datasetName);
             }
         }
     }

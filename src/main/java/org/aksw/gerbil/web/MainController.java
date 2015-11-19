@@ -39,6 +39,7 @@ import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.RootConfig;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -86,6 +87,11 @@ public class MainController {
     // precache the goldstandard for every dataset
     private static synchronized void precacheGoldstandard(FilterHolder filterHolder, AdapterManager adapterManager) {
         for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
+            // FIXME ugly workaround
+            if (StringUtils.contains(conf.getName(), "OKE")) {
+                continue;
+            }
+
             for (ExperimentType type : ExperimentType.values()) {
 
                 if (conf.isApplicableForExperiment(type)) {
