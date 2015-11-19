@@ -27,13 +27,9 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     private String prefixSet;
 
-    private String[] prefixes;
-
     private FilterCache cache;
 
     private final static String PREFIX = "PREFIX";
-
-    private final static String HEAD = "SELECT ?v WHERE { values ?v { ";
 
     /**
      * Instantiates a new Dbpedia entity resolution.
@@ -47,8 +43,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     @Override
     public void setPrefixSet(String[] prefixes) {
-        this.prefixes = prefixes;
-
+        // create sparql query prefix
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < prefixes.length; i++) {
             builder.append(PREFIX).append(" ").append(prefixes[i]).append(" ");
@@ -62,7 +57,15 @@ public class SparqlEntityResolution implements EntityResolutionService {
     }
 
     @Override
-    public void precache() {
+    public void precache(String[] entitites, FilterConfiguration conf, String datasetName) {
+        if (cache != null && !isCached(entitites, conf.getName(), datasetName, "")) {
+            try {
+                String[] result = resolve(entitites, conf.getFilter());
+                cacheResults(result, conf.getName(), datasetName, "");
+            } catch (IOException e) {
+                LOGGER.warn(e.getMessage(), e);
+            }
+        }
 
     }
 
@@ -75,7 +78,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
         } else {
             try {
                 result = resolve(entities, conf.getFilter());
-                cacheResults(entities, conf.getName(), datasetName, annotatorName);
+                cacheResults(result, conf.getName(), datasetName, annotatorName);
             } catch (IOException e) {
                 LOGGER.error("Catched: " + e.getMessage(), e);
                 result = entities;
@@ -138,7 +141,6 @@ public class SparqlEntityResolution implements EntityResolutionService {
                 result.add(node.asResource().getURI());
             }
         } catch (Exception e) {
-            LOGGER.error("Could not retrieve answer from " + serviceUrl + " ; Skipping... " + e.getMessage(), e);
             throw new IOException("Could not retrieve answer from " + serviceUrl + " ; Skipping... " + e.getMessage());
         }
 
@@ -147,11 +149,21 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     private String buildQuery(String[] entities, String filter) {
         StringBuilder builder = new StringBuilder();
-        builder.append(prefixSet).append(HEAD);
-        for (int i = 0; i < entities.length; i++) {
-            builder.append("<").append(entities[i]).append(">").append(" ");
+        builder.append(prefixSet);
+
+        if (StringUtils.contains(filter, "##")) {
+            String[] filterParts = StringUtils.split(filter, "##");
+
+            // insert between every part all entities
+            for (int i = 0; i < filterParts.length && i % 2 == 0; i =+ 2) {
+                builder.append(filterParts[i]);
+
+                for (int j = 0; j < entities.length; j++) {
+                    builder.append("<").append(entities[j]).append(">").append(" ");
+                }
+                builder.append(filterParts[i+1]);
+            }
         }
-        builder.append("} ").append(filter);
         return builder.toString();
     }
 

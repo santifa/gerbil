@@ -22,13 +22,13 @@ public class SparqlEntityResolutionTest {
     private final String[] entitiesPerson = new String[] {"http://dbpedia.org/resource/Victoria_Beckham",
             "http://dbpedia.org/resource/John_P._Kennedy"};
 
-    private final FilterConfiguration conf1 = new FilterConfiguration("person-filter", "?v a foaf:Person . }");
+    private final FilterConfiguration conf1 = new FilterConfiguration("person-filter", "select ?v where { values ?v {##} . ?v a foaf:Person . }");
 
-    private final FilterConfiguration conf2 = new FilterConfiguration("person-agent", "?v a foaf:Agent . }");
+    private final FilterConfiguration conf2 = new FilterConfiguration("person-agent", "select ?v where { values ?v {##} . ?v a foaf:Agent . }");
 
-    private final String annotatorName = "spotlight";
+    private final String annotatorName = "testAnno";
 
-    private final String datasetName = "kore50";
+    private final String datasetName = "testData";
 
     @Test
     public void testResolveEntitiesAnnotator() throws Exception {
@@ -44,8 +44,8 @@ public class SparqlEntityResolutionTest {
         SparqlEntityResolution resolution = new SparqlEntityResolution(service);
         resolution.initCache(FilterCache.getInstance());
         resolution.setPrefixSet(new String[] { prefix });
-        String[] result = resolution.resolveEntities(entitiesPerson, conf2, datasetName);
+        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName);
         System.out.println(Arrays.toString(result));
-        assertTrue(result.length == 0);
+        assertTrue(result.length == 2);
     }
 }

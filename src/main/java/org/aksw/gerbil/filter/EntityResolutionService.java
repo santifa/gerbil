@@ -21,9 +21,9 @@ public interface EntityResolutionService {
     void initCache(FilterCache cache);
 
     /**
-     * Precache goldstandard.
+     * Precache a dataset goldstandard.
      */
-    void precache();
+    void precache(String[] entitites, FilterConfiguration conf, String datasetName);
 
     /**
      * Resolve entities from an annotator result.

@@ -52,6 +52,12 @@ public class NormalFilter implements EntityFilter {
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
 
+    @Override
+    public <E extends Marking> void cache(List<List<E>> entities, String datasetName) {
+        List<String> entityNames = collectEntityNames(entities);
+        service.precache(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName);
+    }
+
 
     // convert documents into a plain entity list
     // TODO implement span and typedspan
