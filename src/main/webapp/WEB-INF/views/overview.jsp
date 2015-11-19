@@ -70,6 +70,7 @@ table {
 		<c:url var="experimentoverview" value="/experimentoverview" />
 		<c:url var="matchings" value="/matchings" />
 		<c:url var="exptypes" value="/exptypes" />
+        <c:url var="filters" value="/filters" />
 
 		<%@include file="navbar.jsp"%>
 		<h1>GERBIL Experiment Overview</h1>
@@ -86,6 +87,13 @@ table {
 					<label class="col-md-4 control-label">Matching</label>
 					<div id="matching" class="col-md-8"></div>
 				</div>
+			</div>
+			<!-- filter selection -->
+			<div class="col-md-12">
+			    <div class="control-group">
+			        <label class="col-md-4 control-label">Filter</label>
+			        <div id="filter" class="col-md-8"></div>
+			    </div>
 			</div>
 			<div class="col-md-12">
 				<div class="control-group">
@@ -201,11 +209,29 @@ table {
                 
 	                        });
         };
+
+        function loadFilters() {
+            $.getJSON('${filters}', {ajax : 'false'},
+
+                function(data) {
+                    var htmlFilters = "";
+                    for (var i = 0; i < data.Filters.length; i++) {
+                        htmlFilters += "<label class=\"btn btn-primary\">";
+                        htmlFilters += "<input class=\"toggle\" type=\"radio\" name=\"filter\" id=\"" + data.Filters[i] + "\" value=\"" + data.Filters[i] + "\">"
+                            + data.Filters[i];
+                        htmlFilters += "</label>";
+                    }
+
+                    $('#filter').html(htmlFilters);
+                    $('#filter input')[0].checked = true;
+                });
+        };
         
         function loadTables() {
 	        $.getJSON('${experimentoverview}', {
 	            experimentType : $('#expTypes input:checked').val(),
 	            matching : $('#matching input:checked').val(),
+	            filter : $('#filter input:checked').val(),
 	            ajax : 'false'
 	        }, function(data){
 				var tableData = data[0];
@@ -284,6 +310,7 @@ table {
 	        //creating the radioboxes
 	        //++++++++++++
 	        loadExperimentTypes();
+	        loadFilters();
 
 	        $("#show").click(function(e) {
 		        loadTables();

@@ -32,7 +32,7 @@ public class DbpediaEntityResolution implements EntityResolutionService {
 
     private final static String PREFIX = "PREFIX";
 
-    private final static String HEAD = "SELECT ?v WHERE { values ?v { ";
+    private final static String HEAD = "SELECT DISTINCT ?v WHERE { values ?v { ";
 
     /**
      * Instantiates a new Dbpedia entity resolution.
@@ -110,11 +110,12 @@ public class DbpediaEntityResolution implements EntityResolutionService {
     }
 
     private String[] resolve(String[] entities, String filter) {
-        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>(entities.length);
         String queryString = buildQuery(entities, filter);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Filter query is: " + queryString);
         }
+        LOGGER.error("Filter query is: " + queryString);
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {

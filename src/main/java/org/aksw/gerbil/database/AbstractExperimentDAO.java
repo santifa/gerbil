@@ -144,12 +144,12 @@ public abstract class AbstractExperimentDAO implements ExperimentDAO {
 
     @Deprecated
     @Override
-    public List<ExperimentTaskResult> getLatestResultsOfExperiments(String experimentType, String matching) {
+    public List<ExperimentTaskResult> getLatestResultsOfExperiments(String experimentType, String matching, String filterName) {
         List<String[]> experimentTasks = getAnnotatorDatasetCombinations(experimentType, matching);
         List<ExperimentTaskResult> results = new ArrayList<ExperimentTaskResult>(experimentTasks.size());
         ExperimentTaskResult result;
         for (String combination[] : experimentTasks) {
-            result = getLatestExperimentTaskResult(experimentType, matching, combination[0], combination[1], "nofilter");
+            result = getLatestExperimentTaskResult(experimentType, matching, combination[0], combination[1], filterName);
             if (result != null) {
                 results.add(result);
             }

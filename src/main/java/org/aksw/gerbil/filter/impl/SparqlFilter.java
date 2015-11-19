@@ -62,9 +62,7 @@ public class SparqlFilter implements EntityFilter {
             for (E entity : documentPart) {
                 if (entity instanceof Meaning) {
                     result.addAll(((Meaning) entity).getUris());
-                } else if (entity instanceof Span) {
-
-                }
+                } else if (entity instanceof Span) { }
             }
         }
         return result;

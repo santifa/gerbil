@@ -290,6 +290,15 @@ public class MainController {
         }
     }
 
+    @RequestMapping("/filters")
+    public @ResponseBody ModelMap filters() {
+        List<String> filterNames = Lists.newArrayList();
+        for (EntityFilter f : filterFactory.getFilters()) {
+            filterNames.add(f.getConfig().getName());
+        }
+        return new ModelMap("Filters", filterNames.toArray(new String[filterNames.size()]));
+    }
+
     @RequestMapping("/annotators")
     public @ResponseBody List<String> annotatorsForExpType(
             @RequestParam(value = "experimentType") String experimentType) {
@@ -320,7 +329,7 @@ public class MainController {
         try {
             return FileUtils.readFileToString(new File(GOOGLE_ANALYTICS_FILE_NAME));
         } catch (IOException e) {
-            LOGGER.error("Couldn't read googel analytisc file.", e);
+            LOGGER.error("Couldn't read google analytics file.", e);
         }
         return "";
     }
