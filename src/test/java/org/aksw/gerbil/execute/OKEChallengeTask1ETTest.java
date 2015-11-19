@@ -249,7 +249,7 @@ public class OKEChallengeTask1ETTest extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(new TestOKETask1Annotator(
-                Arrays.asList(annotatorResults)), dataset, ExperimentType.ETyping, matching, new NullFilter().getConfig());
+                Arrays.asList(annotatorResults)), dataset, ExperimentType.ETyping, matching, NullFilter.CONF);
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }

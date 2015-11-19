@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class NullFilter implements EntityFilter {
 
-    private final static FilterConfiguration CONF = new FilterConfiguration("nofilter", "");
+    public final static FilterConfiguration CONF = new FilterConfiguration("nofilter", "");
 
 
     @Override

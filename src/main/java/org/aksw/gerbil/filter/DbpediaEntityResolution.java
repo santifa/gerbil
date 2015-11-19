@@ -8,6 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ public class DbpediaEntityResolution implements EntityResolutionService {
 
     private final static String PREFIX = "PREFIX";
 
-    private final static String HEAD = "SELECT DISTINCT ?v WHERE { values ?v { ";
+    private final static String HEAD = "SELECT ?v WHERE { values ?v { ";
 
     /**
      * Instantiates a new Dbpedia entity resolution.
@@ -72,8 +73,13 @@ public class DbpediaEntityResolution implements EntityResolutionService {
         if (cache != null && isCached(entities, conf.getName(), datasetName, annotatorName)) {
             result = getFromCache(conf.getName(), datasetName, annotatorName);
         } else {
-            result = resolve(entities, conf.getFilter());
-            cacheResults(entities, conf.getName(), datasetName, annotatorName);
+            try {
+                result = resolve(entities, conf.getFilter());
+                cacheResults(entities, conf.getName(), datasetName, annotatorName);
+            } catch (IOException e) {
+                LOGGER.error("Catched: " + e.getMessage(), e);
+                result = entities;
+            }
         }
         return result;
     }
@@ -85,8 +91,14 @@ public class DbpediaEntityResolution implements EntityResolutionService {
         if (cache != null && isCached(entities, conf.getName(), datasetName, "")) {
             result = getFromCache(conf.getName(), datasetName, "");
         } else {
-            result = resolve(entities, conf.getFilter());
-            cacheResults(result, conf.getName(), datasetName, "");
+            try {
+                result = resolve(entities, conf.getFilter());
+                cacheResults(result, conf.getName(), datasetName, "");
+            } catch (IOException e) {
+                LOGGER.error("Catched: " + e.getMessage(), e);
+                result = entities;
+            }
+
         }
         return result;
     }
@@ -109,13 +121,12 @@ public class DbpediaEntityResolution implements EntityResolutionService {
         }
     }
 
-    private String[] resolve(String[] entities, String filter) {
+    private String[] resolve(String[] entities, String filter)  throws IOException {
         List<String> result = new ArrayList<>(entities.length);
         String queryString = buildQuery(entities, filter);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Filter query is: " + queryString);
         }
-        LOGGER.error("Filter query is: " + queryString);
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {
@@ -126,6 +137,9 @@ public class DbpediaEntityResolution implements EntityResolutionService {
                 RDFNode node = solution.get("v");
                 result.add(node.asResource().getURI());
             }
+        } catch (Exception e) {
+            LOGGER.error("Could not retrieve answer from " + serviceUrl + " ; Skipping... " + e.getMessage(), e);
+            throw new IOException("Could not retrieve answer from " + serviceUrl + " ; Skipping... " + e.getMessage());
         }
 
         return result.toArray(new String[result.size()]);

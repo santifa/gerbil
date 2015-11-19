@@ -1,8 +1,10 @@
 package org.aksw.gerbil.filter;
 
+import com.google.common.collect.Lists;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.transfer.nif.Document;
+import org.aksw.gerbil.transfer.nif.Marking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ public class FilterFactory {
     private void addNull() {
         filters.add(new NullFilter());
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Filter " + NullFilter.class.getName() + " loaded with " + new NullFilter().getConfig() + " configuration.");
+            LOGGER.debug("Filter " + NullFilter.class.getName() + " loaded with " + NullFilter.CONF + " configuration.");
         }
     }
 
@@ -74,9 +76,16 @@ public class FilterFactory {
         return GerbilConfiguration.getInstance().getBoolean(PRECACHE);
     }
 
-    public void precache(List<Document> datasets) {
+    public void precache(List<Document> datasets, String datasetName) {
+        List<List<Marking>> goldstandard = Lists.newArrayList();
         for (Document doc : datasets) {
-            System.out.println("document: " + doc);
+            goldstandard.add(doc.getMarkings());
+        }
+
+        for (EntityFilter f : filters) {
+            if (!f.getConfig().equals(NullFilter.CONF)) {
+                f.filterGoldstandard(goldstandard, datasetName);
+            }
         }
     }
 
