@@ -16,15 +16,15 @@ import java.util.List;
 /**
  * Created by ratzeputz on 08.11.15.
  */
-public class SparqlFilter implements EntityFilter {
+public class NormalFilter implements EntityFilter {
 
-    private final static Logger LOGGER = LogManager.getLogger(SparqlFilter.class);
+    private final static Logger LOGGER = LogManager.getLogger(NormalFilter.class);
 
     private FilterConfiguration conf;
 
     private EntityResolutionService service;
 
-    public SparqlFilter(FilterConfiguration conf) {
+    public NormalFilter(FilterConfiguration conf) {
         this.conf = conf;
     }
 
@@ -105,7 +105,7 @@ public class SparqlFilter implements EntityFilter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SparqlFilter that = (SparqlFilter) o;
+        NormalFilter that = (NormalFilter) o;
 
         if (!conf.equals(that.conf)) return false;
         return service.equals(that.service);
@@ -121,7 +121,7 @@ public class SparqlFilter implements EntityFilter {
 
     @Override
     public String toString() {
-        return "SparqlFilter{" +
+        return "NormalFilter{" +
                 "conf=" + conf +
                 ", service=" + service +
                 '}';

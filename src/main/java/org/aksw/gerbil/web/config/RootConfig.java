@@ -21,11 +21,11 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
-import org.aksw.gerbil.filter.DbpediaEntityResolution;
+import org.aksw.gerbil.filter.SparqlEntityResolution;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.cache.FilterCache;
-import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.impl.NormalFilter;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
 import org.aksw.gerbil.semantic.subclass.SimpleSubClassInferencer;
@@ -171,7 +171,7 @@ public class RootConfig {
     public static @Bean FilterFactory createFilterFactory() {
         if (GerbilConfiguration.getInstance().getBoolean(FILTER) &&
                 GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
-            EntityResolutionService dbpedia = new DbpediaEntityResolution(
+            EntityResolutionService dbpedia = new SparqlEntityResolution(
                     GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
             try {
                 dbpedia.initCache(FilterCache.getInstance());
@@ -180,7 +180,7 @@ public class RootConfig {
             }
 
             FilterFactory filter = new FilterFactory(dbpedia);
-            filter.registerFilter(SparqlFilter.class, FilterFactory.getBasicResolver());
+            filter.registerFilter(NormalFilter.class, FilterFactory.getBasicResolver());
             return filter;
         } else {
             return new FilterFactory();

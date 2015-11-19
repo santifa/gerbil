@@ -14,14 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A DbpediaEntityResolution performs regular sparql queries and returns
+ * A SparqlEntityResolution performs regular sparql queries and returns
  * the entity types preserving owl#Thing.
  * <p/>
  * Created by Henrik Jürges on 07.11.15.
  */
-public class DbpediaEntityResolution implements EntityResolutionService {
+public class SparqlEntityResolution implements EntityResolutionService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DbpediaEntityResolution.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SparqlEntityResolution.class);
 
     private String serviceUrl;
 
@@ -40,7 +40,7 @@ public class DbpediaEntityResolution implements EntityResolutionService {
      *
      * @param serviceUrl the service url
      */
-    public DbpediaEntityResolution(String serviceUrl) {
+    public SparqlEntityResolution(String serviceUrl) {
         this.serviceUrl = serviceUrl;
     }
 
@@ -183,7 +183,7 @@ public class DbpediaEntityResolution implements EntityResolutionService {
 
     @Override
     public String toString() {
-        return "DbpediaEntityResolution{" +
+        return "SparqlEntityResolution{" +
                 "prefixSet='" + prefixSet + '\'' +
                 ", serviceUrl='" + serviceUrl + '\'' +
                 '}';

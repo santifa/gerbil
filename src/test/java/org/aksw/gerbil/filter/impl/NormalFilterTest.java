@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.DbpediaEntityResolution;
+import org.aksw.gerbil.filter.SparqlEntityResolution;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.filter.cache.FilterCache;
@@ -17,9 +17,9 @@ import java.util.List;
 /**
  * Created by ratzeputz on 16.11.15.
  */
-public class SparqlFilterTest {
+public class NormalFilterTest {
 
-    private SparqlFilter filter;
+    private NormalFilter filter;
 
     private final String serviceUrl = "http://dbpedia.org/sparql";
 
@@ -46,10 +46,10 @@ public class SparqlFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        EntityResolutionService service = new DbpediaEntityResolution(serviceUrl);
+        EntityResolutionService service = new SparqlEntityResolution(serviceUrl);
         service.initCache(FilterCache.getInstance());
         service.setPrefixSet(prefix);
-        filter = new SparqlFilter(new FilterConfiguration("person", "?v rdf:type foaf:Person . }"));
+        filter = new NormalFilter(new FilterConfiguration("person", "?v rdf:type foaf:Person . }"));
         filter.setEntityResolution(service);
     }
 

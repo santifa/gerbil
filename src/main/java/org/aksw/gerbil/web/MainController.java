@@ -31,6 +31,7 @@ import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.IDCreator;
@@ -82,21 +83,20 @@ public class MainController {
         // DatasetMapping.getDatasetsForExperimentType(ExperimentType.EExt);
     }
 
-    // precache dataset gold standard
-    private static synchronized void precacheGoldstandard(FilterFactory filterFactory, AdapterManager adapterManager) {
+    // precache the goldstandard for every dataset
+    private static synchronized void precacheGoldstandard(FilterHolder filterHolder, AdapterManager adapterManager) {
         for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
             for (ExperimentType type : ExperimentType.values()) {
 
-                try {
-                    Dataset dataset = conf.getDataset(type);
-                    if (dataset != null) {
+                if (conf.isApplicableForExperiment(type)) {
+                    try {
+                        Dataset dataset = conf.getDataset(type);
                         LOGGER.info("Caching dataset " + dataset.getName());
-                        filterFactory.precache(dataset.getInstances(), dataset.getName());
+                        filterHolder.cacheGoldstandard(dataset.getInstances(), dataset.getName());
 
-
+                    } catch (GerbilException e) {
+                        LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
                     }
-                } catch (GerbilException e) {
-                    LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
                 }
             }
         }
@@ -105,8 +105,9 @@ public class MainController {
     @PostConstruct
     public void init() {
         initialize(dao);
-        if (filterFactory.hasToBePrechached()) {
-            precacheGoldstandard(filterFactory, adapterManager);
+        FilterHolder holder = filterFactory.getFilters();
+        if (holder.isCacheGolstandard) {
+            precacheGoldstandard(holder, adapterManager);
         }
     }
 
@@ -192,12 +193,12 @@ public class MainController {
         }
 
         // build task configuration
-        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length * filterFactory.getFilters().size()];
+        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length * filterFactory.getFilters().getFilterList().size()];
         int count = 0;
         ExperimentType expType = ExperimentType.valueOf(type);
         for (String annotator : annotators) {
             for (String dataset : datasets) {
-                for (EntityFilter filter : filterFactory.getFilters()) {
+                for (EntityFilter filter : filterFactory.getFilters().getFilterList()) {
                     configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
                             adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), filter.getConfig());
                     LOGGER.error("Created config: {}", configs[count]);
@@ -295,7 +296,7 @@ public class MainController {
     @RequestMapping("/filters")
     public @ResponseBody ModelMap filters() {
         List<String> filterNames = Lists.newArrayList();
-        for (EntityFilter f : filterFactory.getFilters()) {
+        for (EntityFilter f : filterFactory.getFilters().getFilterList()) {
             filterNames.add(f.getConfig().getName());
         }
         return new ModelMap("Filters", filterNames.toArray(new String[filterNames.size()]));

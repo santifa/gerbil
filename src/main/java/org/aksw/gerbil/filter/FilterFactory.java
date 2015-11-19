@@ -1,10 +1,7 @@
 package org.aksw.gerbil.filter;
 
-import com.google.common.collect.Lists;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.NullFilter;
-import org.aksw.gerbil.transfer.nif.Document;
-import org.aksw.gerbil.transfer.nif.Marking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,15 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A filter factory creates and holds all filters defined
- * in gerbil.properties
- *
- * Created by Henrik Jürges on 07.11.15.
+ * The FilterFactory creates a {@link FilterHolder} with all registered Filters.
+ * Use this Object for the filter process.
+ * <br/>
+ * For the creation of the filter instances use the {@code registerFilter} method
+ * and provide a {@link ConfigResolver} which refers to the filter.properties.
+ * <p/>
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class FilterFactory {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(FilterFactory.class);
 
+    // refers to filter.properties
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
     private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
@@ -31,28 +32,46 @@ public class FilterFactory {
 
     private List<EntityFilter> filters = new ArrayList<>(42);
 
+    private boolean isDummy = false;
+
+    /**
+     * Instantiates a new Filter factory.
+     *
+     * @param service an {€link EntityResolutionService}
+     */
     public FilterFactory(EntityResolutionService service) {
-        // initialize entity resolver
+        // set the all prefixes defined in the filter.properties
         List<String> prefixSet = getPrefixSet();
         service.setPrefixSet(prefixSet.toArray(new String[prefixSet.size()]));
         this.service = service;
 
         // initialize null object
-        addNull();
+        addNullFilter();
     }
 
 
+    /**
+     * Instantiates an empty Filter factory which creates only dummy objects.
+     */
     public FilterFactory() {
-        addNull();
+        addNullFilter();
+        this.isDummy = true;
     }
 
-    private void addNull() {
+    // creates the dummy filter
+    private void addNullFilter() {
         filters.add(new NullFilter());
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Filter " + NullFilter.class.getName() + " loaded with " + NullFilter.CONF + " configuration.");
-        }
     }
 
+    /**
+     * Register new filter objects via reflections.
+     *
+     * @param <T>      the type of the configuration
+     * @param <E>      the type of the filter
+     * @param filter   the filter class extending {@link EntityFilter}, a filter class must have a constructor which takes
+     *                  the configuration class.
+     * @param resolver the concrete configuration resolver
+     */
     public <T, E extends EntityFilter> void registerFilter(Class<E> filter, ConfigResolver<T> resolver) {
         List<T> configurations = resolver.resolve();
         for (T c : configurations) {
@@ -72,25 +91,14 @@ public class FilterFactory {
         }
     }
 
-    public boolean hasToBePrechached() {
-        return GerbilConfiguration.getInstance().getBoolean(PRECACHE);
-    }
-
-    public void precache(List<Document> datasets, String datasetName) {
-        List<List<Marking>> goldstandard = Lists.newArrayList();
-        for (Document doc : datasets) {
-            goldstandard.add(doc.getMarkings());
-        }
-
-        for (EntityFilter f : filters) {
-            if (!f.getConfig().equals(NullFilter.CONF)) {
-                f.filterGoldstandard(goldstandard, datasetName);
-            }
-        }
-    }
-
-    public List<EntityFilter> getFilters() {
-        return filters;
+    /**
+     * Returns a {@link FilterHolder} containing all registered filter.
+     *
+     * @return the filter holder
+     */
+    public FilterHolder getFilters() {
+        return new FilterHolder(new ArrayList<>(filters),
+            GerbilConfiguration.getInstance().getBoolean(PRECACHE));
     }
 
     // returns a set of prefixes defined in the filter.properties
@@ -108,6 +116,11 @@ public class FilterFactory {
         }.resolve();
     }
 
+    /**
+     * Gets the basic configuration resolver.
+     *
+     * @return the basic resolver
+     */
     public static final ConfigResolver<FilterConfiguration> getBasicResolver() {
         return new ConfigResolver<FilterConfiguration>() {
 
@@ -124,6 +137,13 @@ public class FilterFactory {
         };
     }
 
+    /**
+     * Gets filter by a {@link FilterConfiguration}. <br/>
+     * Note: This method takes not care of other configuration classes.
+     *
+     * @param filterConfig the filter config
+     * @return the filter by config
+     */
     public EntityFilter getFilterByConfig(FilterConfiguration filterConfig) {
         for (EntityFilter f : filters) {
             if (f.getConfig().equals(filterConfig)) {
@@ -133,8 +153,18 @@ public class FilterFactory {
         return new NullFilter();
     }
 
+    /**
+     * A Config resolver.
+     *
+     * @param <T> configuration class
+     */
     public abstract static class ConfigResolver<T> {
 
+        /**
+         * Resolves the configuration objects.
+         *
+         * @return the list of configuration objects
+         */
         public List<T> resolve() {
             List<T> result = new ArrayList<>();
             int counter = 1;
@@ -145,6 +175,15 @@ public class FilterFactory {
             return result;
         }
 
+        /**
+         * Override this method to provide the configuration objects.
+         * We provide a arbitrary counter for going through the filter.properties.
+         * Add your objects to the result list.
+         *
+         * @param counter the step counter
+         * @param result  the result collection
+         * @return the next step or -1
+         */
         abstract int resolve(int counter, List<T> result);
     }
 }
