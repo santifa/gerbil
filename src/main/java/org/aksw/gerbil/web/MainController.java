@@ -33,7 +33,6 @@ import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
-import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.utils.IDCreator;
 import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.RootConfig;
@@ -85,16 +84,19 @@ public class MainController {
 
     // precache dataset gold standard
     private static synchronized void precacheGoldstandard(FilterFactory filterFactory, AdapterManager adapterManager) {
-        if (filterFactory.hasToBePrechached()) {
-            for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
-                for (ExperimentType type : ExperimentType.values()) {
+        for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
+            for (ExperimentType type : ExperimentType.values()) {
 
-                    try {
-                        Dataset dataset = conf.getDataset(type);
-                        List<Document> documents = dataset.getInstances();
-                    } catch (GerbilException e) {
-                        LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
+                try {
+                    Dataset dataset = conf.getDataset(type);
+                    if (dataset != null) {
+                        LOGGER.info("Caching dataset " + dataset.getName());
+                        filterFactory.precache(dataset.getInstances(), dataset.getName());
+
+
                     }
+                } catch (GerbilException e) {
+                    LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
                 }
             }
         }

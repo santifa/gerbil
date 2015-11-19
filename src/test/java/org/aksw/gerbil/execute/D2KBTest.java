@@ -258,7 +258,7 @@ public class D2KBTest extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
-                new TestD2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.D2KB, matching, new NullFilter().getConfig());
+                new TestD2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.D2KB, matching, NullFilter.CONF);
         runTest(experimentTaskId, experimentDAO, EVALUATOR_FACTORY, configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }

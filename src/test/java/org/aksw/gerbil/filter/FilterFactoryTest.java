@@ -9,6 +9,7 @@ import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -31,14 +32,14 @@ public class FilterFactoryTest {
             .asList((Document) new DocumentImpl(
                             "Angelina, her father Jon, and her partner Brad never played together in the same movie.",
                             "http://www.aksw.org/gerbil/test-document-1", Arrays.asList((Marking) new NamedEntity(21, 3,
-                            "http://www.aksw.org/gerbil/test-document/Jon"), (Marking) new NamedEntity(0, 8,
-                            "http://www.aksw.org/gerbil/test-document/Angelina"), (Marking) new NamedEntity(42, 4,
-                            "http://www.aksw.org/gerbil/test-document/Brad"))),
+                            "http://de.dbpedia.org/resource/Bernhard_Langer_(Golfer)"), (Marking) new NamedEntity(0, 8,
+                            "http://de.dbpedia.org/resource/Hamburg"), (Marking) new NamedEntity(42, 4,
+                            "http://de.dbpedia.org/resource/Venice_(Louisiana)"))),
                     (Document) new DocumentImpl(
                             "McDonald’s Corp., which replaced its chief executive officer last week, saw U.S. sales drop 4 percent in February after a short-lived recovery in its domestic market sputtered.",
                             "http://www.aksw.org/gerbil/test-document-2", Arrays.asList((Marking) new NamedEntity(0,
-                                    16, "http://www.aksw.org/gerbil/test-document/McDonaldsCorp"),
-                            (Marking) new NamedEntity(76, 4, "http://www.aksw.org/gerbil/test-document/US"))));
+                                    16, "http://de.dbpedia.org/resource/CNN"),
+                            (Marking) new NamedEntity(76, 4, "http://de.dbpedia.org/resource/Tiger_Woods"))));
 
 
     @BeforeClass
@@ -49,23 +50,31 @@ public class FilterFactoryTest {
 
     @Test
     public void testRegisterFilter() throws Exception {
+        final FilterConfiguration expected = new FilterConfiguration("name filter", "?v rdf:type foaf:Person . }");
         FilterFactory factory = new FilterFactory(service);
         factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
             @Override
             int resolve(int counter, List<FilterConfiguration> result) {
-                result.add(new FilterConfiguration("name filter", "v? values?v rdf:type foaf:Person . }"));
+                result.add(expected);
                 return -1;
             }
         });
-
+        Assert.assertTrue(factory.getFilters().size() == 2);
+        Assert.assertEquals(expected, factory.getFilters().get(1).getConfig());
 
     }
 
     @Test
     public void testPrecache() throws Exception {
         FilterFactory factory = new FilterFactory(service);
+        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
+            @Override
+            int resolve(int counter, List<FilterConfiguration> result) {
+                result.add(new FilterConfiguration("place filter", "?v rdf:type dbo:Place . }"));
+                return -1;
+            }
+        });
         Dataset test = new TestDataset(INSTANCES, ExperimentType.ERec);
-        factory.precache(test.getInstances());
-
+        factory.precache(test.getInstances(), "test");
     }
 }

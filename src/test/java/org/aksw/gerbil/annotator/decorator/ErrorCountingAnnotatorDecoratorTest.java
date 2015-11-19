@@ -50,7 +50,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTask task = new ExperimentTask(1, db, null, new EvaluatorFactory(),
                 new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, new NullFilter().getConfig()), new NullFilter());
+                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF), new NullFilter());
         task.run();
         ExperimentTaskResult result = db.getTaskResult(1);
         Assert.assertNotNull(result);
@@ -63,7 +63,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTask task = new ExperimentTask(2, db, null, new EvaluatorFactory(),
                 new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, new NullFilter().getConfig()), new NullFilter());
+                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF), new NullFilter());
         task.run();
         Assert.assertTrue(db.getExperimentState(2) < 0);
     }
