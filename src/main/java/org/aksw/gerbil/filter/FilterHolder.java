@@ -42,6 +42,22 @@ public final class FilterHolder {
         }
     }
 
+    /**
+     * Gets filter by a {@link FilterConfiguration}. <br/>
+     * Note: This method takes not care of other configuration classes.
+     *
+     * @param filterConfig the filter config
+     * @return the filter by config
+     */
+    public EntityFilter getFilterByConfig(FilterConfiguration filterConfig) {
+        for (EntityFilter f : filterList) {
+            if (f.getConfig().equals(filterConfig)) {
+                return f;
+            }
+        }
+        return new NullFilter();
+    }
+
     @Override
     public String toString() {
         return "FilterHolder{" +

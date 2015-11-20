@@ -30,6 +30,7 @@ import org.aksw.gerbil.evaluate.*;
 import org.aksw.gerbil.evaluate.impl.FMeasureCalculator;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.semantic.sameas.DatasetBasedSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.MultipleSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is a single experiment designed as {@link Task} to be able to run
@@ -61,16 +63,19 @@ public class ExperimentTask implements Task {
     private ExperimentTaskState taskState = null;
     private AnnotatorOutputWriter annotatorOutputWriter = null;
     private SameAsRetriever globalRetriever = null;
-    private EntityFilter filter = null;
+    private FilterHolder filterHolder = null;
+    private Map<ExperimentTaskConfiguration, Integer> filterTask = null;
 
     public ExperimentTask(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever globalRetriever,
-                          EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, EntityFilter filter) {
+                          EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, FilterHolder filterHolder,
+                          Map<ExperimentTaskConfiguration, Integer> filterTask) {
         this.experimentDAO = experimentDAO;
         this.configuration = configuration;
         this.experimentTaskId = experimentTaskId;
         this.evFactory = evFactory;
         this.globalRetriever = globalRetriever;
-        this.filter = filter;
+        this.filterHolder = filterHolder;
+        this.filterTask = filterTask;
     }
 
     @Override
@@ -78,6 +83,8 @@ public class ExperimentTask implements Task {
         LOGGER.info("Task started " + configuration.toString());
         Annotator annotator = null;
         try {
+            LOGGER.error("Current config" + configuration + " " + experimentTaskId);
+            LOGGER.error("Other configs" + filterTask);
             // Create dataset
             Dataset dataset = configuration.datasetConfig.getDataset(configuration.type);
             if (dataset == null) {
@@ -111,7 +118,7 @@ public class ExperimentTask implements Task {
 
             taskState = new ExperimentTaskState(dataset.size());
             // perform experiment
-            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState, filter);
+            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState, filterHolder.getFilterList().get(0));
 
             // create result object
             // FIXME Fix this workaround
