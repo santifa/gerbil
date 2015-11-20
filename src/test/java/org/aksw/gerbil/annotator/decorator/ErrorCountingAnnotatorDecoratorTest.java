@@ -31,6 +31,8 @@ import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.ExperimentTask;
+import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.transfer.nif.Document;
@@ -41,16 +43,25 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ErrorCountingAnnotatorDecoratorTest {
 
     @Test
     public void testErrorCount() {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
-        ExperimentTask task = new ExperimentTask(1, db, null, new EvaluatorFactory(),
-                new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF), new NullFilter());
+        List<EntityFilter> filter = new ArrayList<>();
+        filter.add(new NullFilter());
+        FilterHolder holder = new FilterHolder(filter, false);
+
+        ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
+                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF);
+        Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
+        filterTask.put(conf, 1);
+
+        ExperimentTask task = new ExperimentTask(1, db, null, new EvaluatorFactory(), conf, holder, filterTask);
         task.run();
         ExperimentTaskResult result = db.getTaskResult(1);
         Assert.assertNotNull(result);
@@ -61,9 +72,16 @@ public class ErrorCountingAnnotatorDecoratorTest {
     @Test
     public void testTaskCanceling() {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
-        ExperimentTask task = new ExperimentTask(2, db, null, new EvaluatorFactory(),
-                new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
-                        ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF), new NullFilter());
+        List<EntityFilter> filter = new ArrayList<>();
+        filter.add(new NullFilter());
+        FilterHolder holder = new FilterHolder(filter, false);
+
+        ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
+                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilter.CONF);
+        Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
+        filterTask.put(conf, 2);
+
+        ExperimentTask task = new ExperimentTask(2, db, null, new EvaluatorFactory(), conf, holder, filterTask);
         task.run();
         Assert.assertTrue(db.getExperimentState(2) < 0);
     }

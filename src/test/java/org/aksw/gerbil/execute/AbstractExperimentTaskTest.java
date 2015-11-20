@@ -21,6 +21,8 @@ import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
+import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.web.config.RootConfig;
@@ -34,6 +36,10 @@ import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public abstract class AbstractExperimentTaskTest {
@@ -49,8 +55,14 @@ public abstract class AbstractExperimentTaskTest {
 
     public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever sameAsRetriever,
             EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, TaskObserver observer) {
+        List<EntityFilter> filter = new ArrayList<>();
+        filter.add(new NullFilter());
+        FilterHolder holder = new FilterHolder(filter, false);
+        Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
+        filterTask.put(configuration, experimentTaskId);
+
         ExperimentTask task = new ExperimentTask(experimentTaskId, experimentDAO, sameAsRetriever, evFactory,
-                configuration, new NullFilter());
+                configuration, holder, filterTask);
         Overseer overseer = new SimpleOverseer();
         overseer.addObserver(observer);
         @SuppressWarnings("unused")

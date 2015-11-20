@@ -32,6 +32,7 @@ import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.FilterHolder;
+import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.IDCreator;
@@ -199,24 +200,22 @@ public class MainController {
         }
 
         // build task configuration
-        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length * filterFactory.getFilters().getFilterList().size()];
+        ExperimentTaskConfiguration[] configs = new ExperimentTaskConfiguration[annotators.length * datasets.length];
         int count = 0;
         ExperimentType expType = ExperimentType.valueOf(type);
         for (String annotator : annotators) {
             for (String dataset : datasets) {
-                for (EntityFilter filter : filterFactory.getFilters().getFilterList()) {
                     configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
-                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), filter.getConfig());
-                    LOGGER.error("Created config: {}", configs[count]);
+                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), NullFilter.CONF);
+                    LOGGER.debug("Created config: {}", configs[count]);
                     ++count;
-                }
             }
         }
 
         // run the experiment
         String experimentId = IDCreator.getInstance().createID();
         Experimenter exp;
-        exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId, filterFactory);
+        exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId, filterFactory.getFilters());
         exp.setAnnotatorOutputWriter(annotatorOutputWriter);
         exp.run();
 

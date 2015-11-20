@@ -138,22 +138,6 @@ public class FilterFactory {
     }
 
     /**
-     * Gets filter by a {@link FilterConfiguration}. <br/>
-     * Note: This method takes not care of other configuration classes.
-     *
-     * @param filterConfig the filter config
-     * @return the filter by config
-     */
-    public EntityFilter getFilterByConfig(FilterConfiguration filterConfig) {
-        for (EntityFilter f : filters) {
-            if (f.getConfig().equals(filterConfig)) {
-                return f;
-            }
-        }
-        return new NullFilter();
-    }
-
-    /**
      * A Config resolver.
      *
      * @param <T> configuration class
