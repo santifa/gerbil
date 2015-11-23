@@ -1,0 +1,269 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix nif: <http://persistence.uni-leipzig.org/nlp2rdf/ontologies/nif-core#> .
+@prefix itsrdf: <http://www.w3.org/2005/11/its/rdf#> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:sourceUrl <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv> ;
+	nif:isString "Heidi and her husband Seal live in Vegas."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=0,5>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=0,> ;
+	nif:anchorOf "Heidi"^^xsd:string ;
+	nif:beginIndex "0"^^xsd:long ;
+	nif:endIndex "5"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Heidi_Klum> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=22,26>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=0,> ;
+	nif:anchorOf "Seal"^^xsd:string ;
+	nif:beginIndex "22"^^xsd:long ;
+	nif:endIndex "26"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Seal_(musician)> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=35,40>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08#char=0,> ;
+	nif:anchorOf "Vegas"^^xsd:string ;
+	nif:beginIndex "35"^^xsd:long ;
+	nif:endIndex "40"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Las_Vegas,_Nevada> .
+
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "Three of the greatest guitarists started their career in a single band : Clapton, Beck, and Page."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=73,80>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=0,> ;
+	nif:anchorOf "Clapton"^^xsd:string ;
+	nif:beginIndex "73"^^xsd:long ;
+	nif:endIndex "80"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Eric_Clapton> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=82,86>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=0,> ;
+	nif:anchorOf "Beck"^^xsd:string ;
+	nif:beginIndex "82"^^xsd:long ;
+	nif:endIndex "86"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Jeff_Beck> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=92,96>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS03#char=0,> ;
+	nif:anchorOf "Page"^^xsd:string ;
+	nif:beginIndex "92"^^xsd:long ;
+	nif:endIndex "96"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Jimmy_Page> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "Allen founded the EMP in Seattle, which featured exhibitions about Hendrix and Dylan, but also about various science fiction movies."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,5>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,> ;
+	nif:anchorOf "Allen"^^xsd:string ;
+	nif:beginIndex "0"^^xsd:long ;
+	nif:endIndex "5"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Paul_Allen> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=18,21>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,> ;
+	nif:anchorOf "EMP"^^xsd:string ;
+	nif:beginIndex "18"^^xsd:long ;
+	nif:endIndex "21"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/EMP_Museum> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=25,32>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,> ;
+	nif:anchorOf "Seattle"^^xsd:string ;
+	nif:beginIndex "25"^^xsd:long ;
+	nif:endIndex "32"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Seattle> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=67,74>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,> ;
+	nif:anchorOf "Hendrix"^^xsd:string ;
+	nif:beginIndex "67"^^xsd:long ;
+	nif:endIndex "74"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Jimi_Hendrix> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=79,84>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS04#char=0,> ;
+	nif:anchorOf "Dylan"^^xsd:string ;
+	nif:beginIndex "79"^^xsd:long ;
+	nif:endIndex "84"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Bob_Dylan> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "After unsuccessful years, aging country star Cash made a grandiose comeback with his American Recordings, recorded at his home with the help of Rubin."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=45,49>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=0,> ;
+	nif:anchorOf "Cash"^^xsd:string ;
+	nif:beginIndex "45"^^xsd:long ;
+	nif:endIndex "49"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Johnny_Cash> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=85,104>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=0,> ;
+	nif:anchorOf "American Recordings"^^xsd:string ;
+	nif:beginIndex "85"^^xsd:long ;
+	nif:endIndex "104"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/American_Recordings_(album)> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=144,149>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/MUS06#char=0,> ;
+	nif:anchorOf "Rubin"^^xsd:string ;
+	nif:beginIndex "144"^^xsd:long ;
+	nif:endIndex "149"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Rick_Rubin> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "After the death of Steve, the former CEO of Apple, his commencement speech at Stanford was watched thousands of times."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=19,24>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=0,> ;
+	nif:anchorOf "Steve"^^xsd:string ;
+	nif:beginIndex "19"^^xsd:long ;
+	nif:endIndex "24"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Steve_Jobs> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=44,49>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=0,> ;
+	nif:anchorOf "Apple"^^xsd:string ;
+	nif:beginIndex "44"^^xsd:long ;
+	nif:endIndex "49"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Apple_Inc.> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=78,86>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01#char=0,> ;
+	nif:anchorOf "Stanford"^^xsd:string ;
+	nif:beginIndex "78"^^xsd:long ;
+	nif:endIndex "86"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Stanford_University> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL07#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "Erich was born in Neunkirchen."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL07#char=0,5>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL07#char=0,> ;
+	nif:anchorOf "Erich"^^xsd:string ;
+	nif:beginIndex "0"^^xsd:long ;
+	nif:endIndex "5"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Erich_Honecker> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL07#char=18,29>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL07#char=0,> ;
+	nif:anchorOf "Neunkirchen"^^xsd:string ;
+	nif:beginIndex "18"^^xsd:long ;
+	nif:endIndex "29"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Neunkirchen,_Saarland> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL08#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "Macedonia is a province of Greece."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL08#char=0,9>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL08#char=0,> ;
+	nif:anchorOf "Macedonia"^^xsd:string ;
+	nif:beginIndex "0"^^xsd:long ;
+	nif:endIndex "9"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Macedonia_(Greece)> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL08#char=27,33>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL08#char=0,> ;
+	nif:anchorOf "Greece"^^xsd:string ;
+	nif:beginIndex "27"^^xsd:long ;
+	nif:endIndex "33"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Greece> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=0,>
+	a nif:String , nif:Context , nif:RFC5147String ;
+	nif:broaderContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv#char=0,> ;
+	nif:isString "Obama welcomed Merkel upon her arrival at JFK."^^xsd:string .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=0,5>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=0,> ;
+	nif:anchorOf "Obama"^^xsd:string ;
+	nif:beginIndex "0"^^xsd:long ;
+	nif:endIndex "5"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Barack_Obama> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=15,21>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=0,> ;
+	nif:anchorOf "Merkel"^^xsd:string ;
+	nif:beginIndex "15"^^xsd:long ;
+	nif:endIndex "21"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/Angela_Merkel> .
+
+<http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=42,45>
+	a nif:String , nif:RFC5147String ;
+	nif:referenceContext <http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/POL09#char=0,> ;
+	nif:anchorOf "JFK"^^xsd:string ;
+	nif:beginIndex "42"^^xsd:long ;
+	nif:endIndex "45"^^xsd:long ;
+	a nif:Phrase ;
+	itsrdf:taIdentRef  <http://dbpedia.org/resource/John_F._Kennedy_International_Airport> .
+
+

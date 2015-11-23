@@ -45,7 +45,7 @@ public class FilterFactoryTest {
     @BeforeClass
     public static void setUp() throws IOException {
         service = new SparqlEntityResolution(serviceUrl);
-        service.initCache(FilterCache.getInstance());
+        service.initCache(FilterCache.getInstance("/tmp/filter"));
     }
 
     @Test

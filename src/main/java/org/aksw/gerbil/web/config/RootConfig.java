@@ -85,6 +85,8 @@ public class RootConfig {
 
     private static final String FILTER_SERVICE = "org.aksw.gerbil.util.filter.service";
     private static final String FILTER = "org.aksw.gerbil.util.filter.cache";
+    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
+
 
     // {
     // // FIXME this is an extremely ugly workaround to be able to log the
@@ -170,11 +172,13 @@ public class RootConfig {
 
     public static @Bean FilterFactory createFilterFactory() {
         if (GerbilConfiguration.getInstance().getBoolean(FILTER) &&
+                GerbilConfiguration.getInstance().containsKey(CACHE_LOCATION) &&
                 GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
+
             EntityResolutionService dbpedia = new SparqlEntityResolution(
                     GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
             try {
-                dbpedia.initCache(FilterCache.getInstance());
+                dbpedia.initCache(FilterCache.getInstance(GerbilConfiguration.getInstance().getString(CACHE_LOCATION)));
             } catch (IOException e) {
                 LOGGER.error("Could not create cache.");
             }

@@ -29,7 +29,7 @@ public class OKEChallengeNIFTest {
 
     public static final String FILES[] = new String[] {
             // "gerbil_data/datasets/spotlight/dbpedia-spotlight-nif.ttl"};
-            "gerbil_data/datasets/KORE50/kore50-nif.ttl",
+            "gerbil_data/datasets/KORE50/kore50-reduced-nif.ttl",
             "C:/users/Micha/workspace/oke-challenge/GoldStandard_sampleData/task2/dataset_task_2.ttl",
             "C:/users/Micha/workspace/oke-challenge/GoldStandard_sampleData/task1/dataset_task_1.ttl",
             "C:/users/Micha/workspace/oke-challenge/example_data/task1.ttl",
