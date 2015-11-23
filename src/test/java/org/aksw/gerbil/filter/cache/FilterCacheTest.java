@@ -25,7 +25,7 @@ public class FilterCacheTest {
 
     @Test
     public void testCacheGoldStandard() throws Exception {
-        FilterCache cache = FilterCache.getInstance();
+        FilterCache cache = FilterCache.getInstance(cacheLocation.getAbsolutePath());
         CachedResult res = new CachedResult("a filter", "gold1", new String[] {"http://dbpedia.org/resource/Victoria_Beckham"});
         cache.cache(res);
         assertTrue(res.getCacheFile(cacheLocation).exists());
@@ -33,7 +33,7 @@ public class FilterCacheTest {
 
     @Test
     public void testCacheAnnotatorResults() throws Exception {
-        FilterCache cache = FilterCache.getInstance();
+        FilterCache cache = FilterCache.getInstance(cacheLocation.getAbsolutePath());
         CachedResult res = new CachedResult("a filter", "gold1", "anno", new String[] {"http://dbpedia.org/resource/Victoria_Beckman"});
         res.setChecksum(CachedResult.generateMd5Checksum(entities1));
         cache.cache(res);
@@ -49,7 +49,7 @@ public class FilterCacheTest {
 
     @Test
     public void testComplexCacheOperations() throws Exception {
-        FilterCache cache = FilterCache.getInstance();
+        FilterCache cache = FilterCache.getInstance("/tmp/filter");
 
         CachedResult res1 = new CachedResult("a filter", "gold1", entities1);
         res1.setChecksum(CachedResult.generateMd5Checksum(entities1));
@@ -62,9 +62,6 @@ public class FilterCacheTest {
         cache.cache(res2);
         cache.cache(res3);
 
-        System.out.println(CachedResult.generateMd5Checksum(entities2));
-        System.out.println(CachedResult.generateMd5Checksum(entities1));
-        System.out.println(CachedResult.generateMd5Checksum(entities1));
         // some results are cached
         assertTrue(cache.isVersionCached("a filter", "gold1", CachedResult.generateMd5Checksum(entities1)));
         assertFalse(cache.isVersionCached("a filter", "gold1", CachedResult.generateMd5Checksum(entities2)));

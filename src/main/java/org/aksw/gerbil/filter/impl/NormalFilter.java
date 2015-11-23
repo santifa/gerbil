@@ -45,6 +45,7 @@ public class NormalFilter implements EntityFilter {
     @Override
     public <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName) {
         List<String> entityNames = collectEntityNames(entities);
+        System.out.println("collected gold: " + entityNames);
         String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
@@ -52,6 +53,7 @@ public class NormalFilter implements EntityFilter {
     @Override
     public <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName) {
         List<String> entityNames = collectEntityNames(entities);
+        System.out.println("collected anno: " + entityNames);
         String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName, annotatorName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }

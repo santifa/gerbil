@@ -15,6 +15,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class SparqlEntityResolutionTest {
 
+    private final String cacheLocation = "/tmp/filter";
+
     private final String service = "http://dbpedia.org/sparql";
 
     private final String prefix = "foaf:<http://xmlns.com/foaf/0.1/>";
@@ -33,7 +35,7 @@ public class SparqlEntityResolutionTest {
     @Test
     public void testResolveEntitiesAnnotator() throws Exception {
        SparqlEntityResolution resolution = new SparqlEntityResolution(service);
-       resolution.initCache(FilterCache.getInstance());
+       resolution.initCache(FilterCache.getInstance(cacheLocation));
        resolution.setPrefixSet(new String[] { prefix });
        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
         assertArrayEquals(entitiesPerson, result);
@@ -42,7 +44,7 @@ public class SparqlEntityResolutionTest {
     @Test
     public void testResolveEntitiesGoldstandard() throws Exception {
         SparqlEntityResolution resolution = new SparqlEntityResolution(service);
-        resolution.initCache(FilterCache.getInstance());
+        resolution.initCache(FilterCache.getInstance(cacheLocation));
         resolution.setPrefixSet(new String[] { prefix });
         String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName);
         System.out.println(Arrays.toString(result));

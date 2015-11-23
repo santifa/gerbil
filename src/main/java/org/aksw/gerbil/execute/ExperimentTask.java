@@ -470,8 +470,8 @@ public class ExperimentTask implements Task {
             List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
             List<List<T>> filterGoldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
             LOGGER.debug("Filter: " + conf);
-            LOGGER.debug("AResult: " + filterResult);
-            LOGGER.debug("gold: " + filterGoldStandard);
+            LOGGER.debug("FilterResult: " + filterResult);
+            LOGGER.debug("FilterGold: " + filterGoldStandard);
 
             EvaluationResult evalResult = evaluate(evaluators, filterResult, filterGoldStandard);
             if (annotatorOutputWriter != null) {

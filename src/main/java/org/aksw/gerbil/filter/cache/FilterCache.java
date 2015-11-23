@@ -2,7 +2,6 @@ package org.aksw.gerbil.filter.cache;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.aksw.gerbil.config.GerbilConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -17,7 +16,7 @@ import java.util.List;
  * It's cheaper to store the results temporally rather
  * then asking a sparql endpoint all the time. <br>
  * For a simple reset just remove the cache folder or all files.
- *
+ * <p/>
  * Created by Henrik Jürges on 09.11.15.
  */
 public class FilterCache {
@@ -25,8 +24,6 @@ public class FilterCache {
     private static final Logger LOGGER = LogManager.getLogger(FilterCache.class);
 
     private static FilterCache instance = null;
-
-    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
 
     private final File cacheLocation;
 
@@ -54,17 +51,17 @@ public class FilterCache {
     }
 
     /**
-     * Gets instance.
+     * Gets instance of an filter cache. If the location does not exists, we try to create it.
      *
-     * @return the instance
+     * @param location the location of the cache
+     * @return the filter cache instance
      * @throws IOException the io exception if the path is not found.
      */
-    public static synchronized FilterCache getInstance() throws IOException {
+    public static synchronized FilterCache getInstance(String location) throws IOException {
         if (instance != null) {
             return instance;
 
         } else {
-            String location = GerbilConfiguration.getInstance().getString(CACHE_LOCATION);
             try {
                 instance = new FilterCache(location);
 
@@ -89,7 +86,7 @@ public class FilterCache {
      * @return the boolean
      */
     public boolean isCached(String filterName, String datasetName) {
-        return new CachedResult(filterName, datasetName).getCacheFile(cacheLocation).exists();
+        return cacheFiles.contains(new CachedResult(filterName, datasetName).getCacheFile(cacheLocation));
 
     }
 
@@ -102,9 +99,17 @@ public class FilterCache {
      * @return the boolean
      */
     public boolean isCached(String filterName, String datasetName, String annotatorName) {
-        return new CachedResult(filterName, datasetName, annotatorName).getCacheFile(cacheLocation).exists();
+        return cacheFiles.contains(new CachedResult(filterName, datasetName, annotatorName).getCacheFile(cacheLocation));
     }
 
+    /**
+     * Is version cached boolean.
+     *
+     * @param filterName  the filter name
+     * @param datasetName the dataset name
+     * @param md5sum      the md 5 sum
+     * @return the boolean
+     */
     public boolean isVersionCached(String filterName, String datasetName, String md5sum) {
         if (isCached(filterName, datasetName)) {
             CachedResult res = getCachedResults(new CachedResult(filterName, datasetName));
@@ -114,6 +119,15 @@ public class FilterCache {
         }
     }
 
+    /**
+     * Is version cached boolean.
+     *
+     * @param filterName    the filter name
+     * @param datasetName   the dataset name
+     * @param annotatorName the annotator name
+     * @param md5sum        the md 5 sum
+     * @return the boolean
+     */
     public boolean isVersionCached(String filterName, String datasetName, String annotatorName, String md5sum) {
         if (isCached(filterName, datasetName, annotatorName)) {
             CachedResult res = getCachedResults(new CachedResult(filterName, datasetName, annotatorName));
@@ -152,6 +166,11 @@ public class FilterCache {
         return deserializeResult(result.getCacheFile(cacheLocation));
     }
 
+    /**
+     * Cache.
+     *
+     * @param result the result
+     */
     public void cache(CachedResult result) {
         File cacheFile = result.getCacheFile(cacheLocation);
 
@@ -166,7 +185,7 @@ public class FilterCache {
                 cacheFiles.add(cacheFile);
             } else {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("No newer version of " + cacheFile + " stored.");
+                    LOGGER.debug("No new version of " + cacheFile + " stored.");
                 }
             }
         }
@@ -178,7 +197,6 @@ public class FilterCache {
         Gson gson = builder.setPrettyPrinting().create();
         String jsonString = gson.toJson(result, CachedResult.class);
 
-        // write to filesystem
         try (BufferedOutputStream buf = new BufferedOutputStream(new FileOutputStream(cacheFile))) {
             buf.write(jsonString.getBytes());
             buf.close();
@@ -186,7 +204,6 @@ public class FilterCache {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Cache object " + cacheFile + " written.");
             }
-
         } catch (IOException e) {
             LOGGER.error("Could not cache " + cacheFile + " ." + e.getMessage(), e);
         }
