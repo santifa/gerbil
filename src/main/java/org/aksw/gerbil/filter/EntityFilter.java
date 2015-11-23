@@ -1,5 +1,6 @@
 package org.aksw.gerbil.filter;
 
+import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 
 import java.util.List;
@@ -21,5 +22,5 @@ public interface EntityFilter {
 
     <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName);
 
-    <E extends Marking> void cache(List<List<E>> entities, String datasetName);
+    <E extends Marking> void cache(List<Document> entities, String datasetName);
 }

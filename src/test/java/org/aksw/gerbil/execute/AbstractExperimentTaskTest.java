@@ -49,17 +49,24 @@ public abstract class AbstractExperimentTaskTest {
 
     public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, EvaluatorFactory evFactory,
             ExperimentTaskConfiguration configuration, TaskObserver observer) {
-        runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), evFactory, configuration,
-                observer);
+        runTest(experimentTaskId, experimentDAO, evFactory, configuration,
+                observer, RootConfig.createSameAsRetriever());
     }
 
-    public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever sameAsRetriever,
-            EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, TaskObserver observer) {
+    public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, EvaluatorFactory evFactory,
+                        ExperimentTaskConfiguration configuration, TaskObserver observer, SameAsRetriever sameAsRetriever) {
         List<EntityFilter> filter = new ArrayList<>();
         filter.add(new NullFilter());
         FilterHolder holder = new FilterHolder(filter, false);
         Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
         filterTask.put(configuration, experimentTaskId);
+        runTest(experimentTaskId, experimentDAO, sameAsRetriever, evFactory, configuration, observer, holder, filterTask);
+
+    }
+
+        public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, SameAsRetriever sameAsRetriever,
+            EvaluatorFactory evFactory, ExperimentTaskConfiguration configuration, TaskObserver observer,
+                            FilterHolder holder, Map<ExperimentTaskConfiguration, Integer> filterTask) {
 
         ExperimentTask task = new ExperimentTask(experimentTaskId, experimentDAO, sameAsRetriever, evFactory,
                 configuration, holder, filterTask);

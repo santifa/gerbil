@@ -1,9 +1,7 @@
 package org.aksw.gerbil.filter;
 
-import com.google.common.collect.Lists;
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.transfer.nif.Document;
-import org.aksw.gerbil.transfer.nif.Marking;
 
 import java.util.List;
 
@@ -30,14 +28,9 @@ public final class FilterHolder {
     }
 
     public void cacheGoldstandard(List<Document> datasets, String datasetName) {
-        List<List<Marking>> goldstandard = Lists.newArrayList();
-        for (Document doc : datasets) {
-            goldstandard.add(doc.getMarkings());
-        }
-
         for (EntityFilter f : filterList) {
             if (!f.getConfig().equals(NullFilter.CONF)) {
-                f.cache(goldstandard, datasetName);
+                f.cache(datasets, datasetName);
             }
         }
     }
