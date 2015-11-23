@@ -3,6 +3,7 @@ package org.aksw.gerbil.filter.impl;
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 
 import java.util.List;
@@ -36,5 +37,5 @@ public class NullFilter implements EntityFilter {
     }
 
     @Override
-    public <E extends Marking> void cache(List<List<E>> entities, String datasetName) { }
+    public <E extends Marking> void cache(List<Document> entities, String datasetName) { }
 }

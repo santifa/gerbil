@@ -83,8 +83,8 @@ public class ExperimentTask implements Task {
         LOGGER.info("Task started " + configuration.toString());
         Annotator annotator = null;
         try {
-            LOGGER.error("Current config" + configuration + " " + experimentTaskId);
-            LOGGER.error("Other configs" + filterTask);
+            LOGGER.debug("Complete Tasks are: " + filterTask);
+
             // Create dataset
             Dataset dataset = configuration.datasetConfig.getDataset(configuration.type);
             if (dataset == null) {
@@ -118,17 +118,7 @@ public class ExperimentTask implements Task {
 
             taskState = new ExperimentTaskState(dataset.size());
             // perform experiment
-            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState, filterHolder.getFilterList().get(0));
-
-            // create result object
-            // FIXME Fix this workaround
-            ExperimentTaskResult expResult = new ExperimentTaskResult(configuration, new double[6],
-                    ExperimentDAO.TASK_FINISHED, 0);
-            transformResults(result, expResult);
-
-            // store result
-            experimentDAO.setExperimentTaskResult(experimentTaskId, expResult);
-            LOGGER.info("Task Finished " + configuration.toString());
+            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState);
         } catch (GerbilException e) {
             LOGGER.error("Got an error while running the task. Storing the error code in the db...", e);
             // store error
@@ -290,7 +280,7 @@ public class ExperimentTask implements Task {
     @SuppressWarnings({ "deprecation" })
     protected EvaluationResult runExperiment(Dataset dataset, Annotator annotator,
                                              List<Evaluator<? extends Marking>> evaluators,
-                                             ExperimentTaskState state, EntityFilter filter) throws GerbilException {
+                                             ExperimentTaskState state) throws GerbilException {
         EvaluationResult evalResult = null;
         switch (configuration.type) {
         case D2KB: {
@@ -306,13 +296,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(MeaningSpan.class));
                     taskState.increaseExperimentStepCount();
                 }
-                if (annotatorOutputWriter != null) {
-                    annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
-                }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-                prepareAnnotatorResults(results, globalRetriever);
-                evalResult = evaluate(evaluators, results, goldStandard);
+
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -332,13 +317,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(MeaningSpan.class));
                     taskState.increaseExperimentStepCount();
                 }
-                if (annotatorOutputWriter != null) {
-                    annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
-                }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-                prepareAnnotatorResults(results, globalRetriever);
-                evalResult = evaluate(evaluators, results, goldStandard);
+
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -358,13 +338,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(Meaning.class));
                     taskState.increaseExperimentStepCount();
                 }
-                if (annotatorOutputWriter != null) {
-                    annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
-                }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-                prepareAnnotatorResults(results, globalRetriever);
-                evalResult = evaluate(evaluators, results, goldStandard);
+
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -387,8 +362,10 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(Span.class));
                     taskState.increaseExperimentStepCount();
                 }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
+
+                //TODO think about a method to filter the recognition
+                //results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                //goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
@@ -412,8 +389,10 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedSpan.class));
                     taskState.increaseExperimentStepCount();
                 }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
+
+                // TODO think about a typing filter
+                //results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+                //goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
@@ -438,13 +417,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-                if (annotatorOutputWriter != null) {
-                    annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
-                }
-                prepareAnnotatorResults(results, globalRetriever);
-                evalResult = evaluate(evaluators, results, goldStandard);
+
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -465,13 +439,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
-                results = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
-                goldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-                if (annotatorOutputWriter != null) {
-                    annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
-                }
-                prepareAnnotatorResults(results, globalRetriever);
-                evalResult = evaluate(evaluators, results, goldStandard);
+
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -485,6 +454,40 @@ public class ExperimentTask implements Task {
         }
         return evalResult;
 
+    }
+
+    // this method takes care of applying all filter tasks denoted by experiment configurations
+    // it stores all input directly in the db
+    private <T extends Meaning> void applyFilterTask(Dataset dataset, Annotator annotator,
+                                             List<Evaluator<? extends Marking>> evaluators,
+                                             List<List<T>> results, List<List<T>> goldStandard) {
+        prepareAnnotatorResults(results, globalRetriever);
+        LOGGER.debug("Input results: " + results);
+        LOGGER.debug("Input gold:" + goldStandard);
+
+        for (ExperimentTaskConfiguration conf : filterTask.keySet()) {
+            EntityFilter filter = filterHolder.getFilterByConfig(conf.filter);
+            List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
+            List<List<T>> filterGoldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
+            LOGGER.debug("Filter: " + conf);
+            LOGGER.debug("AResult: " + filterResult);
+            LOGGER.debug("gold: " + filterGoldStandard);
+
+            EvaluationResult evalResult = evaluate(evaluators, filterResult, filterGoldStandard);
+            if (annotatorOutputWriter != null) {
+                annotatorOutputWriter.storeAnnotatorOutput(conf, filterResult, dataset.getInstances());
+            }
+
+            // create result object
+            // FIXME Fix this workaround
+            ExperimentTaskResult expResult = new ExperimentTaskResult(conf, new double[6],
+                    ExperimentDAO.TASK_FINISHED, 0);
+            transformResults(evalResult, expResult);
+
+            // store result
+            experimentDAO.setExperimentTaskResult(filterTask.get(conf), expResult);
+            LOGGER.info("Task Finished " + conf.toString());
+        }
     }
 
     @SuppressWarnings("unchecked")

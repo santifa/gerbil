@@ -127,9 +127,6 @@ public class SparqlEntityResolution implements EntityResolutionService {
     private String[] resolve(String[] entities, String filter)  throws IOException {
         List<String> result = new ArrayList<>(entities.length);
         String queryString = buildQuery(entities, filter);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Filter query is: " + queryString);
-        }
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(serviceUrl, query)) {

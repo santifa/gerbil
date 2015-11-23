@@ -206,7 +206,7 @@ public class C2KBTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                 new TestC2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.C2KB, matching, NullFilter.CONF);
-        runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
-                new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
+        runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
+                new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults), RootConfig.createSameAsRetriever());
     }
 }
