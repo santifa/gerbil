@@ -21,10 +21,7 @@ import com.hp.hpl.jena.rdf.model.ModelFactory;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
-import org.aksw.gerbil.filter.SparqlEntityResolution;
-import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterFactory;
-import org.aksw.gerbil.filter.cache.FilterCache;
 import org.aksw.gerbil.filter.impl.NormalFilter;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
@@ -83,9 +80,8 @@ public class RootConfig {
     private static final String ANNOTATOR_OUTPUT_WRITER_USAGE_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.printAnnotatorResults";
     private static final String ANNOTATOR_OUTPUT_WRITER_DIRECTORY_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.outputDirectory";
 
+    private static final String FILTER = "org.aksw.gerbil.util.filter.enabled";
     private static final String FILTER_SERVICE = "org.aksw.gerbil.util.filter.service";
-    private static final String FILTER = "org.aksw.gerbil.util.filter.cache";
-    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
 
 
     // {
@@ -171,19 +167,9 @@ public class RootConfig {
     }
 
     public static @Bean FilterFactory createFilterFactory() {
-        if (GerbilConfiguration.getInstance().getBoolean(FILTER) &&
-                GerbilConfiguration.getInstance().containsKey(CACHE_LOCATION) &&
-                GerbilConfiguration.getInstance().containsKey(FILTER_SERVICE)) {
+        if (GerbilConfiguration.getInstance().getBoolean(FILTER)) {
 
-            EntityResolutionService dbpedia = new SparqlEntityResolution(
-                    GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
-            try {
-                dbpedia.initCache(FilterCache.getInstance(GerbilConfiguration.getInstance().getString(CACHE_LOCATION)));
-            } catch (IOException e) {
-                LOGGER.error("Could not create cache.");
-            }
-
-            FilterFactory filter = new FilterFactory(dbpedia);
+            FilterFactory filter = new FilterFactory(FILTER_SERVICE);
             filter.registerFilter(NormalFilter.class, FilterFactory.getBasicResolver());
             return filter;
         } else {

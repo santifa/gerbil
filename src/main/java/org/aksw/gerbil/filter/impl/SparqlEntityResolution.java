@@ -1,15 +1,14 @@
-package org.aksw.gerbil.filter;
+package org.aksw.gerbil.filter.impl;
 
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.RDFNode;
-import org.aksw.gerbil.filter.cache.CachedResult;
-import org.aksw.gerbil.filter.cache.FilterCache;
+import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,8 +26,6 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     private String prefixSet;
 
-    private FilterCache cache;
-
     private final static String PREFIX = "PREFIX";
 
     /**
@@ -36,8 +33,9 @@ public class SparqlEntityResolution implements EntityResolutionService {
      *
      * @param serviceUrl the service url
      */
-    public SparqlEntityResolution(String serviceUrl) {
+    public SparqlEntityResolution(String serviceUrl, String[] prefixes) {
         this.serviceUrl = serviceUrl;
+        setPrefixSet(prefixes);
     }
 
 
@@ -52,77 +50,25 @@ public class SparqlEntityResolution implements EntityResolutionService {
     }
 
     @Override
-    public void initCache(FilterCache cache) {
-        this.cache = cache;
-    }
-
-    @Override
-    public void precache(String[] entitites, FilterConfiguration conf, String datasetName) {
-        if (cache != null && !isCached(entitites, conf.getName(), datasetName, "")) {
-            try {
-                String[] result = resolve(entitites, conf.getFilter());
-                cacheResults(result, conf.getName(), datasetName, "");
-            } catch (IOException e) {
-                LOGGER.warn(e.getMessage(), e);
-            }
+    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+        try {
+            return resolve(entities, conf.getFilter());
+        } catch (IOException e) {
+            LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
+            return new String[0];
         }
-
-    }
-
-    @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName,String annotatorName) {
-        String[] result;
-
-        if (cache != null && isCached(entities, conf.getName(), datasetName, annotatorName)) {
-            result = getFromCache(conf.getName(), datasetName, annotatorName);
-        } else {
-            try {
-                result = resolve(entities, conf.getFilter());
-                cacheResults(result, conf.getName(), datasetName, annotatorName);
-            } catch (IOException e) {
-                LOGGER.error("Catched: " + e.getMessage(), e);
-                result = entities;
-            }
-        }
-        return result;
     }
 
     @Override
     public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
-        String[] result;
-
-        if (cache != null && isCached(entities, conf.getName(), datasetName, "")) {
-            result = getFromCache(conf.getName(), datasetName, "");
-        } else {
-            try {
-                result = resolve(entities, conf.getFilter());
-                cacheResults(result, conf.getName(), datasetName, "");
-            } catch (IOException e) {
-                LOGGER.error("Catched: " + e.getMessage(), e);
-                result = entities;
-            }
-
-        }
-        return result;
-    }
-
-    private void cacheResults(String[] entities, String filterName, String datasetName, String annotatorName) {
         try {
-            String md5sum = CachedResult.generateMd5Checksum(entities);
-
-            if (StringUtils.isEmpty(annotatorName)) {
-                CachedResult result = new CachedResult(filterName, datasetName, entities);
-                result.setChecksum(md5sum);
-                cache.cache(result);
-            } else {
-                CachedResult result = new CachedResult(filterName, datasetName, annotatorName, entities);
-                result.setChecksum(md5sum);
-                cache.cache(result);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Caching results failed. Moving on. " + e.getMessage(), e);
+            return resolve(entities, conf.getFilter());
+        } catch (IOException e) {
+            LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
+            return new String[0];
         }
     }
+
 
     private String[] resolve(String[] entities, String filter)  throws IOException {
         List<String> result = new ArrayList<>(entities.length);
@@ -164,7 +110,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
         return builder.toString();
     }
 
-    // checks whether the resolution is cached
+  /*  // checks whether the resolution is cached
     private boolean isCached(String[] entities, String filterName, String datasetName, String annotatorName) {
         boolean result = false;
         try {
@@ -188,7 +134,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
         } else {
             return cache.getCachedResults(filterName, datasetName, annotatorName);
         }
-    }
+    }*/
 
     @Override
     public String toString() {

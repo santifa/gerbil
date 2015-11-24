@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.cache.FilterCache;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
@@ -60,13 +61,16 @@ public class NormalFilter implements EntityFilter {
 
     @Override
     public <E extends Marking> void cache(List<Document> entities, String datasetName) {
-        List<List<Marking>> goldstandard = Lists.newArrayList();
-        for (Document doc : entities) {
-            goldstandard.add(doc.getMarkings());
+        if (service instanceof FilterCache) {
+
+            List<List<Marking>> goldstandard = Lists.newArrayList();
+            for (Document doc : entities) {
+                goldstandard.add(doc.getMarkings());
+            }
+
+            filterGoldstandard(goldstandard, datasetName);
         }
 
-        List<String> entityNames = collectEntityNames(goldstandard);
-        service.precache(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName);
     }
 
 

@@ -1,9 +1,8 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.cache.FilterCache;
+import org.aksw.gerbil.filter.impl.CacheEntityResolution;
+import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
 import org.junit.Test;
-
-import java.util.Arrays;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,16 +25,14 @@ public class SparqlEntityResolutionTest {
 
     private final FilterConfiguration conf1 = new FilterConfiguration("person-filter", "select ?v where { values ?v {##} . ?v a foaf:Person . }");
 
-    private final FilterConfiguration conf2 = new FilterConfiguration("person-agent", "select ?v where { values ?v {##} . ?v a foaf:Agent . }");
-
     private final String annotatorName = "testAnno";
 
     private final String datasetName = "testData";
 
     @Test
     public void testResolveEntitiesAnnotator() throws Exception {
-       SparqlEntityResolution resolution = new SparqlEntityResolution(service);
-       resolution.initCache(FilterCache.getInstance(cacheLocation));
+       EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
+       resolution = new CacheEntityResolution(resolution, cacheLocation);
        resolution.setPrefixSet(new String[] { prefix });
        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
         assertArrayEquals(entitiesPerson, result);
@@ -43,11 +40,10 @@ public class SparqlEntityResolutionTest {
 
     @Test
     public void testResolveEntitiesGoldstandard() throws Exception {
-        SparqlEntityResolution resolution = new SparqlEntityResolution(service);
-        resolution.initCache(FilterCache.getInstance(cacheLocation));
+        EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
+        resolution = new CacheEntityResolution(resolution, cacheLocation);
         resolution.setPrefixSet(new String[] { prefix });
         String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName);
-        System.out.println(Arrays.toString(result));
         assertTrue(result.length == 2);
     }
 }

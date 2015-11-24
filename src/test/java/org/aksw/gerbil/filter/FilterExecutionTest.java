@@ -8,7 +8,6 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AbstractExperimentTaskTest;
-import org.aksw.gerbil.filter.cache.FilterCache;
 import org.aksw.gerbil.filter.impl.NormalFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
@@ -104,9 +103,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
-        EntityResolutionService service = new SparqlEntityResolution(SERVICE_URL);
-        service.initCache(FilterCache.getInstance(CACHE_LOCATION));
-        FilterFactory factory = new FilterFactory(service);
+        FilterFactory factory = new FilterFactory(SERVICE_URL);
         factory.registerFilter(NormalFilter.class, FilterFactory.getBasicResolver());
 
         int counter = 1;

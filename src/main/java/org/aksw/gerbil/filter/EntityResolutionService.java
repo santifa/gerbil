@@ -1,10 +1,8 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.cache.FilterCache;
-
 /**
  * An entity resolution service looks up a number of entities
- * for a filter definition. The service caches entities for shorter response.
+ * for a filter definition.
  * <p/>
  * Created by Henrik Jürges on 07.11.15.
  */
@@ -17,13 +15,6 @@ public interface EntityResolutionService {
      * @param prefixes the prefixes
      */
     void setPrefixSet(String[] prefixes);
-
-    void initCache(FilterCache cache);
-
-    /**
-     * Precache a dataset goldstandard.
-     */
-    void precache(String[] entitites, FilterConfiguration conf, String datasetName);
 
     /**
      * Resolve entities from an annotator result.

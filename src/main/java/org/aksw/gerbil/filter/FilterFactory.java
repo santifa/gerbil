@@ -1,7 +1,9 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
+import org.aksw.gerbil.filter.impl.CacheEntityResolution;
 import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,9 +26,11 @@ public class FilterFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(FilterFactory.class);
 
     // refers to filter.properties
+    private static final String CACHE = "org.aksw.gerbil.util.filter.cache";
+    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cache";
+    private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
-    private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
 
     private EntityResolutionService service;
 
@@ -37,18 +41,26 @@ public class FilterFactory {
     /**
      * Instantiates a new Filter factory.
      *
-     * @param service an {€link EntityResolutionService}
+     * @param serviceUrl the service url
      */
-    public FilterFactory(EntityResolutionService service) {
+    public FilterFactory(String serviceUrl) {
         // set the all prefixes defined in the filter.properties
         List<String> prefixSet = getPrefixSet();
-        service.setPrefixSet(prefixSet.toArray(new String[prefixSet.size()]));
+        EntityResolutionService service = new SparqlEntityResolution(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
+
+        if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
+            service = new CacheEntityResolution(service,
+                        GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
+        }
         this.service = service;
 
         // initialize null object
         addNullFilter();
     }
 
+    public FilterFactory(EntityResolutionService service) {
+        this.service = service;
+    }
 
     /**
      * Instantiates an empty Filter factory which creates only dummy objects.
@@ -97,8 +109,12 @@ public class FilterFactory {
      * @return the filter holder
      */
     public FilterHolder getFilters() {
-        return new FilterHolder(new ArrayList<>(filters),
-            GerbilConfiguration.getInstance().getBoolean(PRECACHE));
+        if (isDummy) {
+            return new FilterHolder(new ArrayList<>(filters), false);
+        } else {
+            return new FilterHolder(new ArrayList<>(filters),
+                    GerbilConfiguration.getInstance().getBoolean(PRECACHE));
+        }
     }
 
     // returns a set of prefixes defined in the filter.properties

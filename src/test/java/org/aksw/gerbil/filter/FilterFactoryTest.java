@@ -3,8 +3,9 @@ package org.aksw.gerbil.filter;
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.cache.FilterCache;
+import org.aksw.gerbil.filter.impl.CacheEntityResolution;
 import org.aksw.gerbil.filter.impl.NormalFilter;
+import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class FilterFactoryTest {
 
-    private static EntityResolutionService service;
+    private static EntityResolutionService expectedService;
 
     private static final String serviceUrl = "http://dbpedia.org/sparql";
 
@@ -41,19 +42,18 @@ public class FilterFactoryTest {
                                     16, "http://de.dbpedia.org/resource/CNN"),
                             (Marking) new NamedEntity(76, 4, "http://de.dbpedia.org/resource/Tiger_Woods"))));
 
-
     @BeforeClass
     public static void setUp() throws IOException {
-        service = new SparqlEntityResolution(serviceUrl);
-        service.initCache(FilterCache.getInstance("/tmp/filter"));
+        expectedService = new SparqlEntityResolution(serviceUrl, new String[] {""});
+        expectedService = new CacheEntityResolution(expectedService, "/tmp/filter");
     }
 
     @Test
     public void testRegisterFilter() throws Exception {
-        final FilterConfiguration conf = new FilterConfiguration("name filter", "?v rdf:type foaf:Person . }");
+        final FilterConfiguration conf = new FilterConfiguration("name filter", "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }");
         final NormalFilter expected = new NormalFilter(conf);
-        expected.setEntityResolution(service);
-        FilterFactory factory = new FilterFactory(service);
+        expected.setEntityResolution(expectedService);
+        FilterFactory factory = new FilterFactory(serviceUrl);
         factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
             @Override
             int resolve(int counter, List<FilterConfiguration> result) {
@@ -69,11 +69,11 @@ public class FilterFactoryTest {
 
     @Test
     public void testPrecache() throws Exception {
-        FilterFactory factory = new FilterFactory(service);
+        FilterFactory factory = new FilterFactory(expectedService);
         factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
             @Override
             int resolve(int counter, List<FilterConfiguration> result) {
-                result.add(new FilterConfiguration("place filter", "?v rdf:type dbo:Place . }"));
+                result.add(new FilterConfiguration("place filter", "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }"));
                 return -1;
             }
         });
