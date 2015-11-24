@@ -33,7 +33,6 @@ public class SparqlEntityResolutionTest {
     public void testResolveEntitiesAnnotator() throws Exception {
        EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
        resolution = new CacheEntityResolution(resolution, cacheLocation);
-       resolution.setPrefixSet(new String[] { prefix });
        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
         assertArrayEquals(entitiesPerson, result);
     }
@@ -42,7 +41,6 @@ public class SparqlEntityResolutionTest {
     public void testResolveEntitiesGoldstandard() throws Exception {
         EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
         resolution = new CacheEntityResolution(resolution, cacheLocation);
-        resolution.setPrefixSet(new String[] { prefix });
         String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName);
         assertTrue(result.length == 2);
     }

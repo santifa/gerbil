@@ -30,9 +30,6 @@ public class CacheEntityResolution extends DecoratorEntityResolution {
     }
 
     @Override
-    public void setPrefixSet(String[] prefixes) { }
-
-    @Override
     public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
         String[] resolvedEntities = new String[0];
 

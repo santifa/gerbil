@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A SparqlEntityResolution performs regular sparql queries and returns
- * the entity types preserving owl#Thing.
+ * A SparqlEntityResolution is a concrete filter it filters the given entities by
+ * asking a knowledge base like Dbpedia.
  * <p/>
- * Created by Henrik Jürges on 07.11.15.
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class SparqlEntityResolution implements EntityResolutionService {
 
@@ -26,25 +26,24 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     private String prefixSet;
 
-    private final static String PREFIX = "PREFIX";
+    private final static String PREFIX = "PREFIX ";
 
     /**
      * Instantiates a new Dbpedia entity resolution.
      *
-     * @param serviceUrl the service url
+     * @param serviceUrl the service url or knowledge base
+     * @param prefixes   the prefixes for all sparql questions
      */
     public SparqlEntityResolution(String serviceUrl, String[] prefixes) {
         this.serviceUrl = serviceUrl;
         setPrefixSet(prefixes);
     }
 
-
-    @Override
-    public void setPrefixSet(String[] prefixes) {
+    private void setPrefixSet(String[] prefixes) {
         // create sparql query prefix
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < prefixes.length; i++) {
-            builder.append(PREFIX).append(" ").append(prefixes[i]).append(" ");
+            builder.append(PREFIX).append(prefixes[i]).append(" ");
         }
         this.prefixSet = builder.toString();
     }
@@ -109,32 +108,6 @@ public class SparqlEntityResolution implements EntityResolutionService {
         }
         return builder.toString();
     }
-
-  /*  // checks whether the resolution is cached
-    private boolean isCached(String[] entities, String filterName, String datasetName, String annotatorName) {
-        boolean result = false;
-        try {
-            String md5sum = CachedResult.generateMd5Checksum(entities);
-            if (StringUtils.isEmpty(annotatorName)) {
-                result = cache.isVersionCached(filterName, datasetName, md5sum);
-            } else {
-                result = cache.isVersionCached(filterName, datasetName, annotatorName, md5sum);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("MD5 checksum algorithm not found. Could not fetch if result is cached or not." +
-                    "Assuming not. " + e.getMessage(), e);
-        }
-        return result;
-    }
-
-    // retrieves entites from cache
-    private String[] getFromCache(String filterName, String datasetName, String annotatorName) {
-        if (StringUtils.isEmpty(annotatorName)) {
-            return cache.getCachedResults(filterName, datasetName);
-        } else {
-            return cache.getCachedResults(filterName, datasetName, annotatorName);
-        }
-    }*/
 
     @Override
     public String toString() {

@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.EntityResolutionService;
 import org.aksw.gerbil.filter.FilterConfiguration;
-import org.aksw.gerbil.filter.cache.FilterCache;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
@@ -46,7 +45,6 @@ public class NormalFilter implements EntityFilter {
     @Override
     public <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName) {
         List<String> entityNames = collectEntityNames(entities);
-        System.out.println("collected gold: " + entityNames);
         String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
@@ -54,14 +52,13 @@ public class NormalFilter implements EntityFilter {
     @Override
     public <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName) {
         List<String> entityNames = collectEntityNames(entities);
-        System.out.println("collected anno: " + entityNames);
         String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName, annotatorName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
 
     @Override
     public <E extends Marking> void cache(List<Document> entities, String datasetName) {
-        if (service instanceof FilterCache) {
+        if (service instanceof CacheEntityResolution) {
 
             List<List<Marking>> goldstandard = Lists.newArrayList();
             for (Document doc : entities) {
