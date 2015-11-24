@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ public class ChunkEntityResolutionTest {
 
     @Test
     public void testChunk() {
-        ChunkEntityResolution service = new ChunkEntityResolution(mock, 5);
+        ChunkFilterStep service = new ChunkFilterStep(mock, 5);
         service.resolveEntities(bigList[0], NullFilter.CONF, "data1", "anno1");
         assertEquals(2, mock.getPartsResolved());
         mock.resetCounter();
@@ -37,7 +37,7 @@ public class ChunkEntityResolutionTest {
     }
 
 
-    public class EntityResolutionMock implements EntityResolutionService {
+    public class EntityResolutionMock implements FilterStep {
 
         private int parts = 0;
 

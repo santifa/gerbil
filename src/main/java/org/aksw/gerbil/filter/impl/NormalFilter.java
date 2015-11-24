@@ -2,7 +2,7 @@ package org.aksw.gerbil.filter.impl;
 
 import com.google.common.collect.Lists;
 import org.aksw.gerbil.filter.EntityFilter;
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -26,7 +26,7 @@ public class NormalFilter implements EntityFilter {
 
     private FilterConfiguration conf;
 
-    private EntityResolutionService service;
+    private FilterStep service;
 
     public NormalFilter(FilterConfiguration conf) {
         this.conf = conf;
@@ -38,7 +38,7 @@ public class NormalFilter implements EntityFilter {
     }
 
     @Override
-    public void setEntityResolution(EntityResolutionService service) {
+    public void setEntityResolution(FilterStep service) {
         this.service = service;
     }
 
@@ -58,7 +58,7 @@ public class NormalFilter implements EntityFilter {
 
     @Override
     public <E extends Marking> void cache(List<Document> entities, String datasetName) {
-        if (service instanceof CacheEntityResolution) {
+        if (service instanceof CacheFilterStep) {
 
             List<List<Marking>> goldstandard = Lists.newArrayList();
             for (Document doc : entities) {

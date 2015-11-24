@@ -6,7 +6,7 @@ package org.aksw.gerbil.filter;
  * <p/>
  * Created by Henrik Jürges on 07.11.15.
  */
-public interface EntityResolutionService {
+public interface FilterStep {
 
     /**
      * Resolve entities from an annotator result.

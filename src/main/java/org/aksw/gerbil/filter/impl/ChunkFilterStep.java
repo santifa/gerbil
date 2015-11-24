@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.apache.commons.lang.StringUtils;
 
@@ -14,11 +14,11 @@ import java.util.List;
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class ChunkEntityResolution extends DecoratorEntityResolution {
+public class ChunkFilterStep extends FilterStepDecorator {
 
     private int chunkSize;
 
-    public ChunkEntityResolution(EntityResolutionService service, int chunkSize) {
+    public ChunkFilterStep(FilterStep service, int chunkSize) {
         super(service);
         this.chunkSize = chunkSize;
     }

@@ -1,18 +1,18 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.impl.CacheEntityResolution;
-import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
+import org.aksw.gerbil.filter.impl.CacheFilterStep;
+import org.aksw.gerbil.filter.impl.SparqlFilterStep;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test the {@link SparqlEntityResolution}
+ * Test the {@link SparqlFilterStep}
  *
  * Created by Henrik Jürges on 08.11.15.
  */
-public class SparqlEntityResolutionTest {
+public class SparqlFilterStepTest {
 
     private final String cacheLocation = "/tmp/filter";
 
@@ -31,16 +31,16 @@ public class SparqlEntityResolutionTest {
 
     @Test
     public void testResolveEntitiesAnnotator() throws Exception {
-       EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
-       resolution = new CacheEntityResolution(resolution, cacheLocation);
+       FilterStep resolution = new SparqlFilterStep(service, new String[] { prefix });
+       resolution = new CacheFilterStep(resolution, cacheLocation);
        String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName, annotatorName);
         assertArrayEquals(entitiesPerson, result);
     }
 
     @Test
     public void testResolveEntitiesGoldstandard() throws Exception {
-        EntityResolutionService resolution = new SparqlEntityResolution(service, new String[] { prefix });
-        resolution = new CacheEntityResolution(resolution, cacheLocation);
+        FilterStep resolution = new SparqlFilterStep(service, new String[] { prefix });
+        resolution = new CacheFilterStep(resolution, cacheLocation);
         String[] result = resolution.resolveEntities(entitiesPerson, conf1, datasetName);
         assertTrue(result.length == 2);
     }

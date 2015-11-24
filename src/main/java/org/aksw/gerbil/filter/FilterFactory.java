@@ -1,10 +1,10 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.CacheEntityResolution;
-import org.aksw.gerbil.filter.impl.ChunkEntityResolution;
+import org.aksw.gerbil.filter.impl.CacheFilterStep;
+import org.aksw.gerbil.filter.impl.ChunkFilterStep;
 import org.aksw.gerbil.filter.impl.NullFilter;
-import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
+import org.aksw.gerbil.filter.impl.SparqlFilterStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,7 @@ public class FilterFactory {
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
 
-    private EntityResolutionService service;
+    private FilterStep service;
 
     private List<EntityFilter> filters = new ArrayList<>(42);
 
@@ -48,14 +48,14 @@ public class FilterFactory {
     public FilterFactory(String serviceUrl) {
         // set the all prefixes defined in the filter.properties
         List<String> prefixSet = getPrefixSet();
-        EntityResolutionService service = new SparqlEntityResolution(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
+        FilterStep service = new SparqlFilterStep(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
 
         if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
-            service = new ChunkEntityResolution(service, GerbilConfiguration.getInstance().getInt(CHUNK));
+            service = new ChunkFilterStep(service, GerbilConfiguration.getInstance().getInt(CHUNK));
         }
 
         if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
-            service = new CacheEntityResolution(service,
+            service = new CacheFilterStep(service,
                         GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
         }
         this.service = service;
@@ -64,7 +64,7 @@ public class FilterFactory {
         addNullFilter();
     }
 
-    public FilterFactory(EntityResolutionService service) {
+    public FilterFactory(FilterStep service) {
         this.service = service;
     }
 
