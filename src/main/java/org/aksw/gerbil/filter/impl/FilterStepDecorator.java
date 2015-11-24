@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 
 /**
@@ -8,11 +8,11 @@ import org.aksw.gerbil.filter.FilterConfiguration;
  *
  * Created by Henrik Jürges on 24.11.15.
  */
-public class DecoratorEntityResolution implements EntityResolutionService {
+public class FilterStepDecorator implements FilterStep {
 
-    private EntityResolutionService decoratedService;
+    private FilterStep decoratedService;
 
-    public DecoratorEntityResolution(EntityResolutionService service) {
+    public FilterStepDecorator(FilterStep service) {
         this.decoratedService = service;
     }
 

@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.EntityFilter;
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -114,8 +114,8 @@ public class NormalFilterTest {
 
     @Before
     public void setUp() throws Exception {
-        EntityResolutionService service = new SparqlEntityResolution(serviceUrl, prefix);
-        service = new CacheEntityResolution(service, cacheLocation);
+        FilterStep service = new SparqlFilterStep(serviceUrl, prefix);
+        service = new CacheFilterStep(service, cacheLocation);
         EntityFilter filter1 = new NormalFilter(new FilterConfiguration("person", "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }"));
         filter1.setEntityResolution(service);
         EntityFilter filter2 = new NormalFilter(new FilterConfiguration("place", "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }"));

@@ -2,7 +2,7 @@ package org.aksw.gerbil.filter.impl;
 
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.RDFNode;
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -13,14 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A SparqlEntityResolution is a concrete filter it filters the given entities by
+ * A SparqlFilterStep is a concrete filter it filters the given entities by
  * asking a knowledge base like Dbpedia.
  * <p/>
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class SparqlEntityResolution implements EntityResolutionService {
+public class SparqlFilterStep implements FilterStep {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SparqlEntityResolution.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SparqlFilterStep.class);
 
     private String serviceUrl;
 
@@ -34,7 +34,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
      * @param serviceUrl the service url or knowledge base
      * @param prefixes   the prefixes for all sparql questions
      */
-    public SparqlEntityResolution(String serviceUrl, String[] prefixes) {
+    public SparqlFilterStep(String serviceUrl, String[] prefixes) {
         this.serviceUrl = serviceUrl;
         setPrefixSet(prefixes);
     }
@@ -111,7 +111,7 @@ public class SparqlEntityResolution implements EntityResolutionService {
 
     @Override
     public String toString() {
-        return "SparqlEntityResolution{" +
+        return "SparqlFilterStep{" +
                 "prefixSet='" + prefixSet + '\'' +
                 ", serviceUrl='" + serviceUrl + '\'' +
                 '}';

@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.EntityFilter;
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -24,7 +24,7 @@ public class NullFilter implements EntityFilter {
     }
 
     @Override
-    public void setEntityResolution(EntityResolutionService service) { }
+    public void setEntityResolution(FilterStep service) { }
 
     @Override
     public <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName) {

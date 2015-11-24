@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.EntityResolutionService;
+import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.filter.FilterConfiguration;
 import org.aksw.gerbil.filter.cache.CachedResult;
 import org.aksw.gerbil.filter.cache.FilterCache;
@@ -13,13 +13,13 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by ratzeputz on 24.11.15.
  */
-public class CacheEntityResolution extends DecoratorEntityResolution {
+public class CacheFilterStep extends FilterStepDecorator {
 
-    private static final Logger LOGGER = LogManager.getLogger(CacheEntityResolution.class);
+    private static final Logger LOGGER = LogManager.getLogger(CacheFilterStep.class);
 
     private FilterCache cache;
 
-    public CacheEntityResolution(EntityResolutionService service, String cacheLocation) {
+    public CacheFilterStep(FilterStep service, String cacheLocation) {
         super(service);
 
         try {
@@ -78,7 +78,7 @@ public class CacheEntityResolution extends DecoratorEntityResolution {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CacheEntityResolution that = (CacheEntityResolution) o;
+        CacheFilterStep that = (CacheFilterStep) o;
 
         return !(cache != null ? !cache.equals(that.cache) : that.cache != null);
 

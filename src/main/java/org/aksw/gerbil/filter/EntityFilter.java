@@ -16,7 +16,7 @@ public interface EntityFilter {
 
     FilterConfiguration getConfig();
 
-    void setEntityResolution(EntityResolutionService service);
+    void setEntityResolution(FilterStep service);
 
     <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName);
 

@@ -3,9 +3,9 @@ package org.aksw.gerbil.filter;
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.impl.CacheEntityResolution;
+import org.aksw.gerbil.filter.impl.CacheFilterStep;
 import org.aksw.gerbil.filter.impl.NormalFilter;
-import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
+import org.aksw.gerbil.filter.impl.SparqlFilterStep;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class FilterFactoryTest {
 
-    private static EntityResolutionService expectedService;
+    private static FilterStep expectedService;
 
     private static final String serviceUrl = "http://dbpedia.org/sparql";
 
@@ -44,8 +44,8 @@ public class FilterFactoryTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
-        expectedService = new SparqlEntityResolution(serviceUrl, new String[] {""});
-        expectedService = new CacheEntityResolution(expectedService, "/tmp/filter");
+        expectedService = new SparqlFilterStep(serviceUrl, new String[] {""});
+        expectedService = new CacheFilterStep(expectedService, "/tmp/filter");
     }
 
     @Test
