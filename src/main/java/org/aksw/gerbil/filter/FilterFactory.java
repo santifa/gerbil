@@ -2,6 +2,7 @@ package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.CacheEntityResolution;
+import org.aksw.gerbil.filter.impl.ChunkEntityResolution;
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.filter.impl.SparqlEntityResolution;
 import org.slf4j.Logger;
@@ -26,8 +27,9 @@ public class FilterFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(FilterFactory.class);
 
     // refers to filter.properties
+    private static final String CHUNK = "org.aksw.gerbil.util.filter.chunk";
     private static final String CACHE = "org.aksw.gerbil.util.filter.cache";
-    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cache";
+    private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
     private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
@@ -47,6 +49,10 @@ public class FilterFactory {
         // set the all prefixes defined in the filter.properties
         List<String> prefixSet = getPrefixSet();
         EntityResolutionService service = new SparqlEntityResolution(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
+
+        if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
+            service = new ChunkEntityResolution(service, GerbilConfiguration.getInstance().getInt(CHUNK));
+        }
 
         if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
             service = new CacheEntityResolution(service,

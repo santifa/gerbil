@@ -9,14 +9,6 @@ package org.aksw.gerbil.filter;
 public interface EntityResolutionService {
 
     /**
-     * Sets a prefix set, mostly a combination of a short form
-     * and an uri as long form. E.g. foaf:&lt http://xmlns.com/foaf/0.1/&gt
-     *
-     * @param prefixes the prefixes
-     */
-    void setPrefixSet(String[] prefixes);
-
-    /**
      * Resolve entities from an annotator result.
      *
      * @param entities      the entities

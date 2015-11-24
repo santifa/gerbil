@@ -17,11 +17,6 @@ public class DecoratorEntityResolution implements EntityResolutionService {
     }
 
     @Override
-    public void setPrefixSet(String[] prefixes) {
-        decoratedService.setPrefixSet(prefixes);
-    }
-
-    @Override
     public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
         return decoratedService.resolveEntities(entities, conf, datasetName, annotatorName);
     }
