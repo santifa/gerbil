@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 
 /**
  * Abstract class for decoration of the entity resolution.
@@ -17,12 +17,12 @@ public class FilterStepDecorator implements FilterStep {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
         return decoratedService.resolveEntities(entities, conf, datasetName, annotatorName);
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
         return decoratedService.resolveEntities(entities, conf, datasetName);
     }
 }

@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.cache.CachedResult;
 import org.aksw.gerbil.filter.cache.FilterCache;
 import org.apache.log4j.LogManager;
@@ -30,7 +30,7 @@ public class CacheFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
         String[] resolvedEntities = new String[0];
 
         try {
@@ -52,7 +52,7 @@ public class CacheFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
         String[] resolvedEntities = new String[0];
 
         try {

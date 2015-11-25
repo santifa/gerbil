@@ -88,7 +88,7 @@ public class MainController {
     // precache the goldstandard for every dataset
     private static synchronized void precacheGoldstandard(FilterHolder filterHolder, AdapterManager adapterManager) {
         for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
-            // FIXME ugly workaround
+            // FIXME ugly workaround oke breaks everything
             if (StringUtils.contains(conf.getName(), "OKE")) {
                 continue;
             }

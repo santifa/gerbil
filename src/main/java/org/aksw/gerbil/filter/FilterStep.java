@@ -17,7 +17,7 @@ public interface FilterStep {
      * @param annotatorName the annotator name
      * @return the string [ ]
      */
-    String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName);
+    String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName);
 
     /**
      * Resolve entities from a gold standard.
@@ -27,5 +27,5 @@ public interface FilterStep {
      * @param datasetName the dataset name
      * @return the string [ ]
      */
-    String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName);
+    String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName);
 }

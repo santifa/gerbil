@@ -104,7 +104,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         FilterFactory factory = new FilterFactory(SERVICE_URL);
-        factory.registerFilter(NormalFilter.class, FilterFactory.getBasicResolver());
+        factory.registerFilter(NormalFilter.class, factory.getBasicResolver());
 
         int counter = 1;
         HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);

@@ -3,7 +3,7 @@ package org.aksw.gerbil.filter.impl;
 import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +43,15 @@ public class SparqlFilterStep implements FilterStep {
         // create sparql query prefix
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < prefixes.length; i++) {
-            builder.append(PREFIX).append(prefixes[i]).append(" ");
+            if (!StringUtils.isEmpty(prefixes[i])) {
+                builder.append(PREFIX).append(prefixes[i]).append(" ");
+            }
         }
         this.prefixSet = builder.toString();
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
         try {
             return resolve(entities, conf.getFilter());
         } catch (IOException e) {
@@ -59,7 +61,7 @@ public class SparqlFilterStep implements FilterStep {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
         try {
             return resolve(entities, conf.getFilter());
         } catch (IOException e) {

@@ -2,7 +2,9 @@ package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.filter.impl.NullFilter;
 import org.aksw.gerbil.transfer.nif.Document;
+import org.aksw.gerbil.transfer.nif.Marking;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,21 +30,26 @@ public final class FilterHolder {
     }
 
     public void cacheGoldstandard(List<Document> datasets, String datasetName) {
+        List<List<Marking>> goldstandard = new ArrayList<>();
+        for (Document doc : datasets) {
+            goldstandard.add(doc.getMarkings());
+        }
+
         for (EntityFilter f : filterList) {
             if (!f.getConfig().equals(NullFilter.CONF)) {
-                f.cache(datasets, datasetName);
+                f.filterGoldstandard(goldstandard, datasetName);
             }
         }
     }
 
     /**
-     * Gets filter by a {@link FilterConfiguration}. <br/>
+     * Gets filter by a {@link FilterDefinition}. <br/>
      * Note: This method takes not care of other configuration classes.
      *
      * @param filterConfig the filter config
      * @return the filter by config
      */
-    public EntityFilter getFilterByConfig(FilterConfiguration filterConfig) {
+    public EntityFilter getFilterByConfig(FilterDefinition filterConfig) {
         for (EntityFilter f : filterList) {
             if (f.getConfig().equals(filterConfig)) {
                 return f;

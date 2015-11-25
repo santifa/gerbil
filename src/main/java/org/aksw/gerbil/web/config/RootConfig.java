@@ -169,7 +169,7 @@ public class RootConfig {
     public static @Bean FilterFactory createFilterFactory() {
         if (GerbilConfiguration.getInstance().getBoolean(FILTER)) {
             FilterFactory filter = new FilterFactory(GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
-            filter.registerFilter(NormalFilter.class, FilterFactory.getBasicResolver());
+            filter.registerFilter(NormalFilter.class, filter.getBasicResolver());
             return filter;
         } else {
             return new FilterFactory();

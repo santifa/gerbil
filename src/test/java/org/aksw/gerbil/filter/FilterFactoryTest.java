@@ -15,6 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,19 +45,21 @@ public class FilterFactoryTest {
 
     @BeforeClass
     public static void setUp() throws IOException {
-        expectedService = new SparqlFilterStep(serviceUrl, new String[] {""});
+        expectedService = new SparqlFilterStep(serviceUrl, new String[] {"dbo:<http://dbpedia.org/ontology/>",
+                "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"});
         expectedService = new CacheFilterStep(expectedService, "/tmp/filter");
     }
 
     @Test
     public void testRegisterFilter() throws Exception {
-        final FilterConfiguration conf = new FilterConfiguration("name filter", "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }");
+        final FilterDefinition conf = new FilterDefinition("name filter",
+                "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>());
         final NormalFilter expected = new NormalFilter(conf);
         expected.setEntityResolution(expectedService);
         FilterFactory factory = new FilterFactory(serviceUrl);
-        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
+        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
-            int resolve(int counter, List<FilterConfiguration> result) {
+            int resolve(int counter, List<FilterDefinition> result) {
                 result.add(conf);
                 return -1;
             }
@@ -70,10 +73,11 @@ public class FilterFactoryTest {
     @Test
     public void testPrecache() throws Exception {
         FilterFactory factory = new FilterFactory(expectedService);
-        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterConfiguration>() {
+        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
-            int resolve(int counter, List<FilterConfiguration> result) {
-                result.add(new FilterConfiguration("place filter", "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }"));
+            int resolve(int counter, List<FilterDefinition> result) {
+                result.add(new FilterDefinition("place filter",
+                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>()));
                 return -1;
             }
         });

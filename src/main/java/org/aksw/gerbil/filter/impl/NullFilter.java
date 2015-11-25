@@ -1,11 +1,11 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
-import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,11 +15,11 @@ import java.util.List;
  */
 public class NullFilter implements EntityFilter {
 
-    public final static FilterConfiguration CONF = new FilterConfiguration("nofilter", "");
+    public final static FilterDefinition CONF = new FilterDefinition("nofilter", "", new ArrayList<String>());
 
 
     @Override
-    public FilterConfiguration getConfig() {
+    public FilterDefinition getConfig() {
         return CONF;
     }
 
@@ -35,7 +35,4 @@ public class NullFilter implements EntityFilter {
     public <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName) {
         return entities;
     }
-
-    @Override
-    public <E extends Marking> void cache(List<Document> entities, String datasetName) { }
 }

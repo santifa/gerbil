@@ -39,7 +39,7 @@ public class CachedResult {
         this.filterName = filterName;
         this.datasetName = datasetName;
         this.annotatorName = annotatorName;
-        this.entities = entities;
+        this.entities = entities.clone();
     }
 
     /**
@@ -53,7 +53,7 @@ public class CachedResult {
     public CachedResult(String filterName, String datasetName, String[] entities) {
         this.datasetName = datasetName;
         this.filterName = filterName;
-        this.entities = entities;
+        this.entities = entities.clone();
         this.annotatorName = "gt";
     }
 
@@ -115,7 +115,7 @@ public class CachedResult {
      * @return the string [ ]
      */
     public String[] getEntities() {
-        return entities;
+        return entities.clone();
     }
 
     /**
