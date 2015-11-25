@@ -1,10 +1,8 @@
 package org.aksw.gerbil.filter.impl;
 
-import com.google.common.collect.Lists;
 import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
-import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
 import org.aksw.gerbil.transfer.nif.TypedSpan;
@@ -14,26 +12,28 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by ratzeputz on 08.11.15.
+ * A "normal" filter denotes in near future an unboxing or wrapping between the
+ * filter steps and the
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class NormalFilter implements EntityFilter {
 
     private final static Logger LOGGER = LogManager.getLogger(NormalFilter.class);
 
-    private FilterConfiguration conf;
+    private FilterDefinition conf;
 
     private FilterStep service;
 
-    public NormalFilter(FilterConfiguration conf) {
+    public NormalFilter(FilterDefinition conf) {
         this.conf = conf;
     }
 
     @Override
-    public FilterConfiguration getConfig() {
+    public FilterDefinition getConfig() {
         return conf;
     }
 
@@ -56,21 +56,6 @@ public class NormalFilter implements EntityFilter {
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
 
-    @Override
-    public <E extends Marking> void cache(List<Document> entities, String datasetName) {
-        if (service instanceof CacheFilterStep) {
-
-            List<List<Marking>> goldstandard = Lists.newArrayList();
-            for (Document doc : entities) {
-                goldstandard.add(doc.getMarkings());
-            }
-
-            filterGoldstandard(goldstandard, datasetName);
-        }
-
-    }
-
-
     // convert documents into a plain entity list
     private <E extends Marking> List<String> collectEntityNames(List<List<E>> document) {
         List<String> result = new ArrayList<>();
@@ -78,7 +63,18 @@ public class NormalFilter implements EntityFilter {
         for (List<E> documentPart : document) {
             for (E entity : documentPart) {
                 if (entity instanceof Meaning) {
-                    result.add(getRepUri(((Meaning) entity).getUris().iterator()));
+
+                    // add an uri if it is either whitelisted (including multiple uri's per entity) or
+                    // otherwise if the whitelist is empty all uri's of an entity
+                    for (String uri : ((Meaning) entity).getUris()) {
+                        if (isWhitelistedUri(uri)) {
+                            result.add(uri);
+                        } else if (conf.getEntityUriWhitelist().isEmpty()) {
+                            result.add(uri);
+                        }
+                    }
+
+
                 } else if (entity instanceof TypedSpanImpl) {
                     result.addAll(((TypedSpan) entity).getTypes());
                 } else {
@@ -89,17 +85,13 @@ public class NormalFilter implements EntityFilter {
         return result;
     }
 
-    // we search for a represantative uri
-    private String getRepUri(Iterator<String> uris) {
-        String rep = null;
-        while (uris.hasNext()) {
-            rep = uris.next();
-            if (StringUtils.contains(rep, "dbpedia")) {
-                return rep;
+    private boolean isWhitelistedUri(String uri) {
+        for (String whiteUri : conf.getEntityUriWhitelist()) {
+            if (StringUtils.contains(uri, whiteUri)) {
+                return true;
             }
         }
-
-        return rep;
+        return false;
     }
 
     private <E extends Marking> List<List<E>> removeUnresolvedEntites(List<List<E>> document, String[] resolvedEntites) {
@@ -133,7 +125,6 @@ public class NormalFilter implements EntityFilter {
                     }
                 } else {
                     LOGGER.error("Unexpected Type. Can't apply filter, returning original results.");
-                    partialResult.add(entity);
                 }
             }
 

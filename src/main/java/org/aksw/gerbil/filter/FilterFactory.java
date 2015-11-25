@@ -31,12 +31,16 @@ public class FilterFactory {
     private static final String CACHE = "org.aksw.gerbil.util.filter.cache";
     private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
     private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
+    private static final String WHITELIST = "org.aksw.gerbil.util.filter.whitelist";
+
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
 
     private FilterStep service;
 
     private List<EntityFilter> filters = new ArrayList<>(42);
+
+    private final List<String> whiteList = new ArrayList<>();
 
     private boolean isDummy = false;
 
@@ -46,6 +50,8 @@ public class FilterFactory {
      * @param serviceUrl the service url
      */
     public FilterFactory(String serviceUrl) {
+        whiteList.addAll(GerbilConfiguration.getInstance().getList(WHITELIST));
+
         // set the all prefixes defined in the filter.properties
         List<String> prefixSet = getPrefixSet();
         FilterStep service = new SparqlFilterStep(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
@@ -95,7 +101,7 @@ public class FilterFactory {
         for (T c : configurations) {
 
             try {
-                for (Constructor co : filter.getConstructors()) {
+                for (Constructor<?> co : filter.getConstructors()) {
                     if (co.getParameterTypes().length == 1 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
                         EntityFilter eFilter = (EntityFilter) co.newInstance(c);
                         eFilter.setEntityResolution(service);
@@ -143,15 +149,15 @@ public class FilterFactory {
      *
      * @return the basic resolver
      */
-    public static final ConfigResolver<FilterConfiguration> getBasicResolver() {
-        return new ConfigResolver<FilterConfiguration>() {
+    public final ConfigResolver<FilterDefinition> getBasicResolver() {
+        return new ConfigResolver<FilterDefinition>() {
 
             @Override
-            int resolve(int counter, List<FilterConfiguration> result) {
+            int resolve(int counter, List<FilterDefinition> result) {
                 if (GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".name") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".filter")) {
-                    result.add(new FilterConfiguration(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
-                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter")));
+                    result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
+                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList));
                     return ++counter;
                 }
                 return -1;

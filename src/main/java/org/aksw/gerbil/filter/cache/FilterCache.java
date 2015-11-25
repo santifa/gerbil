@@ -7,6 +7,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,13 +28,12 @@ public class FilterCache {
 
     private final File cacheLocation;
 
-    private List<File> cacheFiles;
+    private List<File> cacheFiles =  new ArrayList<>();
 
     private FilterCache(String cacheLocationName) throws FileNotFoundException {
         this.cacheLocation = new File(cacheLocationName);
 
         if (cacheLocation.exists() && cacheLocation.isDirectory()) {
-            this.cacheFiles = new ArrayList<>();
             initCache();
         } else {
             throw new FileNotFoundException("Could not find cache directory " + cacheLocation);
@@ -45,7 +45,7 @@ public class FilterCache {
         cacheFiles.addAll(Arrays.asList(cacheLocation.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File file, String s) {
-                return file.isFile();
+                return new File(file, s).isFile();
             }
         })));
     }
@@ -162,7 +162,7 @@ public class FilterCache {
         return res != null ? res.getEntities() : new String[0];
     }
 
-    private synchronized CachedResult getCachedResults(CachedResult result) {
+    private CachedResult getCachedResults(CachedResult result) {
         return deserializeResult(result.getCacheFile(cacheLocation));
     }
 
@@ -198,7 +198,7 @@ public class FilterCache {
         String jsonString = gson.toJson(result, CachedResult.class);
 
         try (BufferedOutputStream buf = new BufferedOutputStream(new FileOutputStream(cacheFile))) {
-            buf.write(jsonString.getBytes());
+            buf.write(jsonString.getBytes(Charset.forName("UTF-8")));
             buf.close();
 
             if (LOGGER.isDebugEnabled()) {
@@ -212,7 +212,7 @@ public class FilterCache {
     // fetch a result from filesystem
     private synchronized CachedResult deserializeResult(File cacheFile) {
         CachedResult result = null;
-        try (FileReader reader = new FileReader(cacheFile)) {
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(cacheFile), Charset.forName("UTF-8"))) {
             Gson gson = new Gson();
             result = gson.fromJson(reader, CachedResult.class);
         } catch (IOException e) {

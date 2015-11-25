@@ -18,7 +18,7 @@ package org.aksw.gerbil.datatypes;
 
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.matching.Matching;
 
 public class ExperimentTaskConfiguration {
@@ -27,10 +27,10 @@ public class ExperimentTaskConfiguration {
     public DatasetConfiguration datasetConfig;
     public ExperimentType type;
     public Matching matching;
-    public FilterConfiguration filter;
+    public FilterDefinition filter;
 
     public ExperimentTaskConfiguration(AnnotatorConfiguration annotatorConfig, DatasetConfiguration datasetConfig,
-                                       ExperimentType type, Matching matching, FilterConfiguration filter) {
+                                       ExperimentType type, Matching matching, FilterDefinition filter) {
         super();
         this.annotatorConfig = annotatorConfig;
         this.datasetConfig = datasetConfig;
@@ -71,11 +71,11 @@ public class ExperimentTaskConfiguration {
         this.matching = matching;
     }
 
-    public FilterConfiguration getFilter() {
+    public FilterDefinition getFilter() {
         return filter;
     }
 
-    public void setFilter(FilterConfiguration filter) {
+    public void setFilter(FilterDefinition filter) {
         this.filter = filter;
     }
 

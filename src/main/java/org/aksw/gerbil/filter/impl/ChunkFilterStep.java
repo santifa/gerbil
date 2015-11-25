@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -24,7 +24,7 @@ public class ChunkFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
         if (chunkSize >= entities.length) {
             return super.resolveEntities(entities, conf, datasetName, annotatorName);
         } else {
@@ -33,7 +33,7 @@ public class ChunkFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
         if (chunkSize >= entities.length) {
             return super.resolveEntities(entities, conf, datasetName);
         } else {
@@ -41,7 +41,7 @@ public class ChunkFilterStep extends FilterStepDecorator {
         }
     }
 
-    private String[] chunk(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+    private String[] chunk(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
         int parts = entities.length / chunkSize;
         int lastPart = entities.length % chunkSize;
         List<String> result = new ArrayList<>(entities.length);

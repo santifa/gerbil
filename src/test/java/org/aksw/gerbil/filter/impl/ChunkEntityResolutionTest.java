@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -50,13 +50,13 @@ public class ChunkEntityResolutionTest {
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName, String annotatorName) {
+        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
             parts++;
             return new String[0];
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterConfiguration conf, String datasetName) {
+        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
             parts++;
             return new String[0];
         }

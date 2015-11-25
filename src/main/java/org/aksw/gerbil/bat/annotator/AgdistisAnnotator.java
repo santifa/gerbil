@@ -18,6 +18,11 @@ package org.aksw.gerbil.bat.annotator;
 
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
+import org.aksw.gerbil.bat.converter.DBpediaToWikiId;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -27,13 +32,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.HashSet;
-
-import org.aksw.gerbil.bat.converter.DBpediaToWikiId;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 @Deprecated
 public class AgdistisAnnotator extends it.unipi.di.acube.batframework.systemPlugins.AgdistisAnnotator {
@@ -64,7 +64,7 @@ public class AgdistisAnnotator extends it.unipi.di.acube.batframework.systemPlug
         slConnection.setRequestMethod("POST");
         slConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         slConnection.setRequestProperty("charset", "utf-8");
-        slConnection.setRequestProperty("Content-Length", "" + Integer.toString(parameters.getBytes().length));
+        slConnection.setRequestProperty("Content-Length", "" + Integer.toString(parameters.getBytes(Charset.forName("UTF-8")).length));
         slConnection.setUseCaches(false);
 
         DataOutputStream wr = new DataOutputStream(slConnection.getOutputStream());

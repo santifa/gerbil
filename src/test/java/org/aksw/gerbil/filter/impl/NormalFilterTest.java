@@ -2,7 +2,7 @@ package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.EntityFilter;
 import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterConfiguration;
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
@@ -24,6 +24,8 @@ import java.util.List;
 public class NormalFilterTest {
 
     private FilterHolder filters;
+
+    private final String serviceUrl2 = "http://dbpedia.semanticmultimedia.org/dbpedia2014/en/pageoutlinkCounts_en_2014.ttl.bz2";
 
     private final String serviceUrl = "http://dbpedia.org/sparql";
 
@@ -116,9 +118,9 @@ public class NormalFilterTest {
     public void setUp() throws Exception {
         FilterStep service = new SparqlFilterStep(serviceUrl, prefix);
         service = new CacheFilterStep(service, cacheLocation);
-        EntityFilter filter1 = new NormalFilter(new FilterConfiguration("person", "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }"));
+        EntityFilter filter1 = new NormalFilter(new FilterDefinition("person", "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }", new ArrayList<String>()));
         filter1.setEntityResolution(service);
-        EntityFilter filter2 = new NormalFilter(new FilterConfiguration("place", "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }"));
+        EntityFilter filter2 = new NormalFilter(new FilterDefinition("place", "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>()));
         filter2.setEntityResolution(service);
         this.filters = new FilterHolder(Arrays.asList(filter1, filter2), false);
     }

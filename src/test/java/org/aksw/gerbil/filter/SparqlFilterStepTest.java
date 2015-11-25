@@ -4,6 +4,8 @@ import org.aksw.gerbil.filter.impl.CacheFilterStep;
 import org.aksw.gerbil.filter.impl.SparqlFilterStep;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -23,7 +25,8 @@ public class SparqlFilterStepTest {
     private final String[] entitiesPerson = new String[] {"http://dbpedia.org/resource/Victoria_Beckham",
             "http://dbpedia.org/resource/John_P._Kennedy"};
 
-    private final FilterConfiguration conf1 = new FilterConfiguration("person-filter", "select ?v where { values ?v {##} . ?v a foaf:Person . }");
+    private final FilterDefinition conf1 = new FilterDefinition("person-filter",
+            "select ?v where { values ?v {##} . ?v a foaf:Person . }", new ArrayList<String>());
 
     private final String annotatorName = "testAnno";
 
