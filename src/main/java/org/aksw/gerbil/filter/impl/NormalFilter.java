@@ -6,8 +6,6 @@ import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
 import org.aksw.gerbil.transfer.nif.TypedSpan;
-import org.aksw.gerbil.transfer.nif.data.TypedSpanImpl;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -63,19 +61,10 @@ public class NormalFilter implements EntityFilter {
         for (List<E> documentPart : document) {
             for (E entity : documentPart) {
                 if (entity instanceof Meaning) {
-
-                    // add an uri if it is either whitelisted (including multiple uri's per entity) or
-                    // otherwise if the whitelist is empty all uri's of an entity
-                    for (String uri : ((Meaning) entity).getUris()) {
-                        if (isWhitelistedUri(uri)) {
-                            result.add(uri);
-                        } else if (conf.getEntityUriWhitelist().isEmpty()) {
-                            result.add(uri);
-                        }
-                    }
+                    result.addAll(((Meaning) entity).getUris());
 
 
-                } else if (entity instanceof TypedSpanImpl) {
+                } else if (entity instanceof TypedSpan) {
                     result.addAll(((TypedSpan) entity).getTypes());
                 } else {
                     LOGGER.error("Unexpected Type. Can't apply filter, ignoring.");
@@ -83,15 +72,6 @@ public class NormalFilter implements EntityFilter {
             }
         }
         return result;
-    }
-
-    private boolean isWhitelistedUri(String uri) {
-        for (String whiteUri : conf.getEntityUriWhitelist()) {
-            if (StringUtils.contains(uri, whiteUri)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private <E extends Marking> List<List<E>> removeUnresolvedEntites(List<List<E>> document, String[] resolvedEntites) {

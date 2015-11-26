@@ -111,7 +111,9 @@ table {
 			</div>
 			<div class="container-fluid">
 				<div id="resultsChartBody" class="chartBody">
-					<div id="resultsChart" class="chartDiv"></div>
+					    <div style="display:inline-block" id="resultsChart" class="chartDiv"></div>
+					    <div style="display:inline-block" id="compareChart" class="chartDiv"></div>
+				    </div>
 				</div>
 			</div>
 		</div>
@@ -222,6 +224,12 @@ table {
                         htmlFilters += "</label>";
                     }
 
+                    // append overall view
+                    htmlFilters += "<label class=\"btn btn-primary\">";
+                    htmlFilters += "<input class=\"toggle\" type=\"radio\" name=\"filter\" id=\"Overall View\" value=\"Overall View\">Overall View";
+                    htmlFilters += "</label>";
+
+
                     $('#filter').html(htmlFilters);
                     $('#filter input')[0].checked = true;
                 });
@@ -305,6 +313,68 @@ table {
 		        drawChart(chartData, LegendOptions, chartElementId);
 	        }
 
+        function getFilters() {
+            var filters;
+            $.ajax({url:'${filters}', async:false, dataType:'json'})
+                .done(function(data) {
+                    filters = data.Filters;
+                });
+            return filters;
+        };
+
+        function getData(filterName) {
+            var dataChunk;
+            $.ajax({url:'${experimentoverview}', async:false, dataType:'json',
+                data:{
+        	    experimentType : $('#expTypes input:checked').val(),
+        	    matching : $('#matching input:checked').val(),
+        	    filter : filterName,
+        	    ajax : 'false'}}).done(function(data) {
+        	        dataChunk = data[0];
+        	    });
+        	return dataChunk;
+        };
+
+
+        function compareChart() {
+            var filters = getFilters();
+            console.log(filters);
+
+            // requesting all data chunks
+            var dataChunks = [];
+            var htmlCompare = "";
+            var htmlResult = "";
+            for (var i = 0; i < filters.length; i++) {
+                dataChunks.push(getData(filters[i]));
+                htmlResult += "<div id=\"resultsChart" + i + "\">"
+                                + "<span>" + filters[i] + "</span><div id=\"result" + i + "\"></div></div>"
+                htmlCompare += "<div id=\"compareChart" + i + "\">"
+                                + "<span>" + filters[i] + "</span><div id=\"compare" + i + "\"></div></div>"
+            }
+
+            // add scroll bar for one line
+            $("#resultsChartBody").css("overflow-x", "scroll");
+            $("#resultsChartBody").css("white-space", "nowrap");
+            $("#resultsChart").html(htmlResult);
+            $("#compareChart").html(htmlCompare);
+
+
+            for (var i = 0; i < dataChunks.length; i++) {
+                drawSpiderDiagram(dataChunks[i], "result" + i);
+                drawSpiderDiagram(dataChunks[i], "compare" + i);
+            }
+        };
+
+        // remove diagrams and tables
+        function clearDiagrams() {
+            $("#resultsChartBody").css("overflow-x", "none");
+            $("#resultsChartBody").css("white-space", "wrap");
+            $("#resultsChart").html("");
+            $("#compareChart").html("");
+            $("#resultsTable").html("<thead></thead><tbody></tbody>");
+        };
+
+
         $(document).ready(function() {
 	        //++++++++++++
 	        //creating the radioboxes
@@ -313,7 +383,15 @@ table {
 	        loadFilters();
 
 	        $("#show").click(function(e) {
-		        loadTables();
+	            console.log($('#filter input:checked').val())
+		        if ($('#filter input:checked').val() == "Overall View") {
+		            clearDiagrams();
+		            compareChart();
+		        } else {
+		            clearDiagrams();
+		            loadTables();
+		        }
+
 	        });
         });
 	</script>
