@@ -1,21 +1,18 @@
 package org.aksw.gerbil.filter.impl;
 
+import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterStep;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by ratzeputz on 26.11.15.
  */
 public class UriCleanerStepTest {
-
-    private final EntityResolutionMock mock = new EntityResolutionMock();
 
     private final List<String> entities = Arrays.asList("http://dbpedia.org/resource/Paul_Allen",
             "http://dbpedia.org/resource/Paul", "www.org/resource/Paul_Allen", "something one",
@@ -25,9 +22,10 @@ public class UriCleanerStepTest {
     public void testWhitelist() {
         final FilterDefinition defWhitelist = new FilterDefinition("person", "something", Arrays.asList(
                 "www.org/", "http://dbpedia.org/"
-        ));
-        UriCleanerStep step = new UriCleanerStep(mock);
-        step.resolveEntities(entities.toArray(new String[entities.size()]), defWhitelist, "data1");
+        ), "");
+        EntityResolutionMock mock = new EntityResolutionMock(defWhitelist);
+        UriCleaner step = new UriCleaner(mock);
+        step.resolveEntities(entities, "data1");
         Assert.assertEquals(Arrays.asList("http://dbpedia.org/resource/Paul_Allen",
                 "http://dbpedia.org/resource/Paul", "www.org/resource/Paul_Allen"), mock.getEntities());
         mock.resetMock();
@@ -35,16 +33,23 @@ public class UriCleanerStepTest {
 
     @Test
     public void testWithoutWhitelist() {
-        final FilterDefinition defWhitelist = new FilterDefinition("person", "something", new ArrayList<String>());
-        UriCleanerStep step = new UriCleanerStep(mock);
-        step.resolveEntities(entities.toArray(new String[entities.size()]), defWhitelist, "data1");
+        final FilterDefinition defWhitelist = new FilterDefinition("person", "something", new ArrayList<String>(), "");
+        EntityResolutionMock mock = new EntityResolutionMock(defWhitelist);
+        UriCleaner step = new UriCleaner(mock);
+        step.resolveEntities(entities, "data1");
         Assert.assertEquals(entities, mock.getEntities());
         mock.resetMock();
     }
 
-    public class EntityResolutionMock implements FilterStep {
+    public class EntityResolutionMock implements Filter {
 
         private List<String> entities = new ArrayList<>();
+
+        private FilterDefinition def;
+
+        public EntityResolutionMock(FilterDefinition def) {
+            this.def = def;
+        }
 
         public void resetMock() {
             entities = new ArrayList<>();
@@ -55,15 +60,20 @@ public class UriCleanerStepTest {
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
-            Collections.addAll(this.entities, entities);
-            return new String[0];
+        public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
+            this.entities.addAll(entities);
+            return new ArrayList<>();
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
-            Collections.addAll(this.entities, entities);
-            return new String[0];
+        public List<String> resolveEntities(List<String> entities, String datasetName) {
+            this.entities.addAll(entities);
+            return new ArrayList<>();
+        }
+
+        @Override
+        public FilterDefinition getConfiguration() {
+            return def;
         }
     }
 

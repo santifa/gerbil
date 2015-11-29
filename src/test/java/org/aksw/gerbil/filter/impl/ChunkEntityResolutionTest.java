@@ -1,8 +1,12 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.FilterStep;
+import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,31 +17,31 @@ public class ChunkEntityResolutionTest {
 
     EntityResolutionMock mock = new EntityResolutionMock();
 
-    private String[][] bigList = new String[][] {
-            new String[] {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, // 2 times chunk size
-            new String[] {"1", "2", "3", "4", "5"}, // equal chunk size
-            new String[] {"1"}, // below chunk size
-            new String[] {"1", "2", "3", "4", "5", "6"} // with rest
-    };
+    private List<List<String>> bigList = Arrays.asList(
+            Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), // 2 times chunk size
+            Arrays.asList("1", "2", "3", "4", "5"), // equal chunk size
+            Arrays.asList("1"), // below chunk size
+            Arrays.asList("1", "2", "3", "4", "5", "6") // with rest
+    );
 
     @Test
     public void testChunk() {
-        ChunkFilterStep service = new ChunkFilterStep(mock, 5);
-        service.resolveEntities(bigList[0], NullFilter.CONF, "data1", "anno1");
+        ChunkFilter service = new ChunkFilter(mock, 5);
+        service.resolveEntities(bigList.get(0), "data1", "anno1");
         assertEquals(2, mock.getPartsResolved());
         mock.resetCounter();
-        service.resolveEntities(bigList[1], NullFilter.CONF, "data1", "anno1");
+        service.resolveEntities(bigList.get(1), "data1", "anno1");
         assertEquals(1, mock.getPartsResolved());
         mock.resetCounter();
-        service.resolveEntities(bigList[2], NullFilter.CONF, "data1", "anno1");
+        service.resolveEntities(bigList.get(2), "data1", "anno1");
         assertEquals(1, mock.getPartsResolved());
         mock.resetCounter();
-        service.resolveEntities(bigList[3], NullFilter.CONF, "data1", "anno1");
+        service.resolveEntities(bigList.get(3), "data1", "anno1");
         assertEquals(2, mock.getPartsResolved());
     }
 
 
-    public class EntityResolutionMock implements FilterStep {
+    public class EntityResolutionMock implements Filter {
 
         private int parts = 0;
 
@@ -50,15 +54,20 @@ public class ChunkEntityResolutionTest {
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
+        public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
             parts++;
-            return new String[0];
+            return new ArrayList<>();
         }
 
         @Override
-        public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
+        public List<String> resolveEntities(List<String> entities, String datasetName) {
             parts++;
-            return new String[0];
+            return new ArrayList<>();
+        }
+
+        @Override
+        public FilterDefinition getConfiguration() {
+            return NullFilterWrapper.CONF;
         }
     }
 }

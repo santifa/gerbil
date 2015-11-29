@@ -29,7 +29,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskState;
 import org.aksw.gerbil.evaluate.*;
 import org.aksw.gerbil.evaluate.impl.FMeasureCalculator;
 import org.aksw.gerbil.exceptions.GerbilException;
-import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.semantic.sameas.DatasetBasedSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.MultipleSameAsRetriever;
@@ -466,7 +466,7 @@ public class ExperimentTask implements Task {
         LOGGER.debug("Input gold:" + goldStandard);
 
         for (ExperimentTaskConfiguration conf : filterTask.keySet()) {
-            EntityFilter filter = filterHolder.getFilterByConfig(conf.filter);
+            FilterWrapper filter = filterHolder.getFilterByConfig(conf.filter);
             List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
             List<List<T>> filterGoldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
             LOGGER.debug("Filter: " + conf);

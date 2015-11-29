@@ -16,6 +16,7 @@
  */
 package org.aksw.gerbil.dataid.vocabs;
 
+
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;

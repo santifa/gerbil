@@ -16,22 +16,22 @@
  */
 package org.aksw.gerbil.semantic.subclass;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.web.config.RootConfig;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.hp.hpl.jena.rdf.model.InfModel;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.reasoner.Reasoner;
 import com.hp.hpl.jena.reasoner.rulesys.GenericRuleReasoner;
 import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import org.aksw.gerbil.config.GerbilConfiguration;
+import org.aksw.gerbil.web.config.RootConfig;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 
 public class SimpleSubClassInferencerFactory {
 

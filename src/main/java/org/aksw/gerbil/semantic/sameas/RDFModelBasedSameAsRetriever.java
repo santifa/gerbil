@@ -16,8 +16,6 @@
  */
 package org.aksw.gerbil.semantic.sameas;
 
-import java.util.HashSet;
-import java.util.Set;
 
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.NodeIterator;
@@ -25,6 +23,10 @@ import com.hp.hpl.jena.rdf.model.ResIterator;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.impl.ResourceImpl;
 import com.hp.hpl.jena.vocabulary.OWL;
+
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class RDFModelBasedSameAsRetriever implements SameAsRetriever {
 

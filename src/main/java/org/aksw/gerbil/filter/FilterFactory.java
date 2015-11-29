@@ -1,10 +1,7 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.CacheFilterStep;
-import org.aksw.gerbil.filter.impl.ChunkFilterStep;
-import org.aksw.gerbil.filter.impl.NullFilter;
-import org.aksw.gerbil.filter.impl.SparqlFilterStep;
+import org.aksw.gerbil.filter.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,43 +32,27 @@ public class FilterFactory {
 
     private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
     private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
+    private static final String FILTER_FILE = "org.aksw.gerbil.util.filter.file.";
 
-    private FilterStep service;
-
-    private List<EntityFilter> filters = new ArrayList<>(42);
+    private List<FilterWrapper> filters = new ArrayList<>(42);
 
     private final List<String> whiteList = new ArrayList<>();
 
     private boolean isDummy = false;
 
+    private String[] prefixes;
     /**
      * Instantiates a new Filter factory.
      *
      * @param serviceUrl the service url
      */
     public FilterFactory(String serviceUrl) {
+        List<String> p = getPrefixSet();
+        this.prefixes = p.toArray(new String[p.size()]);
         whiteList.addAll(GerbilConfiguration.getInstance().getList(WHITELIST));
-
-        // set the all prefixes defined in the filter.properties
-        List<String> prefixSet = getPrefixSet();
-        FilterStep service = new SparqlFilterStep(serviceUrl, prefixSet.toArray(new String[prefixSet.size()]));
-
-        if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
-            service = new ChunkFilterStep(service, GerbilConfiguration.getInstance().getInt(CHUNK));
-        }
-
-        if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
-            service = new CacheFilterStep(service,
-                        GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
-        }
-        this.service = service;
 
         // initialize null object
         addNullFilter();
-    }
-
-    public FilterFactory(FilterStep service) {
-        this.service = service;
     }
 
     /**
@@ -84,28 +65,30 @@ public class FilterFactory {
 
     // creates the dummy filter
     private void addNullFilter() {
-        filters.add(new NullFilter());
+        filters.add(new NullFilterWrapper());
     }
 
     /**
      * Register new filter objects via reflections.
+     * The created filter will stored inside a {@link NormalFilterWrapper}
      *
-     * @param <T>      the type of the configuration
-     * @param <E>      the type of the filter
-     * @param filter   the filter class extending {@link EntityFilter}, a filter class must have a constructor which takes
-     *                  the configuration class.
-     * @param resolver the concrete configuration resolver
+     * @param <E>                the type of the filter
+     * @param filter             the filter class extending {@link ConcreteFilter}, a filter class must have a constructor which takes
+     *                           the configuration class.
+     * @param resolver           the concrete configuration resolver
      */
-    public <T, E extends EntityFilter> void registerFilter(Class<E> filter, ConfigResolver<T> resolver) {
-        List<T> configurations = resolver.resolve();
-        for (T c : configurations) {
+    public <E extends ConcreteFilter> void registerFilter(Class<E> filter, ConfigResolver<FilterDefinition> resolver) {
+        List<FilterDefinition> configurations = resolver.resolve();
+        for (FilterDefinition c : configurations) {
 
             try {
                 for (Constructor<?> co : filter.getConstructors()) {
-                    if (co.getParameterTypes().length == 1 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
-                        EntityFilter eFilter = (EntityFilter) co.newInstance(c);
-                        eFilter.setEntityResolution(service);
-                        filters.add(eFilter);
+                    if (co.getParameterTypes().length == 2 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
+                        Filter filterInstance = (Filter) co.newInstance(c, prefixes);
+                        filterInstance = decorateFilter(filterInstance);
+                        NormalFilterWrapper wrapper = new NormalFilterWrapper(filterInstance);
+                        filters.add(wrapper);
+
                         LOGGER.info("Filter " + filter + " with " + c + " loaded.");
                     }
                 }
@@ -113,6 +96,21 @@ public class FilterFactory {
                 LOGGER.error("Filter configuration " + c + " for " + filter.getClass() + " could not be loaded", e.getMessage(), e);
             }
         }
+    }
+
+    private Filter decorateFilter(Filter service) {
+
+        if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
+            service = new ChunkFilter(service, GerbilConfiguration.getInstance().getInt(CHUNK));
+        }
+
+        if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
+            service = new CacheFilter(service,
+                    GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
+        }
+
+        service = new UriCleaner(service);
+        return service;
     }
 
     /**
@@ -149,15 +147,38 @@ public class FilterFactory {
      *
      * @return the basic resolver
      */
-    public final ConfigResolver<FilterDefinition> getBasicResolver() {
+    public final ConfigResolver<FilterDefinition> getBasicFilterResolver() {
         return new ConfigResolver<FilterDefinition>() {
 
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
                 if (GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".name") &&
-                        GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".filter")) {
+                        GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".filter") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".service")) {
+
                     result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
-                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList));
+                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList,
+                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".service")));
+                    return ++counter;
+                }
+                return -1;
+            }
+        };
+    }
+
+    public final ConfigResolver<FilterDefinition> getFileFilterResolver() {
+        return new ConfigResolver<FilterDefinition>() {
+            @Override
+            int resolve(int counter, List<FilterDefinition> result) {
+                if (GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".name") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".filter") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".file")) {
+
+                    result.add(new FilterDefinition(
+                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".name"),
+                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".filter"),
+                            whiteList,
+                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".file")));
                     return ++counter;
                 }
                 return -1;

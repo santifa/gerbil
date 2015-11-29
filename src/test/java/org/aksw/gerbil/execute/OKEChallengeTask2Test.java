@@ -25,7 +25,7 @@ import org.aksw.gerbil.dataset.impl.nif.NIFFileDatasetConfig;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.filter.impl.NullFilterWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.subclass.SubClassInferencer;
 import org.aksw.gerbil.transfer.nif.Document;
@@ -370,7 +370,7 @@ public class OKEChallengeTask2Test extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(new TestOKETask2Annotator(
-                Arrays.asList(annotatorResults)), dataset, ExperimentType.OKE_Task2, matching, NullFilter.CONF);
+                Arrays.asList(annotatorResults)), dataset, ExperimentType.OKE_Task2, matching, NullFilterWrapper.CONF);
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(inferencer), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }

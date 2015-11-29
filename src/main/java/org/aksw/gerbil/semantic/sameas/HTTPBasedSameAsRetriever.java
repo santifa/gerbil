@@ -16,11 +16,8 @@
  */
 package org.aksw.gerbil.semantic.sameas;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.vocabulary.OWL;
 import org.aksw.gerbil.http.AbstractHttpRequestEmitter;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -36,12 +33,11 @@ import org.apache.jena.riot.RDFLanguages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.NodeIterator;
-import com.hp.hpl.jena.rdf.model.ResIterator;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.vocabulary.OWL;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class HTTPBasedSameAsRetriever extends AbstractHttpRequestEmitter implements SameAsRetriever {
 

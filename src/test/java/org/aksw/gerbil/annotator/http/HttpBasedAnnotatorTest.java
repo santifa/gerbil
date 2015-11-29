@@ -27,7 +27,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.filter.impl.NullFilterWrapper;
 import org.aksw.gerbil.http.HttpManagement;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
@@ -151,7 +151,7 @@ public class HttpBasedAnnotatorTest implements TaskObserver {
         ExperimentTaskConfiguration configs[] = new ExperimentTaskConfiguration[10 * NUMBER_OF_DATASETS];
         for (int i = 0; i < configs.length; ++i) {
             configs[i] = new ExperimentTaskConfiguration((((i & 1) == 0) ? fastAnnotator : slowAnnotator),
-                    datasets[i / 10], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, NullFilter.CONF);
+                    datasets[i / 10], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, NullFilterWrapper.CONF);
         }
 
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
@@ -194,7 +194,7 @@ public class HttpBasedAnnotatorTest implements TaskObserver {
         ExperimentTaskConfiguration configs[] = new ExperimentTaskConfiguration[2 * NUMBER_OF_DATASETS];
         for (int i = 0; i < configs.length; ++i) {
             configs[i] = new ExperimentTaskConfiguration((((i & 1) == 0) ? fastAnnotator : slowAnnotator),
-                    datasets[i >> 1], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, NullFilter.CONF);
+                    datasets[i >> 1], ExperimentType.D2KB, Matching.WEAK_ANNOTATION_MATCH, NullFilterWrapper.CONF);
         }
 
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();

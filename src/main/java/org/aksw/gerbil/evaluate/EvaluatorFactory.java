@@ -29,11 +29,7 @@ import org.aksw.gerbil.evaluate.impl.filter.SearcherBasedNotMatchingMarkingFilte
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.matching.MatchingsSearcher;
 import org.aksw.gerbil.matching.MatchingsSearcherFactory;
-import org.aksw.gerbil.matching.impl.CompoundMatchingsCounter;
-import org.aksw.gerbil.matching.impl.HierarchicalMatchingsCounter;
-import org.aksw.gerbil.matching.impl.MatchingsCounterImpl;
-import org.aksw.gerbil.matching.impl.MeaningMatchingsSearcher;
-import org.aksw.gerbil.matching.impl.StrongSpanMatchingsSearcher;
+import org.aksw.gerbil.matching.impl.*;
 import org.aksw.gerbil.semantic.kb.ExactWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.UriKBClassifier;

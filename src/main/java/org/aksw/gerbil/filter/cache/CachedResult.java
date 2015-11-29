@@ -7,6 +7,7 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * A cached results is a serializable representation of either
@@ -146,7 +147,7 @@ public class CachedResult {
      * @return the string
      * @throws NoSuchAlgorithmException the no such algorithm exception
      */
-    public static String generateMd5Checksum(String[] entities) throws NoSuchAlgorithmException {
+    public static String generateMd5Checksum(List<String> entities) throws NoSuchAlgorithmException {
         MessageDigest md;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -154,7 +155,7 @@ public class CachedResult {
             throw new NoSuchAlgorithmException("Expected a MD5 implmentation. " + e.getMessage(), e);
         }
 
-        String entityRep = Arrays.toString(entities);
+        String entityRep = entities.toString();
         md.update(entityRep.getBytes(Charset.forName("utf8")));
         byte[] digest = md.digest();
         StringBuilder builder = new StringBuilder();

@@ -19,7 +19,7 @@ package org.aksw.gerbil.database;
 import org.aksw.gerbil.datatypes.ErrorTypes;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.filter.impl.NullFilterWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.junit.Assert;
 import org.junit.Test;
@@ -189,7 +189,7 @@ public class ExperimentDAOImplJUnitTest {
             }
         }
         List<ExperimentTaskResult> results = this.dao.getLatestResultsOfExperiments(ExperimentType.A2KB.name(),
-                Matching.WEAK_ANNOTATION_MATCH.name(), new NullFilter().getConfig().getName());
+                Matching.WEAK_ANNOTATION_MATCH.name(), new NullFilterWrapper().getConfig().getName());
         Assert.assertEquals(1, results.size());
         Assert.assertEquals("annotator1", results.get(0).annotator);
         Assert.assertEquals("dataset1", results.get(0).dataset);

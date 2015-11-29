@@ -15,17 +15,21 @@ public class FilterDefinition {
 
     private List<String> entityUriWhitelist;
 
+    private String serviceLocation = "";
+
     /**
-     * Instantiates a new Filter configuration.
+     * Instantiates a new Filter definition.
      *
-     * @param name               the name
-     * @param filter             the filter
-     * @param entityUriWhitelist the entity uri whitelist
+     * @param name         the name
+     * @param filter       the filter
+     * @param whiteList    the white list
+     * @param serviceLocation provide one either a url for a sparql endpoint or a file location
      */
-    public FilterDefinition(String name, String filter, List<String> entityUriWhitelist) {
+    public FilterDefinition(String name, String filter, List<String> whiteList, String serviceLocation) {
         this.name = name;
         this.filter = filter;
-        this.entityUriWhitelist = entityUriWhitelist;
+        this.entityUriWhitelist = whiteList;
+        this.serviceLocation = serviceLocation;
     }
 
     /**
@@ -55,6 +59,15 @@ public class FilterDefinition {
         return entityUriWhitelist;
     }
 
+    /**
+     * Gets file location.
+     *
+     * @return the file location
+     */
+    public String getServiceLocation() {
+        return serviceLocation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,7 +77,9 @@ public class FilterDefinition {
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
-        return !(entityUriWhitelist != null ? !entityUriWhitelist.equals(that.entityUriWhitelist) : that.entityUriWhitelist != null);
+        if (entityUriWhitelist != null ? !entityUriWhitelist.equals(that.entityUriWhitelist) : that.entityUriWhitelist != null)
+            return false;
+        return !(serviceLocation != null ? !serviceLocation.equals(that.serviceLocation) : that.serviceLocation != null);
 
     }
 
@@ -73,6 +88,7 @@ public class FilterDefinition {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (entityUriWhitelist != null ? entityUriWhitelist.hashCode() : 0);
+        result = 31 * result + (serviceLocation != null ? serviceLocation.hashCode() : 0);
         return result;
     }
 
@@ -82,6 +98,7 @@ public class FilterDefinition {
                 "name='" + name + '\'' +
                 ", filter='" + filter + '\'' +
                 ", entityUriWhitelist=" + entityUriWhitelist +
+                ", serviceLocation='" + serviceLocation + '\'' +
                 '}';
     }
 }

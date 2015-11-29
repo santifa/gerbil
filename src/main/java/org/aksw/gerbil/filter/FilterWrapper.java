@@ -11,11 +11,9 @@ import java.util.List;
  * Created by Henrik Jürges on 07.11.15.
  *
  */
-public interface EntityFilter {
+public interface FilterWrapper {
 
     FilterDefinition getConfig();
-
-    void setEntityResolution(FilterStep service);
 
     <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName);
 

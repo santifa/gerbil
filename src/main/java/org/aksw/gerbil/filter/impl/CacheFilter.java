@@ -1,7 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.FilterStep;
-import org.aksw.gerbil.filter.FilterDefinition;
+import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.cache.CachedResult;
 import org.aksw.gerbil.filter.cache.FilterCache;
 import org.apache.log4j.LogManager;
@@ -9,17 +8,19 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ratzeputz on 24.11.15.
  */
-public class CacheFilterStep extends FilterStepDecorator {
+public class CacheFilter extends FilterDecorator {
 
-    private static final Logger LOGGER = LogManager.getLogger(CacheFilterStep.class);
+    private static final Logger LOGGER = LogManager.getLogger(CacheFilter.class);
 
     private FilterCache cache;
 
-    public CacheFilterStep(FilterStep service, String cacheLocation) {
+    public CacheFilter(Filter service, String cacheLocation) {
         super(service);
 
         try {
@@ -30,17 +31,18 @@ public class CacheFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName, String annotatorName) {
-        String[] resolvedEntities = new String[0];
+    public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
+        List<String> resolvedEntities = new ArrayList<>();
 
         try {
             String md5sum = CachedResult.generateMd5Checksum(entities);
 
-            if (cache.isVersionCached(conf.getName(), datasetName, annotatorName, md5sum)) {
-                resolvedEntities = cache.getCachedResults(conf.getName(), datasetName, annotatorName);
+            if (cache.isVersionCached(getConfiguration().getName(), datasetName, annotatorName, md5sum)) {
+                resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName, annotatorName);
             } else {
-                resolvedEntities = super.resolveEntities(entities, conf, datasetName, annotatorName);
-                CachedResult result = new CachedResult(conf.getName(), datasetName, annotatorName, resolvedEntities);
+                resolvedEntities = super.resolveEntities(entities, datasetName, annotatorName);
+                CachedResult result = new CachedResult(getConfiguration().getName(), datasetName, annotatorName,
+                        resolvedEntities.toArray(new String[entities.size()]));
                 result.setChecksum(md5sum);
                 cache.cache(result);
             }
@@ -52,17 +54,18 @@ public class CacheFilterStep extends FilterStepDecorator {
     }
 
     @Override
-    public String[] resolveEntities(String[] entities, FilterDefinition conf, String datasetName) {
-        String[] resolvedEntities = new String[0];
+    public List<String> resolveEntities(List<String> entities, String datasetName) {
+        List<String> resolvedEntities = new ArrayList<>();
 
         try {
             String md5sum = CachedResult.generateMd5Checksum(entities);
 
-            if (cache.isVersionCached(conf.getName(), datasetName, md5sum)) {
-                resolvedEntities = cache.getCachedResults(conf.getName(), datasetName);
+            if (cache.isVersionCached(getConfiguration().getName(), datasetName, md5sum)) {
+                resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName);
             } else {
-                resolvedEntities = super.resolveEntities(entities, conf, datasetName);
-                CachedResult result = new CachedResult(conf.getName(), datasetName, resolvedEntities);
+                resolvedEntities = super.resolveEntities(entities, datasetName);
+                CachedResult result = new CachedResult(getConfiguration().getName(), datasetName,
+                        resolvedEntities.toArray(new String[entities.size()]));
                 result.setChecksum(md5sum);
                 cache.cache(result);
             }
@@ -78,7 +81,7 @@ public class CacheFilterStep extends FilterStepDecorator {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CacheFilterStep that = (CacheFilterStep) o;
+        CacheFilter that = (CacheFilter) o;
 
         return !(cache != null ? !cache.equals(that.cache) : that.cache != null);
 
