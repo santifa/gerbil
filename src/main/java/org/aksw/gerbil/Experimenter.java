@@ -21,7 +21,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.execute.ExperimentTask;
-import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.ExpTaskConfigComparator;
@@ -93,7 +93,7 @@ public class Experimenter implements Runnable {
                 Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
 
                 // create a task for every filter and the nofilter not in db
-                for (EntityFilter f : filterHolder.getFilterList()) {
+                for (FilterWrapper f : filterHolder.getFilterList()) {
                     ExperimentTaskConfiguration conf = new ExperimentTaskConfiguration(configs[i].annotatorConfig,
                             configs[i].datasetConfig, configs[i].type, configs[i].matching, f.getConfig());
                     taskId = createOrgetTaskId(conf);

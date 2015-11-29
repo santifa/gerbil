@@ -1,8 +1,8 @@
 package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.EntityFilter;
+import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterStep;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
 import org.aksw.gerbil.transfer.nif.TypedSpan;
@@ -13,44 +13,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A "normal" filter denotes in near future an unboxing or wrapping between the
- * filter steps and the
+ * A "normal" filter denotes an unboxing or wrapping between the
+ * filter steps entities and the entities in the outside world.
+ * Or more easier it knows how to get the URI strings for all the other filter steps.
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class NormalFilter implements EntityFilter {
+public class NormalFilterWrapper implements FilterWrapper {
 
-    private final static Logger LOGGER = LogManager.getLogger(NormalFilter.class);
+    private final static Logger LOGGER = LogManager.getLogger(NormalFilterWrapper.class);
 
-    private FilterDefinition conf;
+    private Filter service;
 
-    private FilterStep service;
-
-    public NormalFilter(FilterDefinition conf) {
-        this.conf = conf;
+    public NormalFilterWrapper(Filter service) {
+        this.service = service;
     }
 
     @Override
     public FilterDefinition getConfig() {
-        return conf;
-    }
-
-    @Override
-    public void setEntityResolution(FilterStep service) {
-        this.service = service;
+        return service.getConfiguration();
     }
 
     @Override
     public <E extends Marking> List<List<E>> filterGoldstandard(List<List<E>> entities, String datasetName) {
         List<String> entityNames = collectEntityNames(entities);
-        String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName);
+        List<String> resolvedEntities = service.resolveEntities(entityNames, datasetName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
 
     @Override
     public <E extends Marking> List<List<E>> filterAnnotatorResults(List<List<E>> entities, String datasetName, String annotatorName) {
         List<String> entityNames = collectEntityNames(entities);
-        String[] resolvedEntities = service.resolveEntities(entityNames.toArray(new String[entityNames.size()]), this.conf, datasetName, annotatorName);
+        List<String> resolvedEntities = service.resolveEntities(entityNames, datasetName, annotatorName);
         return removeUnresolvedEntites(entities, resolvedEntities);
     }
 
@@ -74,7 +68,7 @@ public class NormalFilter implements EntityFilter {
         return result;
     }
 
-    private <E extends Marking> List<List<E>> removeUnresolvedEntites(List<List<E>> document, String[] resolvedEntites) {
+    private <E extends Marking> List<List<E>> removeUnresolvedEntites(List<List<E>> document, List<String> resolvedEntites) {
         List<List<E>> result = new ArrayList<>();
 
         for (List<E> documentPart : document) {
@@ -83,8 +77,8 @@ public class NormalFilter implements EntityFilter {
             for (E entity : documentPart) {
                 if (entity instanceof Meaning) {
                     boolean found = false;
-                    for (int i = 0; i < resolvedEntites.length; i++) {
-                        if (((Meaning) entity).containsUri(resolvedEntites[i])) {
+                    for (int i = 0; i < resolvedEntites.size(); i++) {
+                        if (((Meaning) entity).containsUri(resolvedEntites.get(i))) {
                             found = true;
                         }
                     }
@@ -94,8 +88,8 @@ public class NormalFilter implements EntityFilter {
                     }
                 } else if (entity instanceof TypedSpan) {
                     boolean found = false;
-                    for (int i = 0; i < resolvedEntites.length; i++) {
-                        if (((TypedSpan) entity).getTypes().contains(resolvedEntites[i])) {
+                    for (int i = 0; i < resolvedEntites.size(); i++) {
+                        if (((TypedSpan) entity).getTypes().contains(resolvedEntites.get(i))) {
                             found = true;
                         }
                     }
@@ -119,24 +113,20 @@ public class NormalFilter implements EntityFilter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        NormalFilter that = (NormalFilter) o;
+        NormalFilterWrapper that = (NormalFilterWrapper) o;
 
-        if (!conf.equals(that.conf)) return false;
-        return service.equals(that.service);
+        return !(service != null ? !service.equals(that.service) : that.service != null);
 
     }
 
     @Override
     public int hashCode() {
-        int result = conf.hashCode();
-        result = 31 * result + service.hashCode();
-        return result;
+        return service != null ? service.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return "NormalFilter{" +
-                "conf=" + conf +
+        return "NormalFilterWrapper{" +
                 ", service=" + service +
                 '}';
     }

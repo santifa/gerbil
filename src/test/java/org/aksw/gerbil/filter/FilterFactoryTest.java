@@ -3,15 +3,16 @@ package org.aksw.gerbil.filter;
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.impl.CacheFilterStep;
-import org.aksw.gerbil.filter.impl.NormalFilter;
-import org.aksw.gerbil.filter.impl.SparqlFilterStep;
+import org.aksw.gerbil.filter.impl.CacheFilter;
+import org.aksw.gerbil.filter.impl.NormalFilterWrapper;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.impl.UriCleaner;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,13 +21,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Test the creation of {@link EntityFilter} and caching of the goldstandard instances.
+ * Test the creation of {@link FilterWrapper} and caching of the goldstandard instances.
  *
  * Created by Henrik Jürges on 12.11.15.
  */
 public class FilterFactoryTest {
 
-    private static FilterStep expectedService;
+    private static Filter expectedService;
 
     private static final String serviceUrl = "http://dbpedia.org/sparql";
 
@@ -43,21 +44,23 @@ public class FilterFactoryTest {
                                     16, "http://de.dbpedia.org/resource/CNN"),
                             (Marking) new NamedEntity(76, 4, "http://de.dbpedia.org/resource/Tiger_Woods"))));
 
-    @BeforeClass
-    public static void setUp() throws IOException {
-        expectedService = new SparqlFilterStep(serviceUrl, new String[] {"dbo:<http://dbpedia.org/ontology/>",
+
+    final FilterDefinition conf = new FilterDefinition("name filter",
+            "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl);
+
+    @Before
+    public void setUp() throws IOException {
+        expectedService = new SparqlFilter(conf, new String[] {"dbo:<http://dbpedia.org/ontology/>",
                 "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"});
-        expectedService = new CacheFilterStep(expectedService, "/tmp/filter");
+        expectedService = new CacheFilter(expectedService, "/tmp/filter");
+        expectedService = new UriCleaner(expectedService);
     }
 
     @Test
     public void testRegisterFilter() throws Exception {
-        final FilterDefinition conf = new FilterDefinition("name filter",
-                "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>());
-        final NormalFilter expected = new NormalFilter(conf);
-        expected.setEntityResolution(expectedService);
+        final NormalFilterWrapper expected = new NormalFilterWrapper(expectedService);
         FilterFactory factory = new FilterFactory(serviceUrl);
-        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
+        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
                 result.add(conf);
@@ -72,16 +75,30 @@ public class FilterFactoryTest {
 
     @Test
     public void testPrecache() throws Exception {
-        FilterFactory factory = new FilterFactory(expectedService);
-        factory.registerFilter(NormalFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
+        FilterFactory factory = new FilterFactory(serviceUrl);
+        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
                 result.add(new FilterDefinition("place filter",
-                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>()));
+                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl));
                 return -1;
             }
         });
         Dataset test = new TestDataset(INSTANCES, ExperimentType.ERec);
         factory.getFilters().cacheGoldstandard(test.getInstances(), "test");
+    }
+
+    @Test
+    public void testFileFilter() throws Exception {
+        FilterFactory factory = new FilterFactory(serviceUrl);
+        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
+            @Override
+            int resolve(int counter, List<FilterDefinition> result) {
+                result.add(new FilterDefinition("place filter",
+                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), "file"));
+                return -1;
+            }
+        });
+        System.out.println(factory.getFilters());
     }
 }

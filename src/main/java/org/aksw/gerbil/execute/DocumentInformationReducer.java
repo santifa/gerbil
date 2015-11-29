@@ -16,9 +16,8 @@
  */
 package org.aksw.gerbil.execute;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.hp.hpl.jena.vocabulary.OWL;
+import com.hp.hpl.jena.vocabulary.RDFS;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Span;
@@ -29,8 +28,9 @@ import org.aksw.gerbil.transfer.nif.data.TypedNamedEntity;
 import org.aksw.gerbil.utils.filter.MarkingFilter;
 import org.aksw.gerbil.utils.filter.TypeBasedMarkingFilter;
 
-import com.hp.hpl.jena.vocabulary.OWL;
-import com.hp.hpl.jena.vocabulary.RDFS;
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * This class reduces the information contained inside a given document. It is

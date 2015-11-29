@@ -8,7 +8,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AbstractExperimentTaskTest;
-import org.aksw.gerbil.filter.impl.NormalFilter;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.UriKBClassifier;
@@ -104,11 +104,11 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         FilterFactory factory = new FilterFactory(SERVICE_URL);
-        factory.registerFilter(NormalFilter.class, factory.getBasicResolver());
+        factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
 
         int counter = 1;
         HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
-        for (EntityFilter f : factory.getFilters().getFilterList()) {
+        for (FilterWrapper f : factory.getFilters().getFilterList()) {
             ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, f.getConfig());
             filterTask.put(configuration, counter);

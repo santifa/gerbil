@@ -16,18 +16,6 @@
  */
 package org.aksw.gerbil.dataid;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-
-import org.aksw.gerbil.dataid.vocabs.CUBE;
-import org.aksw.gerbil.dataid.vocabs.GERBIL;
-import org.aksw.gerbil.datatypes.ExperimentTaskResult;
-import org.aksw.gerbil.web.ExperimentTaskStateHelper;
-import org.apache.jena.riot.RDFDataMgr;
-
 import com.github.jsonldjava.jena.JenaJSONLD;
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 import com.hp.hpl.jena.rdf.model.Model;
@@ -36,6 +24,17 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.vocabulary.RDFS;
 import com.hp.hpl.jena.vocabulary.XSD;
+import org.aksw.gerbil.dataid.vocabs.CUBE;
+import org.aksw.gerbil.dataid.vocabs.GERBIL;
+import org.aksw.gerbil.datatypes.ExperimentTaskResult;
+import org.aksw.gerbil.web.ExperimentTaskStateHelper;
+import org.apache.jena.riot.RDFDataMgr;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 
 public class DataIDGenerator {
 
@@ -137,7 +136,7 @@ public class DataIDGenerator {
         if (ExperimentTaskStateHelper.taskFinished(result)) {
         	model.add(experimentTask, CUBE.dataset, model.createResource(experiment.getURI()));
             // creating and setting literals for the current experiment
-            model.add(experimentTask, GERBIL.microF1, model.createTypedLiteral(String.valueOf(result.getMicroF1Measure()),XSDDatatype.XSDdecimal));
+            model.add(experimentTask, GERBIL.microF1, model.createTypedLiteral(String.valueOf(result.getMicroF1Measure()), XSDDatatype.XSDdecimal));
             model.add(experimentTask, GERBIL.microPrecision, model.createTypedLiteral(String.valueOf(result.getMicroPrecision()),XSDDatatype.XSDdecimal));
             model.add(experimentTask, GERBIL.microRecall, model.createTypedLiteral(String.valueOf(result.getMicroRecall()),XSDDatatype.XSDdecimal));
             model.add(experimentTask, GERBIL.macroF1, model.createTypedLiteral(String.valueOf(result.getMacroF1Measure()),XSDDatatype.XSDdecimal));

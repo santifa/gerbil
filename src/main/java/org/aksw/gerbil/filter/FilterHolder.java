@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.impl.NullFilter;
+import org.aksw.gerbil.filter.impl.NullFilterWrapper;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 
@@ -16,16 +16,16 @@ import java.util.List;
  */
 public final class FilterHolder {
 
-    private final List<EntityFilter> filterList;
+    private final List<FilterWrapper> filterList;
 
     public final boolean isCacheGolstandard;
 
-    public  FilterHolder(List<EntityFilter> filterList, boolean isCacheGoldstandard) {
+    public  FilterHolder(List<FilterWrapper> filterList, boolean isCacheGoldstandard) {
         this.filterList = filterList;
         this.isCacheGolstandard = isCacheGoldstandard;
     }
 
-    public List<EntityFilter> getFilterList() {
+    public List<FilterWrapper> getFilterList() {
         return filterList;
     }
 
@@ -35,8 +35,8 @@ public final class FilterHolder {
             goldstandard.add(doc.getMarkings());
         }
 
-        for (EntityFilter f : filterList) {
-            if (!f.getConfig().equals(NullFilter.CONF)) {
+        for (FilterWrapper f : filterList) {
+            if (!f.getConfig().equals(NullFilterWrapper.CONF)) {
                 f.filterGoldstandard(goldstandard, datasetName);
             }
         }
@@ -49,13 +49,13 @@ public final class FilterHolder {
      * @param filterConfig the filter config
      * @return the filter by config
      */
-    public EntityFilter getFilterByConfig(FilterDefinition filterConfig) {
-        for (EntityFilter f : filterList) {
+    public FilterWrapper getFilterByConfig(FilterDefinition filterConfig) {
+        for (FilterWrapper f : filterList) {
             if (f.getConfig().equals(filterConfig)) {
                 return f;
             }
         }
-        return new NullFilter();
+        return new NullFilterWrapper();
     }
 
     @Override

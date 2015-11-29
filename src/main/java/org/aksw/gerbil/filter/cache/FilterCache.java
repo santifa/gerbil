@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -145,9 +146,11 @@ public class FilterCache {
      * @param annotatorName the annotator name
      * @return the string [ ] or an empty array if nothing is cached.
      */
-    public String[] getCachedResults(String filterName, String datasetName, String annotatorName) {
+    public List<String> getCachedResults(String filterName, String datasetName, String annotatorName) {
         CachedResult res = getCachedResults(new CachedResult(filterName, datasetName, annotatorName));
-        return res != null ? res.getEntities() : new String[0];
+        List<String> result = new ArrayList<>();
+        Collections.addAll(result, res.getEntities());
+        return result;
     }
 
     /**
@@ -157,9 +160,11 @@ public class FilterCache {
      * @param datasetName the dataset name
      * @return the string [ ] or an empty array if nothing is cached.
      */
-    public String[] getCachedResults(String filterName, String datasetName) {
+    public List<String> getCachedResults(String filterName, String datasetName) {
         CachedResult res = getCachedResults(new CachedResult(filterName, datasetName));
-        return res != null ? res.getEntities() : new String[0];
+        List<String> result = new ArrayList<>();
+        Collections.addAll(result, res.getEntities());
+        return result;
     }
 
     private CachedResult getCachedResults(CachedResult result) {
