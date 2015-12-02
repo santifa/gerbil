@@ -3,10 +3,8 @@ package org.aksw.gerbil.filter;
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.impl.CacheFilter;
-import org.aksw.gerbil.filter.impl.NormalFilterWrapper;
-import org.aksw.gerbil.filter.impl.SparqlFilter;
-import org.aksw.gerbil.filter.impl.UriCleaner;
+import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
@@ -58,8 +56,9 @@ public class FilterFactoryTest {
 
     @Test
     public void testRegisterFilter() throws Exception {
-        final NormalFilterWrapper expected = new NormalFilterWrapper(expectedService);
-        FilterFactory factory = new FilterFactory(serviceUrl);
+        final FilterWrapperImpl expected = new FilterWrapperImpl(expectedService);
+
+        FilterFactory factory = new FilterFactory(false);
         factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
@@ -67,15 +66,17 @@ public class FilterFactoryTest {
                 return -1;
             }
         });
+
         FilterHolder holder = factory.getFilters();
         Assert.assertTrue(holder.getFilterList().size() == 2);
+        // IdentityWrapper is trivial
         Assert.assertEquals(expected, holder.getFilterList().get(1));
 
     }
 
     @Test
     public void testPrecache() throws Exception {
-        FilterFactory factory = new FilterFactory(serviceUrl);
+        FilterFactory factory = new FilterFactory(false);
         factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
@@ -88,17 +89,13 @@ public class FilterFactoryTest {
         factory.getFilters().cacheGoldstandard(test.getInstances(), "test");
     }
 
+    // ugly quick loading from config test
     @Test
-    public void testFileFilter() throws Exception {
-        FilterFactory factory = new FilterFactory(serviceUrl);
-        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
-            @Override
-            int resolve(int counter, List<FilterDefinition> result) {
-                result.add(new FilterDefinition("place filter",
-                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), "file"));
-                return -1;
-            }
-        });
+    public void testConfigLoading() throws Exception {
+        FilterFactory factory = new FilterFactory(false);
+        factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
+        factory.registerFilter(FileFilter.class, factory.getFileFilterResolver());
+        factory.registerFilter(PopularityFilter.class, factory.getPopularityFilterResolver());
         System.out.println(factory.getFilters());
     }
 }

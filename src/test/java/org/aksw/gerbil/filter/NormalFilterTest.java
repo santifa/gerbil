@@ -1,30 +1,26 @@
-package org.aksw.gerbil.filter.impl;
+package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterHolder;
-import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.impl.FileFilter;
+import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
- * Created by ratzeputz on 16.11.15.
+ * Test the so called normal filters which uses plain sparql queries against a knowledge base for entity filtering.
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 @RunWith(Parameterized.class)
 public class NormalFilterTest {
 
-    private FilterHolder filters;
-
-    private final String serviceUrl = "http://dbpedia.org/sparql";
+    private final String SERVICE_URL = "http://dbpedia.org/sparql";
 
     private final String[] prefix = new String[] {"foaf:<http://xmlns.com/foaf/0.1/>",
             "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>", "dbo:<http://dbpedia.org/ontology/>"};
@@ -103,55 +99,57 @@ public class NormalFilterTest {
     private List<List<Marking>> input;
 
     public NormalFilterTest(List<Marking> input, List<Marking> expectedPerson, List<Marking> expectedPlaces) {
-        this.expectedPerson = new ArrayList<>(1);
-        this.expectedPerson.add(expectedPerson);
-        this.expectedPlaces = new ArrayList<>(1);
-        this.expectedPlaces.add(expectedPlaces);
-        this.input = new ArrayList<>(1);
-        this.input.add(input);
+        this.expectedPerson = Collections.singletonList(expectedPerson);
+        this.expectedPlaces = Collections.singletonList(expectedPlaces);
+        this.input = Collections.singletonList(input);
     }
 
-    @Before
-    public void setUp() throws Exception {
-
-        FilterWrapper filter1 = new NormalFilterWrapper(new SparqlFilter(new FilterDefinition("person",
-                "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }",
-                Arrays.asList("http://dbpedia.org/"), serviceUrl), prefix));
-
-        FilterWrapper filter2 = new NormalFilterWrapper(new SparqlFilter(new FilterDefinition("place",
+    @Test
+    public void testFilterAnnotatorResultsPlace() throws Exception {
+        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
                 "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
-                new ArrayList<String>(), serviceUrl), prefix));
+                Collections.EMPTY_LIST, SERVICE_URL), prefix));
 
-        FilterWrapper filter3 = new NormalFilterWrapper(new FileFilter(new FilterDefinition("pop",
+        List<List<Marking>> results = f.filterAnnotatorResults(input, "dataset1", "anno1");
+        Assert.assertTrue(expectedPlaces.equals(results));
+    }
+
+    @Test
+    public void testFilterAnnotatorResultsPerson() throws Exception {
+        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
+                "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }",
+                Collections.singletonList("http://dbpedia.org/"), SERVICE_URL), prefix));
+
+        List<List<Marking>> results = f.filterAnnotatorResults(input, "dataset1", "anno1");
+        Assert.assertTrue(expectedPerson.equals(results));
+    }
+
+    @Test
+    public void testFilterGoldstandardPerson() throws Exception {
+        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
+                "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }",
+                Collections.singletonList("http://dbpedia.org/"), SERVICE_URL), prefix));
+
+        List<List<Marking>> results = f.filterGoldstandard(input, "dataset1");
+        Assert.assertTrue(expectedPerson.equals(results));
+    }
+
+    @Test
+    public void testFilterGoldstandardPlace() throws Exception {
+        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
+                "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
+                Collections.EMPTY_LIST, SERVICE_URL), prefix));
+
+         List<List<Marking>> results = f.filterGoldstandard(input, "dataset1");
+         Assert.assertTrue(expectedPlaces.equals(results));
+    }
+
+    @Test
+    public void testFileFilter() {
+        // TODO NOT TESTED
+        org.aksw.gerbil.filter.FilterWrapper filter3 = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
                 "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
                 "gerbil_data/resources/filter/pagerank_scores_reduced_en_2015.ttl"), prefix));
 
-        this.filters = new FilterHolder(Arrays.asList(filter1, filter2, filter3), false);
-    }
-
-    @Test
-    public void testFilterAnnotatorResults() throws Exception {
-        for (FilterWrapper f : filters.getFilterList()) {
-            List<List<Marking>> results = f.filterAnnotatorResults(input, "dataset1", "anno1");
-            if (f.getConfig().getName().equals("person")) {
-                Assert.assertTrue(expectedPerson.equals(results));
-            } else {
-                System.out.println(results);
-                Assert.assertTrue(expectedPlaces.equals(results));
-            }
-        }
-    }
-
-    @Test
-    public void testFilterGoldstandard() throws Exception {
-        for (FilterWrapper f : filters.getFilterList()) {
-            List<List<Marking>> results = f.filterGoldstandard(input, "dataset1");
-            if (f.getConfig().getName().equals("person")) {
-                Assert.assertTrue(expectedPerson.equals(results));
-            } else {
-                System.out.println(results);
-                Assert.assertTrue(expectedPlaces.equals(results));
-            }
-        }
     }
 }

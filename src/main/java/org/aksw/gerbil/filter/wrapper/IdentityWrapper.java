@@ -1,4 +1,4 @@
-package org.aksw.gerbil.filter.impl;
+package org.aksw.gerbil.filter.wrapper;
 
 import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.FilterWrapper;
@@ -12,7 +12,7 @@ import java.util.List;
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class NullFilterWrapper implements FilterWrapper {
+public class IdentityWrapper implements FilterWrapper {
 
     public final static FilterDefinition CONF = new FilterDefinition("nofilter", "", new ArrayList<String>(), "");
 

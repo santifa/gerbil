@@ -18,6 +18,12 @@
 	src="/gerbil/webResources/js/RadarChart.js"></script>
 <script type="text/javascript"
 	src="/gerbil/webResources/js/script_radar_overview.js"></script>
+
+<link rel="stylesheet" href="/gerbil/webResources/js/anythingslider.css">
+<script type="text/javascript"
+    src="/gerbil/webResources/js/jquery.anythingslider.min.js"></script>
+<link rel="stylesheet" href="/gerbil/webResources/js/theme-minimalist-round.css">
+
 <link rel="icon" type="image/png"
 	href="/gerbil/webResources/gerbilicon_transparent.png">
 </head>
@@ -50,8 +56,9 @@ table {
 }
 
 .chartDiv { /*position: absolute;*/
-	top: 50px;
-	left: 100px;
+	//top: 50px;
+    left: 50px;
+    height: 70%;
 	vertical-align: center;
 	text-align:center;
 }
@@ -111,9 +118,8 @@ table {
 			</div>
 			<div class="container-fluid">
 				<div id="resultsChartBody" class="chartBody">
-					    <div style="display:inline-block" id="resultsChart" class="chartDiv"></div>
-					    <div style="display:inline-block" id="compareChart" class="chartDiv"></div>
-				    </div>
+			        <div id="resultsChart" class="chartDiv"></div>
+					<div id="compareChart" class="chartDiv"></div>
 				</div>
 			</div>
 		</div>
@@ -347,14 +353,14 @@ table {
             for (var i = 0; i < filters.length; i++) {
                 dataChunks.push(getData(filters[i]));
                 htmlResult += "<div id=\"resultsChart" + i + "\">"
-                                + "<span>" + filters[i] + "</span><div id=\"result" + i + "\"></div></div>"
+                                + "<span>" + filters[i] + "</span><div id=\"result" + i + "\" class=\"chartDiv\"></div></div>"
                 htmlCompare += "<div id=\"compareChart" + i + "\">"
-                                + "<span>" + filters[i] + "</span><div id=\"compare" + i + "\"></div></div>"
+                                + "<span>" + filters[i] + "</span><div id=\"compare" + i + "\" class=\"chartDiv\"></div></div>"
             }
 
             // add scroll bar for one line
-            $("#resultsChartBody").css("overflow-x", "scroll");
-            $("#resultsChartBody").css("white-space", "nowrap");
+            //$("#resultsChartBody").css("overflow-x", "scroll");
+            //$("#resultsChartBody").css("white-space", "nowrap");
             $("#resultsChart").html(htmlResult);
             $("#compareChart").html(htmlCompare);
 
@@ -363,6 +369,15 @@ table {
                 drawSpiderDiagram(dataChunks[i], "result" + i);
                 drawSpiderDiagram(dataChunks[i], "compare" + i);
             }
+
+            $("#resultsChart").anythingSlider({
+                easing: 'linear',
+                buildArrows: true,
+            });
+            $("#compareChart").anythingSlider({
+                easing: 'linear',
+                buildArrows: true,
+            });
         };
 
         // remove diagrams and tables

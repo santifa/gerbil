@@ -23,6 +23,7 @@ import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.impl.FileFilter;
+import org.aksw.gerbil.filter.impl.PopularityFilter;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.semantic.sameas.*;
 import org.aksw.gerbil.semantic.subclass.ClassHierarchyLoader;
@@ -169,12 +170,13 @@ public class RootConfig {
 
     public static @Bean FilterFactory createFilterFactory() {
         if (GerbilConfiguration.getInstance().getBoolean(FILTER)) {
-            FilterFactory filter = new FilterFactory(GerbilConfiguration.getInstance().getString(FILTER_SERVICE));
+            FilterFactory filter = new FilterFactory(false);
             filter.registerFilter(SparqlFilter.class, filter.getBasicFilterResolver());
             filter.registerFilter(FileFilter.class, filter.getFileFilterResolver());
+            filter.registerFilter(PopularityFilter.class, filter.getPopularityFilterResolver());
             return filter;
         } else {
-            return new FilterFactory();
+            return new FilterFactory(true);
         }
     }
 

@@ -10,7 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by ratzeputz on 26.11.15.
+ * Mock and test the cleaning of filter request based on a whitelist for URI's.
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class UriCleanerStepTest {
 
