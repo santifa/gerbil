@@ -32,7 +32,7 @@ import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.FilterHolder;
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.IDCreator;
@@ -206,7 +206,7 @@ public class MainController {
         for (String annotator : annotators) {
             for (String dataset : datasets) {
                     configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
-                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), NullFilterWrapper.CONF);
+                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), IdentityWrapper.CONF);
                     LOGGER.debug("Created config: {}", configs[count]);
                     ++count;
             }

@@ -12,6 +12,8 @@ import java.util.List;
  * and sorts out all non white listed URI's. If the whitelist is empty
  * all URI's are allowed.
  *
+ * TODO Think about using the dbpedia lookup service for resolving unknown or not linked entities
+ *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class UriCleaner extends FilterDecorator {
@@ -43,9 +45,7 @@ public class UriCleaner extends FilterDecorator {
             List<String> cleanedUris = cleanUris(entities, getConfiguration().getEntityUriWhitelist());
             return super.resolveEntities(cleanedUris, datasetName);
         }
-
     }
-
 
     private List<String> cleanUris(List<String> entities, List<String> whitelist) {
         List<String> result = new ArrayList<>(entities.size());

@@ -23,7 +23,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.web.config.RootConfig;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
@@ -56,7 +56,7 @@ public abstract class AbstractExperimentTaskTest {
     public void runTest(int experimentTaskId, ExperimentDAO experimentDAO, EvaluatorFactory evFactory,
                         ExperimentTaskConfiguration configuration, TaskObserver observer, SameAsRetriever sameAsRetriever) {
         List<FilterWrapper> filter = new ArrayList<>();
-        filter.add(new NullFilterWrapper());
+        filter.add(new IdentityWrapper());
         FilterHolder holder = new FilterHolder(filter, false);
         Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
         filterTask.put(configuration, experimentTaskId);

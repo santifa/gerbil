@@ -2,6 +2,7 @@ package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -11,9 +12,11 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by ratzeputz on 24.11.15.
+ * Mock and test the chunking of filter requests.
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class ChunkEntityResolutionTest {
+public class ChunkFilterTest {
 
     EntityResolutionMock mock = new EntityResolutionMock();
 
@@ -67,7 +70,7 @@ public class ChunkEntityResolutionTest {
 
         @Override
         public FilterDefinition getConfiguration() {
-            return NullFilterWrapper.CONF;
+            return IdentityWrapper.CONF;
         }
     }
 }

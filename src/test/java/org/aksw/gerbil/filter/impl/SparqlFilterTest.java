@@ -1,7 +1,9 @@
-package org.aksw.gerbil.filter;
+package org.aksw.gerbil.filter.impl;
 
-import org.aksw.gerbil.filter.impl.CacheFilter;
-import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.Filter;
+import org.aksw.gerbil.filter.FilterDefinition;
+import org.aksw.gerbil.filter.NormalFilterTest;
+import org.aksw.gerbil.filter.cache.FilterCacheTest;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -12,7 +14,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test the {@link SparqlFilter}
+ * Test the sparql filter with a small set.
+ * See {@link NormalFilterTest} for more exhaustive testing.
+ * See {@link FilterCacheTest} for cache testing.
  *
  * Created by Henrik Jürges on 08.11.15.
  */

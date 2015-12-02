@@ -22,7 +22,7 @@ import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.AnnotatorsConfig;
@@ -75,7 +75,7 @@ public class SingleRunTest implements TaskObserver {
         overseer.addObserver(this);
 
         ExperimentTaskConfiguration taskConfigs[] = new ExperimentTaskConfiguration[] {
-                new ExperimentTaskConfiguration(annotatorConfig, datasetConfig, EXPERIMENT_TYPE, MATCHING, NullFilterWrapper.CONF) };
+                new ExperimentTaskConfiguration(annotatorConfig, datasetConfig, EXPERIMENT_TYPE, MATCHING, IdentityWrapper.CONF) };
 
         Experimenter experimenter = new Experimenter(overseer, new SimpleLoggingDAO4Debugging(),
                 RootConfig.createSameAsRetriever(), new EvaluatorFactory(), taskConfigs, "SingleRunTest");

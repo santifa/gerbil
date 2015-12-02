@@ -3,7 +3,9 @@ package org.aksw.gerbil.filter.cache;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.TestCase.assertFalse;
@@ -13,7 +15,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Some simple tests for the cache mechanism.
  *
- * Created by Henrik Jürges on 09.11.15.
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class FilterCacheTest {
 
@@ -46,7 +48,9 @@ public class FilterCacheTest {
         expected.setChecksum(CachedResult.generateMd5Checksum(entities2));
         cache.cache(expected);
         assertTrue(cache.isVersionCached("a filter", "gold1", "anno", CachedResult.generateMd5Checksum(entities2)));
-        assertEquals(expected.getEntities(), cache.getCachedResults("a filter", "gold1", "anno"));
+       List<String> expectedList = new ArrayList<>();
+        Collections.addAll(expectedList, expected.getEntities());
+        assertEquals(expectedList, cache.getCachedResults("a filter", "gold1", "anno"));
     }
 
     @Test
@@ -71,8 +75,12 @@ public class FilterCacheTest {
 
 
         // check if results are cached properly
-        assertEquals(res1.getEntities(), cache.getCachedResults("a filter", "gold1"));
-        assertEquals(res3.getEntities(), cache.getCachedResults("a filter", "gold2", "anno1"));
+        List<String> res1List = new ArrayList<>();
+        Collections.addAll(res1List, res1.getEntities());
+        List<String> res3List = new ArrayList<>();
+        Collections.addAll(res3List, res3.getEntities());
+        assertEquals(res1List, cache.getCachedResults("a filter", "gold1"));
+        assertEquals(res3List, cache.getCachedResults("a filter", "gold2", "anno1"));
     }
 
 }

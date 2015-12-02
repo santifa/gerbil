@@ -25,7 +25,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.exceptions.GerbilException;
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.UriKBClassifier;
@@ -103,7 +103,7 @@ public class FileBasedA2KBTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
-                loadAnnotatorFile(annotatorFileName, false), dataset, EXPERIMENT_TYPE, matching, NullFilterWrapper.CONF);
+                loadAnnotatorFile(annotatorFileName, false), dataset, EXPERIMENT_TYPE, matching, IdentityWrapper.CONF);
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults));
     }
@@ -114,7 +114,7 @@ public class FileBasedA2KBTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
-                loadAnnotatorFile(annotatorFileName, true), dataset, EXPERIMENT_TYPE, matching, NullFilterWrapper.CONF);
+                loadAnnotatorFile(annotatorFileName, true), dataset, EXPERIMENT_TYPE, matching, IdentityWrapper.CONF);
         runTest(experimentTaskId, experimentDAO, new EvaluatorFactory(URI_KB_CLASSIFIER), configuration,
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResultWithoutConfidence));
     }

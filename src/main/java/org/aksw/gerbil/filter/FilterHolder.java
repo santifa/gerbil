@@ -1,6 +1,6 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 
@@ -36,7 +36,7 @@ public final class FilterHolder {
         }
 
         for (FilterWrapper f : filterList) {
-            if (!f.getConfig().equals(NullFilterWrapper.CONF)) {
+            if (!f.getConfig().equals(IdentityWrapper.CONF)) {
                 f.filterGoldstandard(goldstandard, datasetName);
             }
         }
@@ -55,7 +55,7 @@ public final class FilterHolder {
                 return f;
             }
         }
-        return new NullFilterWrapper();
+        return new IdentityWrapper();
     }
 
     @Override

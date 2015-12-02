@@ -1,6 +1,5 @@
-package org.aksw.gerbil.filter.impl;
+package org.aksw.gerbil.filter.wrapper;
 
-import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -19,13 +18,13 @@ import java.util.List;
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public class NormalFilterWrapper implements FilterWrapper {
+public class FilterWrapperImpl implements org.aksw.gerbil.filter.FilterWrapper {
 
-    private final static Logger LOGGER = LogManager.getLogger(NormalFilterWrapper.class);
+    private final static Logger LOGGER = LogManager.getLogger(FilterWrapperImpl.class);
 
     private Filter service;
 
-    public NormalFilterWrapper(Filter service) {
+    public FilterWrapperImpl(Filter service) {
         this.service = service;
     }
 
@@ -113,7 +112,7 @@ public class NormalFilterWrapper implements FilterWrapper {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        NormalFilterWrapper that = (NormalFilterWrapper) o;
+        FilterWrapperImpl that = (FilterWrapperImpl) o;
 
         return !(service != null ? !service.equals(that.service) : that.service != null);
 
@@ -126,7 +125,7 @@ public class NormalFilterWrapper implements FilterWrapper {
 
     @Override
     public String toString() {
-        return "NormalFilterWrapper{" +
+        return "FilterWrapperImpl{" +
                 ", service=" + service +
                 '}';
     }

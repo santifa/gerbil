@@ -24,28 +24,32 @@ import org.junit.runners.Parameterized;
 import java.util.*;
 
 /**
- * Created by ratzeputz on 22.11.15.
+ * Runs a full fledged filter test. Uses the sparql filters defined in filter.properties.
+ * Use this for deeper investigation how the filter subsystem works on datasets.
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 @RunWith(Parameterized.class)
 public class FilterExecutionTest extends AbstractExperimentTaskTest {
-
-    private static final String CACHE_LOCATION = "/tmp/filter";
-
-    private static final String SERVICE_URL = "http://dbpedia.org/sparql";
 
     private static final String TEXTS[] = new String[] {
             "Heidi and her husband Seal live in Vegas.",
             "Three of the greatest guitarists started their career in a single band : Clapton, Beck, and Page.",
             "Allen founded the EMP in Seattle, which featured exhibitions about Hendrix and Dylan, but also about various science fiction movies." };
 
-    private static final DatasetConfiguration GOLD_STD = new NIFFileDatasetConfig("Kore50-reduced",
+    private static final DatasetConfiguration REDUCED_GLD_STD = new NIFFileDatasetConfig("Kore50-reduced",
             "src/test/resources/filter_example_data/kore50-reduced-nif.ttl", false, ExperimentType.A2KB);
+
+    // works only with wes2015
+    private static final DatasetConfiguration WES_GLD_STD = new NIFFileDatasetConfig("wes2015",
+            "gerbil_data/datasets/wes2015/wes2015-dataset-nif.rdf", false, ExperimentType.A2KB);
+
     private static final UriKBClassifier URI_KB_CLASSIFIER = new SimpleWhiteListBasedUriKBClassifier(
             "http://dbpedia.org/resource/");
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        List<Object[]> testConfigs = new ArrayList<Object[]>();
+        List<Object[]> testConfigs = new ArrayList<>();
         //
         testConfigs.add(new Object[] { new Document[] {
                 // found everything in the first sentence
@@ -80,7 +84,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
                                         "http://dbpedia.org/resource/Bob_Dylan"))) },
                 // found 1xnull but missed 1xDBpedia
                 // (TP=1,FP=1,FN=1,P=0.5,R=0.5,F1=0.5)
-                GOLD_STD, Matching.WEAK_ANNOTATION_MATCH,
+                WES_GLD_STD, Matching.WEAK_ANNOTATION_MATCH,
                 new double[] { 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 0.25, 0.25, 0.25, 0 } });
         return testConfigs;
     }
@@ -103,7 +107,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
-        FilterFactory factory = new FilterFactory(SERVICE_URL);
+        FilterFactory factory = new FilterFactory(false);
         factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
 
         int counter = 1;

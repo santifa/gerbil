@@ -2,6 +2,8 @@ package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,23 +32,22 @@ public class FilterFactory {
     private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
     private static final String WHITELIST = "org.aksw.gerbil.util.filter.whitelist";
 
-    private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
-    private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
-    private static final String FILTER_FILE = "org.aksw.gerbil.util.filter.file.";
-
     private List<FilterWrapper> filters = new ArrayList<>(42);
 
     private final List<String> whiteList = new ArrayList<>();
 
-    private boolean isDummy = false;
-
     private String[] prefixes;
+
+    private boolean isDummy;
+
     /**
      * Instantiates a new Filter factory.
      *
-     * @param serviceUrl the service url
+     * @param isDummy the is dummy
      */
-    public FilterFactory(String serviceUrl) {
+    public FilterFactory(boolean isDummy) {
+        this.isDummy = isDummy;
+
         List<String> p = getPrefixSet();
         this.prefixes = p.toArray(new String[p.size()]);
         whiteList.addAll(GerbilConfiguration.getInstance().getList(WHITELIST));
@@ -55,27 +56,18 @@ public class FilterFactory {
         addNullFilter();
     }
 
-    /**
-     * Instantiates an empty Filter factory which creates only dummy objects.
-     */
-    public FilterFactory() {
-        addNullFilter();
-        this.isDummy = true;
-    }
-
     // creates the dummy filter
     private void addNullFilter() {
-        filters.add(new NullFilterWrapper());
+        filters.add(new IdentityWrapper());
     }
 
     /**
      * Register new filter objects via reflections.
-     * The created filter will stored inside a {@link NormalFilterWrapper}
+     * The created filter will stored inside a {@link FilterWrapperImpl}
      *
-     * @param <E>                the type of the filter
-     * @param filter             the filter class extending {@link ConcreteFilter}, a filter class must have a constructor which takes
-     *                           the configuration class.
-     * @param resolver           the concrete configuration resolver
+     * @param <E>      the type of the filter
+     * @param filter   the filter class extending {@link ConcreteFilter}, a filter class must have a constructor which takes                           the configuration class.
+     * @param resolver the concrete configuration resolver
      */
     public <E extends ConcreteFilter> void registerFilter(Class<E> filter, ConfigResolver<FilterDefinition> resolver) {
         List<FilterDefinition> configurations = resolver.resolve();
@@ -86,10 +78,10 @@ public class FilterFactory {
                     if (co.getParameterTypes().length == 2 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
                         Filter filterInstance = (Filter) co.newInstance(c, prefixes);
                         filterInstance = decorateFilter(filterInstance);
-                        NormalFilterWrapper wrapper = new NormalFilterWrapper(filterInstance);
+                        FilterWrapperImpl wrapper = new FilterWrapperImpl(filterInstance);
                         filters.add(wrapper);
 
-                        LOGGER.info("Filter " + filter + " with " + c + " loaded.");
+                        LOGGER.info("Loaded Filter " + filter + " with " + c + " loaded.");
                     }
                 }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException e) {
@@ -99,16 +91,16 @@ public class FilterFactory {
     }
 
     private Filter decorateFilter(Filter service) {
-
+        // chunk filter requests
         if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
             service = new ChunkFilter(service, GerbilConfiguration.getInstance().getInt(CHUNK));
         }
-
+        // cache filter requests
         if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
             service = new CacheFilter(service,
                     GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
         }
-
+        // clean filter requests from unknown links
         service = new UriCleaner(service);
         return service;
     }
@@ -128,8 +120,9 @@ public class FilterFactory {
     }
 
     // returns a set of prefixes defined in the filter.properties
-    private static final List<String> getPrefixSet() {
+    private static List<String> getPrefixSet() {
         return new ConfigResolver<String>() {
+            private static final String FILTER_PREFIX = "org.aksw.gerbil.util.filter.prefix.";
 
             @Override
             int resolve(int counter, List<String> result) {
@@ -149,9 +142,11 @@ public class FilterFactory {
      */
     public final ConfigResolver<FilterDefinition> getBasicFilterResolver() {
         return new ConfigResolver<FilterDefinition>() {
+            private static final String FILTER_BASIC = "org.aksw.gerbil.util.filter.";
 
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
+
                 if (GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".name") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".service")) {
@@ -166,19 +161,53 @@ public class FilterFactory {
         };
     }
 
+    /**
+     * Gets file filter resolver.
+     *
+     * @return the file filter resolver
+     */
     public final ConfigResolver<FilterDefinition> getFileFilterResolver() {
         return new ConfigResolver<FilterDefinition>() {
+            private static final String FILTER_FILE = "org.aksw.gerbil.util.filter.file.";
+
             @Override
             int resolve(int counter, List<FilterDefinition> result) {
                 if (GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".name") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".filter") &&
-                        GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".file")) {
+                        GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".service")) {
 
                     result.add(new FilterDefinition(
                             GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".name"),
                             GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".filter"),
                             whiteList,
-                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".file")));
+                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".service")));
+                    return ++counter;
+                }
+                return -1;
+            }
+        };
+    }
+
+    /**
+     * Gets popularity filter resolver.
+     *
+     * @return the popularity filter resolver
+     */
+    public final ConfigResolver<FilterDefinition> getPopularityFilterResolver() {
+        return new ConfigResolver<FilterDefinition>() {
+            private static final String FILTER_POP = "org.aksw.gerbil.util.filter.pop.";
+
+            @Override
+            int resolve(int counter, List<FilterDefinition> result) {
+                if (GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".name") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".filter") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".service")) {
+
+                    result.add(new FilterDefinition(
+                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
+                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".filter"),
+                            whiteList,
+                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
                     return ++counter;
                 }
                 return -1;

@@ -33,7 +33,7 @@ import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.ExperimentTask;
 import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
-import org.aksw.gerbil.filter.impl.NullFilterWrapper;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -53,11 +53,11 @@ public class ErrorCountingAnnotatorDecoratorTest {
     public void testErrorCount() {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         List<FilterWrapper> filter = new ArrayList<>();
-        filter.add(new NullFilterWrapper());
+        filter.add(new IdentityWrapper());
         FilterHolder holder = new FilterHolder(filter, false);
 
         ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
-                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilterWrapper.CONF);
+                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, IdentityWrapper.CONF);
         Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
         filterTask.put(conf, 1);
 
@@ -73,11 +73,11 @@ public class ErrorCountingAnnotatorDecoratorTest {
     public void testTaskCanceling() {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         List<FilterWrapper> filter = new ArrayList<>();
-        filter.add(new NullFilterWrapper());
+        filter.add(new IdentityWrapper());
         FilterHolder holder = new FilterHolder(filter, false);
 
         ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
-                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, NullFilterWrapper.CONF);
+                ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, IdentityWrapper.CONF);
         Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
         filterTask.put(conf, 2);
 
