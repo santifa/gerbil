@@ -26,8 +26,11 @@ public class FileFilter extends ConcreteFilter {
 
     private final static Logger LOGGER = LogManager.getLogger(FileFilter.class);
 
+    private Model knowledgeBase;
+
     public FileFilter(FilterDefinition def, String[] prefixes) {
         super(def, prefixes);
+        this.knowledgeBase = getModel(def.getServiceLocation());
     }
 
     @Override
@@ -52,11 +55,10 @@ public class FileFilter extends ConcreteFilter {
 
     private List<String> resolve(List<String> entities, String filter, String fileLocation)  throws IOException {
         List<String> result = new ArrayList<>(entities.size());
-        Model model = getModel(fileLocation);
         String queryString = buildQuery(entities, filter);
         Query query = QueryFactory.create(queryString);
 
-        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, knowledgeBase)) {
             ResultSet queryResult = qexec.execSelect();
 
             while (queryResult.hasNext()) {
@@ -65,7 +67,7 @@ public class FileFilter extends ConcreteFilter {
                 result.add(node.asResource().getURI());
             }
         } catch (Exception e) {
-            throw new IOException("Could not retrieve answer from " + model + " ; Skipping... " + e.getMessage());
+            throw new IOException("Could not retrieve answer from " + knowledgeBase + " ; Skipping... " + e.getMessage());
         }
 
         return result;

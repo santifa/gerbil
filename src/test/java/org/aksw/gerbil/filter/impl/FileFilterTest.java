@@ -1,10 +1,12 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterDefinition;
+import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -18,6 +20,8 @@ import java.util.*;
  */
 @RunWith(Parameterized.class)
 public class FileFilterTest {
+
+    private FilterWrapper f;
 
     private final String[] prefix = new String[]{"foaf:<http://xmlns.com/foaf/0.1/>",
             "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>", "dbo:<http://dbpedia.org/ontology/>"};
@@ -70,6 +74,13 @@ public class FileFilterTest {
         return testObjects;
     }
 
+    @Before
+    public void setUp() {
+        this.f = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
+                "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
+                "gerbil_data/resources/filter/sources/pagerank_scores_en_2015.ttl"), prefix));
+    }
+
     private List<List<Marking>> expectedPop;
 
     private List<List<Marking>> input;
@@ -81,19 +92,12 @@ public class FileFilterTest {
 
     @Test
     public void testFilterAnnotatorResults() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
-                "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
-                "gerbil_data/resources/filter/sources/pagerank_scores_en_2015.ttl"), prefix));
-
         List<List<Marking>> results = f.filterAnnotatorResults(input, "dataset1", "anno1");
         Assert.assertTrue(expectedPop.equals(results));
     }
 
     @Test
     public void testFilterGoldstandard() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
-                "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
-                "gerbil_data/resources/filter/sources/pagerank_scores_reduced_en_2015.ttl"), prefix));
         List<List<Marking>> results = f.filterGoldstandard(input, "dataset1");
         Assert.assertTrue(expectedPop.equals(results));
     }

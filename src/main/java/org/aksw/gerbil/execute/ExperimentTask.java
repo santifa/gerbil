@@ -118,11 +118,13 @@ public class ExperimentTask implements Task {
 
             taskState = new ExperimentTaskState(dataset.size());
             // perform experiment
-            EvaluationResult result = runExperiment(dataset, decoratedAnnotator, evaluators, taskState);
+            runExperiment(dataset, decoratedAnnotator, evaluators, taskState);
         } catch (GerbilException e) {
             LOGGER.error("Got an error while running the task. Storing the error code in the db...", e);
             // store error
-            experimentDAO.setExperimentState(experimentTaskId, e.getErrorType().getErrorCode());
+            for (int id : filterTask.values()) {
+                experimentDAO.setExperimentState(id, e.getErrorType().getErrorCode());
+            }
         } catch (Exception e) {
             LOGGER.error("Error while trying to execute experiment.", e);
         } finally {
@@ -289,7 +291,6 @@ public class ExperimentTask implements Task {
                 List<List<MeaningSpan>> goldStandard = new ArrayList<List<MeaningSpan>>(dataset.size());
                 D2KBAnnotator linker = ((D2KBAnnotator) annotator);
 
-                //TODO insert fix filter loop
                 for (Document document : dataset.getInstances()) {
                     // reduce the document to a text and a list of Spans
                     results.add(linker.performD2KBTask(DocumentInformationReducer.reduceToTextAndSpans(document)));
