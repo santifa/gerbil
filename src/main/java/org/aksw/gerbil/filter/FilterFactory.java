@@ -1,7 +1,10 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.impl.CacheFilter;
+import org.aksw.gerbil.filter.impl.ChunkFilter;
+import org.aksw.gerbil.filter.impl.ConcreteFilter;
+import org.aksw.gerbil.filter.impl.UriCleaner;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.slf4j.Logger;
@@ -203,10 +206,15 @@ public class FilterFactory {
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".service")) {
 
+                    List<String> list = GerbilConfiguration.getInstance().getList(FILTER_POP + counter + ".filter");
+                    String filter = "";
+                    for (String e : list) {
+                        filter +=e + ",";
+                    }
+
                     result.add(new FilterDefinition(
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
-                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".filter"),
-                            whiteList,
+                            filter.substring(0, filter.length() - 1), whiteList,
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
                     return ++counter;
                 }
