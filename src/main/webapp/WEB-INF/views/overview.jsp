@@ -344,7 +344,6 @@ table {
 
         function compareChart() {
             var filters = getFilters();
-            console.log(filters);
 
             // requesting all data chunks
             var dataChunks = [];
@@ -357,10 +356,6 @@ table {
                 htmlCompare += "<div id=\"compareChart" + i + "\">"
                                 + "<span>" + filters[i] + "</span><div id=\"compare" + i + "\" class=\"chartDiv\"></div></div>"
             }
-
-            // add scroll bar for one line
-            //$("#resultsChartBody").css("overflow-x", "scroll");
-            //$("#resultsChartBody").css("white-space", "nowrap");
             $("#resultsChart").html(htmlResult);
             $("#compareChart").html(htmlCompare);
 
@@ -382,10 +377,8 @@ table {
 
         // remove diagrams and tables
         function clearDiagrams() {
-            $("#resultsChartBody").css("overflow-x", "none");
-            $("#resultsChartBody").css("white-space", "wrap");
-            $("#resultsChart").html("");
-            $("#compareChart").html("");
+            $("#resultsChartBody").html("<div id=\"resultsChart\" class=\"chartDiv\"></div>" +
+                "<div id=\"compareChart\" class=\"chartDiv\"></div>");
             $("#resultsTable").html("<thead></thead><tbody></tbody>");
         };
 
