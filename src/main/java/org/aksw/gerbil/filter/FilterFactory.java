@@ -7,13 +7,13 @@ import org.aksw.gerbil.filter.impl.ConcreteFilter;
 import org.aksw.gerbil.filter.impl.UriCleaner;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * The FilterFactory creates a {@link FilterHolder} with all registered Filters.
@@ -35,11 +35,13 @@ public class FilterFactory {
     private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
     private static final String WHITELIST = "org.aksw.gerbil.util.filter.whitelist";
 
-    private List<FilterWrapper> filters = new ArrayList<>(42);
+    private List<ConcreteFilter> filters = new ArrayList<>(42);
 
     private final List<String> whiteList = new ArrayList<>();
 
     private String[] prefixes;
+
+    private boolean preaching;
 
     private boolean isDummy;
 
@@ -50,18 +52,10 @@ public class FilterFactory {
      */
     public FilterFactory(boolean isDummy) {
         this.isDummy = isDummy;
-
+        this.preaching = GerbilConfiguration.getInstance().getBoolean(PRECACHE);
         List<String> p = getPrefixSet();
         this.prefixes = p.toArray(new String[p.size()]);
-        whiteList.addAll(GerbilConfiguration.getInstance().getList(WHITELIST));
-
-        // initialize null object
-        addNullFilter();
-    }
-
-    // creates the dummy filter
-    private void addNullFilter() {
-        filters.add(new IdentityWrapper());
+        CollectionUtils.addAll(whiteList, GerbilConfiguration.getInstance().getStringArray(WHITELIST));
     }
 
     /**
@@ -80,11 +74,7 @@ public class FilterFactory {
             try {
                 for (Constructor<?> co : filter.getConstructors()) {
                     if (co.getParameterTypes().length == 2 && c.getClass().isAssignableFrom(co.getParameterTypes()[0])) {
-                        Filter filterInstance = (Filter) co.newInstance(c, prefixes);
-                        filterInstance = decorateFilter(filterInstance);
-                        FilterWrapperImpl wrapper = new FilterWrapperImpl(filterInstance);
-                        filters.add(wrapper);
-
+                        filters.add((ConcreteFilter) co.newInstance(c, prefixes));
                         LOGGER.info("Loaded Filter " + filter + " with " + c + " loaded.");
                     }
                 }
@@ -116,10 +106,25 @@ public class FilterFactory {
      */
     public FilterHolder getFilters() {
         if (isDummy) {
-            return new FilterHolder(new ArrayList<>(filters), false);
+            // create new dummy objects
+            return new FilterHolder(Collections.singletonList((FilterWrapper) new IdentityWrapper()), false);
         } else {
-            return new FilterHolder(new ArrayList<>(filters),
-                    GerbilConfiguration.getInstance().getBoolean(PRECACHE));
+            List<FilterWrapper> clonedFilters = new ArrayList<>(filters.size());
+            clonedFilters.add(new IdentityWrapper());
+
+            // clone every filter to be concurrent
+            try {
+                for (ConcreteFilter f : filters) {
+                    Filter clone = (Filter) f.clone();
+                    decorateFilter(clone);
+                    clonedFilters.add(new FilterWrapperImpl(clone));
+                }
+            } catch (CloneNotSupportedException e) {
+                LOGGER.error("Filter could not be cloned. " + e.getMessage(), e);
+            }
+
+
+            return new FilterHolder(clonedFilters, preaching);
         }
     }
 
@@ -207,15 +212,17 @@ public class FilterFactory {
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".service")) {
 
-                    List<String> list = GerbilConfiguration.getInstance().getList(FILTER_POP + counter + ".filter");
+                    /*List<String> list = GerbilConfiguration.getInstance().getList(FILTER_POP + counter + ".filter");
                     String filter = "";
                     for (String e : list) {
                         filter +=e + ",";
-                    }
+                    }*/
+                    String filter = GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".filter");
 
                     result.add(new FilterDefinition(
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
-                            filter.substring(0, filter.length() - 1), whiteList,
+                            filter, whiteList,
+                            //filter.substring(0, filter.length() - 1), whiteList,
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
                     return ++counter;
                 }

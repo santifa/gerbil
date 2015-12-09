@@ -29,7 +29,6 @@ public class SparqlFilter extends ConcreteFilter {
         super(def, prefixes);
     }
 
-
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
         try {
@@ -75,5 +74,10 @@ public class SparqlFilter extends ConcreteFilter {
     @Override
     public String toString() {
         return "SparqlFilter{ " + super.toString() + " }";
+    }
+
+    @Override
+    Object cloneChild() {
+        return new SparqlFilter(getConfiguration(), prefixMap);
     }
 }

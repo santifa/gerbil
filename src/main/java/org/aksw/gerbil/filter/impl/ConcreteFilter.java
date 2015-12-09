@@ -15,14 +15,14 @@ import java.util.List;
  * <p/>
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
-public abstract class ConcreteFilter implements Filter {
+public abstract class ConcreteFilter implements Filter, Cloneable {
 
     /**
      * The filter definition
      */
     protected FilterDefinition def;
 
-    private final String PREFIX = "PREFIX ";
+    protected final String[] prefixMap;
 
     private String prefixes;
 
@@ -34,6 +34,7 @@ public abstract class ConcreteFilter implements Filter {
      */
     public ConcreteFilter(FilterDefinition def, String[] prefixes) {
         this.def = def;
+        this.prefixMap = prefixes;
         this.prefixes = buildPrefixes(prefixes);
     }
 
@@ -44,11 +45,13 @@ public abstract class ConcreteFilter implements Filter {
     }
 
     private String buildPrefixes(String[] prefixes) {
+        String prefix = "PREFIX ";
+
         // create sparql query prefix
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < prefixes.length; i++) {
             if (!StringUtils.isEmpty(prefixes[i])) {
-                builder.append(PREFIX).append(prefixes[i]).append(" ");
+                builder.append(prefix).append(prefixes[i]).append(" ");
             }
         }
         return builder.toString();
@@ -82,4 +85,15 @@ public abstract class ConcreteFilter implements Filter {
         return builder.toString();
     }
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return cloneChild();
+    }
+
+    /**
+     * A child object provide a clone method through this.
+     *
+     * @return the child object
+     */
+    abstract Object cloneChild();
 }
