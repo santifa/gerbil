@@ -17,8 +17,6 @@ public class FilterDefinition {
 
     private String serviceLocation = "";
 
-    private boolean isLimitAlgorithmic = false;
-
     /**
      * Instantiates a new Filter definition.
      *
@@ -33,16 +31,6 @@ public class FilterDefinition {
         this.filter = filter;
         this.entityUriWhitelist = whiteList;
         this.serviceLocation = serviceLocation;
-    }
-
-
-    public FilterDefinition(String name, String filter, List<String> whiteList,
-                            String serviceLocation, boolean isLimitAlgorithmic) {
-        this.name = name;
-        this.filter = filter;
-        this.entityUriWhitelist = whiteList;
-        this.serviceLocation = serviceLocation;
-        this.isLimitAlgorithmic = isLimitAlgorithmic;
     }
 
     /**
@@ -82,24 +70,6 @@ public class FilterDefinition {
     }
 
 
-    /**
-     * Sets is limit algorithmic.
-     *
-     * @param isLimitAlgorithmic the is limit algorithmic
-     */
-    public void setIsLimitAlgorithmic(boolean isLimitAlgorithmic) {
-        this.isLimitAlgorithmic = isLimitAlgorithmic;
-    }
-
-    /**
-     * Is the sparql limit algorithmic.
-     *
-     * @return the boolean
-     */
-    public boolean isLimitAlgorithmic() {
-        return isLimitAlgorithmic;
-    }
-
     @Override
     public String toString() {
         return "FilterDefinition{" +
@@ -107,7 +77,6 @@ public class FilterDefinition {
                 ", filter='" + filter + '\'' +
                 ", entityUriWhitelist=" + entityUriWhitelist +
                 ", serviceLocation='" + serviceLocation + '\'' +
-                ", isLimitAlgorithmic=" + isLimitAlgorithmic +
                 '}';
     }
 
@@ -119,7 +88,6 @@ public class FilterDefinition {
 
         FilterDefinition that = (FilterDefinition) o;
 
-        if (isLimitAlgorithmic != that.isLimitAlgorithmic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
         if (entityUriWhitelist != null ? !entityUriWhitelist.equals(that.entityUriWhitelist) : that.entityUriWhitelist != null)
@@ -134,7 +102,6 @@ public class FilterDefinition {
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (entityUriWhitelist != null ? entityUriWhitelist.hashCode() : 0);
         result = 31 * result + (serviceLocation != null ? serviceLocation.hashCode() : 0);
-        result = 31 * result + (isLimitAlgorithmic ? 1 : 0);
         return result;
     }
 }
