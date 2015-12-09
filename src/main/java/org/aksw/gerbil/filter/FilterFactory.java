@@ -1,5 +1,6 @@
 package org.aksw.gerbil.filter;
 
+import com.google.common.base.Joiner;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.CacheFilter;
 import org.aksw.gerbil.filter.impl.ChunkFilter;
@@ -32,18 +33,16 @@ public class FilterFactory {
     private static final String CHUNK = "org.aksw.gerbil.util.filter.chunk";
     private static final String CACHE = "org.aksw.gerbil.util.filter.cache";
     private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
-    private static final String PRECACHE = "org.aksw.gerbil.util.filter.precache";
-    private static final String WHITELIST = "org.aksw.gerbil.util.filter.whitelist";
 
     private List<ConcreteFilter> filters = new ArrayList<>(42);
 
     private final List<String> whiteList = new ArrayList<>();
 
-    private String[] prefixes;
+    private final String[] prefixes;
 
-    private boolean preaching;
+    private final boolean preaching;
 
-    private boolean isDummy;
+    private final boolean isDummy;
 
     /**
      * Instantiates a new Filter factory.
@@ -52,10 +51,11 @@ public class FilterFactory {
      */
     public FilterFactory(boolean isDummy) {
         this.isDummy = isDummy;
-        this.preaching = GerbilConfiguration.getInstance().getBoolean(PRECACHE);
+        this.preaching = GerbilConfiguration.getInstance().getBoolean("org.aksw.gerbil.util.filter.precache");
         List<String> p = getPrefixSet();
         this.prefixes = p.toArray(new String[p.size()]);
-        CollectionUtils.addAll(whiteList, GerbilConfiguration.getInstance().getStringArray(WHITELIST));
+        CollectionUtils.addAll(whiteList,
+                GerbilConfiguration.getInstance().getStringArray("org.aksw.gerbil.util.filter.whitelist"));
     }
 
     /**
@@ -122,7 +122,6 @@ public class FilterFactory {
             } catch (CloneNotSupportedException e) {
                 LOGGER.error("Filter could not be cloned. " + e.getMessage(), e);
             }
-
 
             return new FilterHolder(clonedFilters, preaching);
         }
@@ -212,17 +211,12 @@ public class FilterFactory {
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".service")) {
 
-                    /*List<String> list = GerbilConfiguration.getInstance().getList(FILTER_POP + counter + ".filter");
-                    String filter = "";
-                    for (String e : list) {
-                        filter +=e + ",";
-                    }*/
-                    String filter = GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".filter");
+                    String filter = Joiner.on(",")
+                            .join(GerbilConfiguration.getInstance().getStringArray(FILTER_POP + counter + ".filter"));
 
                     result.add(new FilterDefinition(
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
                             filter, whiteList,
-                            //filter.substring(0, filter.length() - 1), whiteList,
                             GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
                     return ++counter;
                 }

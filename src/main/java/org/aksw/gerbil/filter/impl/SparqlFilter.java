@@ -56,6 +56,7 @@ public class SparqlFilter extends ConcreteFilter {
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query)) {
+            qexec.setTimeout(1000, 5000); // set timeout until first answer to one second and overall timeout to 5 seconds
             ResultSet queryResult = qexec.execSelect();
 
             while (queryResult.hasNext()) {

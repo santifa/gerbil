@@ -149,7 +149,7 @@ public class NormalFilterTest {
         // TODO NOT TESTED
         org.aksw.gerbil.filter.FilterWrapper filter3 = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
                 "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
-                "gerbil_data/resources/filter/pagerank_scores_reduced_en_2015.ttl"), prefix));
+                "gerbil_data/resources/filter/sources/pagerank_scores_reduced_en_2015.ttl"), prefix));
 
     }
 }

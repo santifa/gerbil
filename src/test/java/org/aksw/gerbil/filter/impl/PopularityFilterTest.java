@@ -1,7 +1,6 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -21,9 +20,6 @@ import static org.junit.Assert.assertEquals;
  */
 @RunWith(Parameterized.class)
 public class PopularityFilterTest {
-
-    private FilterHolder filters;
-
 
     @Parameterized.Parameters(name = "{index}: {0} expected with {1} for persons and {2} for places.")
     public static Collection<Object[]> data() {

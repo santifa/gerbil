@@ -1,9 +1,11 @@
 package org.aksw.gerbil.filter.impl;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,6 +28,8 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
 
     private String prefixes;
 
+    private List<String> query;
+
     /**
      * Instantiates a new Concrete filter.
      *
@@ -35,7 +39,7 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
     public ConcreteFilter(FilterDefinition def, String[] prefixes) {
         this.def = def;
         this.prefixMap = prefixes;
-        this.prefixes = buildPrefixes(prefixes);
+        prepareQuery();
     }
 
 
@@ -44,17 +48,20 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
         return def;
     }
 
+    private void prepareQuery() {
+        this.prefixes = buildPrefixes(prefixMap);
+        this.query = Splitter.on("##").splitToList(def.getFilter());
+
+    }
+
     private String buildPrefixes(String[] prefixes) {
         String prefix = "PREFIX ";
 
         // create sparql query prefix
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < prefixes.length; i++) {
-            if (!StringUtils.isEmpty(prefixes[i])) {
-                builder.append(prefix).append(prefixes[i]).append(" ");
-            }
-        }
-        return builder.toString();
+        builder.append(prefix);
+        Joiner.on(prefix).skipNulls().appendTo(builder, prefixes);
+        return builder.append(' ').toString();
     }
 
 
@@ -69,18 +76,13 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
         StringBuilder builder = new StringBuilder();
         builder.append(prefixes);
 
-        if (StringUtils.contains(filter, "##")) {
-            String[] filterParts = StringUtils.split(filter, "##");
+        for (int i = 0; i < query.size() && i % 2 == 0; i =+ 2) {
+            builder.append(query.get(i));
 
-            // insert between every part all entities
-            for (int i = 0; i < filterParts.length && i % 2 == 0; i =+ 2) {
-                builder.append(filterParts[i]);
-
-                for (int j = 0; j < entities.size(); j++) {
-                    builder.append("<").append(entities.get(j)).append(">").append(" ");
-                }
-                builder.append(filterParts[i+1]);
+            for (int j = 0; j < entities.size(); j++) {
+                builder.append("<").append(entities.get(j)).append(">").append(" ");
             }
+            builder.append(query.get(i+1));
         }
         return builder.toString();
     }
@@ -96,4 +98,13 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
      * @return the child object
      */
     abstract Object cloneChild();
+
+    @Override
+    public String toString() {
+        return "ConcreteFilter{" +
+                "def=" + def +
+                ", prefixMap=" + Arrays.toString(prefixMap) +
+                ", prefixes='" + prefixes + '\'' +
+                '}';
+    }
 }

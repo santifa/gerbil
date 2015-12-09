@@ -49,9 +49,10 @@ public class FilterFactoryTest {
     @Before
     public void setUp() throws IOException {
         expectedService = new SparqlFilter(conf, new String[] {"dbo:<http://dbpedia.org/ontology/>",
+                "foaf:<http://xmlns.com/foaf/0.1/>",
                 "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"});
-        expectedService = new CacheFilter(expectedService, "/tmp/filter");
-        expectedService = new UriCleaner(expectedService);
+        //expectedService = new CacheFilter(expectedService, "/tmp/filter");
+        //expectedService = new UriCleaner(expectedService);
     }
 
     @Test

@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,18 +68,22 @@ public class PopularityFilter extends ConcreteFilter {
 
     // TODO think about a better way for searching the files instead of creating a new stream for every round
     private void findEntities(File f, List<String> entities, List<String> result) throws IOException {
-        for (String searchItem : entities) {
+        FileInputStream fis = new FileInputStream(f);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fis, Charset.forName("UTF-8")));
 
-            try (BufferedReader br = new BufferedReader(new FileReader(f))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (StringUtils.contains(line, searchItem)) {
-                        result.add(searchItem);
-                        break;
-                    }
+        for (String searchItem : entities) {
+            fis.getChannel().position(0);
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (StringUtils.contains(line, searchItem)) {
+                    result.add(searchItem);
+                    break;
                 }
             }
         }
+        reader.close();
+        fis.close();
     }
 
 
