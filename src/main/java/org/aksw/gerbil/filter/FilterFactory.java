@@ -69,7 +69,8 @@ public class FilterFactory {
      * The created filter will stored inside a {@link FilterWrapperImpl}
      *
      * @param <E>      the type of the filter
-     * @param filter   the filter class extending {@link ConcreteFilter}, a filter class must have a constructor which takes                           the configuration class.
+     * @param filter   the filter class extending {@link ConcreteFilter}, a filter class must have a constructor which takes
+     *                      the configuration class.
      * @param resolver the concrete configuration resolver
      */
     public <E extends ConcreteFilter> void registerFilter(Class<E> filter, ConfigResolver<FilterDefinition> resolver) {
