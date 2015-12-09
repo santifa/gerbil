@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by ratzeputz on 24.11.15.
+ * A cache filter decorates a filter and provides access to the caching instance.
+ *
+ * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public class CacheFilter extends FilterDecorator {
 
