@@ -77,7 +77,13 @@ public class PopularityFilter extends ConcreteFilter {
                         break;
                     }
                 }
-            };
+            }
         }
+    }
+
+
+    @Override
+    Object cloneChild() {
+        return new PopularityFilter(getConfiguration(), new String[0]);
     }
 }

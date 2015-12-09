@@ -31,6 +31,8 @@ public class FilterCache {
 
     private List<File> cacheFiles =  new ArrayList<>();
 
+    private final Gson gson;
+
     private FilterCache(String cacheLocationName) throws FileNotFoundException {
         this.cacheLocation = new File(cacheLocationName);
 
@@ -39,6 +41,8 @@ public class FilterCache {
         } else {
             throw new FileNotFoundException("Could not find cache directory " + cacheLocation);
         }
+
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
     // collects all cached files
@@ -198,8 +202,6 @@ public class FilterCache {
 
     // write a result to filesystem
     private synchronized void serializeResult(CachedResult result, File cacheFile) {
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.setPrettyPrinting().create();
         String jsonString = gson.toJson(result, CachedResult.class);
 
         try (BufferedOutputStream buf = new BufferedOutputStream(new FileOutputStream(cacheFile))) {

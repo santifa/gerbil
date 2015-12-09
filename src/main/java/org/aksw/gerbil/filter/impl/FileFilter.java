@@ -83,4 +83,10 @@ public class FileFilter extends ConcreteFilter {
     public String toString() {
         return "FileFilter{ "+ super.toString() + " }";
     }
+
+
+    @Override
+    Object cloneChild() {
+        return new FileFilter(getConfiguration(), prefixMap);
+    }
 }
