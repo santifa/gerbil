@@ -116,7 +116,7 @@ public class FilterFactory {
             try {
                 for (ConcreteFilter f : filters) {
                     Filter clone = (Filter) f.clone();
-                    decorateFilter(clone);
+                    clone = decorateFilter(clone);
                     clonedFilters.add(new FilterWrapperImpl(clone));
                 }
             } catch (CloneNotSupportedException e) {

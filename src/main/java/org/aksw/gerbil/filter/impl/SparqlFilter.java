@@ -32,7 +32,7 @@ public class SparqlFilter extends ConcreteFilter {
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
         try {
-            return resolve(entities, def.getFilter());
+            return resolve(entities);
         } catch (IOException e) {
             LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
             return new ArrayList<>();
@@ -42,7 +42,7 @@ public class SparqlFilter extends ConcreteFilter {
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName) {
         try {
-            return resolve(entities, def.getFilter());
+            return resolve(entities);
         } catch (IOException e) {
             LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
             return new ArrayList<>();
@@ -50,13 +50,13 @@ public class SparqlFilter extends ConcreteFilter {
     }
 
 
-    private List<String> resolve(List<String> entities, String filter)  throws IOException {
+    private List<String> resolve(List<String> entities)  throws IOException {
         List<String> result = new ArrayList<>(entities.size());
-        String queryString = buildQuery(entities, filter);
+        String queryString = buildQuery(entities);
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query)) {
-            qexec.setTimeout(1000, 5000); // set timeout until first answer to one second and overall timeout to 5 seconds
+            qexec.setTimeout(5000, 10000); // set timeout until first answer to five second and overall timeout to ten seconds
             ResultSet queryResult = qexec.execSelect();
 
             while (queryResult.hasNext()) {
@@ -65,7 +65,8 @@ public class SparqlFilter extends ConcreteFilter {
                 result.add(node.asResource().getURI());
             }
         } catch (Exception e) {
-            throw new IOException("Could not retrieve answer from " + def.getServiceLocation() + " ; Skipping... " + e.getMessage());
+            throw new IOException("Could not retrieve answer from " + def.getServiceLocation()
+                    + " for query " + queryString + " ; Skipping... " + e.getMessage());
         }
 
         return result;

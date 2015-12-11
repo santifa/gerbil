@@ -21,8 +21,9 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.execute.ExperimentTask;
-import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.FilterHolder;
+import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.ExpTaskConfigComparator;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
@@ -44,7 +45,7 @@ public class Experimenter implements Runnable {
     private EvaluatorFactory evFactory;
     private AnnotatorOutputWriter annotatorOutputWriter = null;
     private SameAsRetriever globalRetriever = null;
-    private FilterHolder filterHolder = null;
+    private FilterFactory filterFactory = null;
 
     /**
      * Constructor
@@ -73,14 +74,14 @@ public class Experimenter implements Runnable {
     }
 
     public Experimenter(Overseer overseer, ExperimentDAO experimentDAO, SameAsRetriever globalRetriever, EvaluatorFactory evFactory,
-                        ExperimentTaskConfiguration configs[], String experimentId, FilterHolder filterHolder) {
+                        ExperimentTaskConfiguration configs[], String experimentId, FilterFactory filterFactory) {
         this.configs = configs;
         this.experimentId = experimentId;
         this.experimentDAO = experimentDAO;
         this.overseer = overseer;
         this.evFactory = evFactory;
         this.globalRetriever = globalRetriever;
-        this.filterHolder = filterHolder;
+        this.filterFactory = filterFactory;
     }
 
     @Override
@@ -93,7 +94,8 @@ public class Experimenter implements Runnable {
                 Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
 
                 // create a task for every filter and the nofilter not in db
-                for (FilterWrapper f : filterHolder.getFilterList()) {
+                FilterHolder holder = filterFactory.getFilters();
+                for (FilterWrapper f : holder.getFilterList()) {
                     ExperimentTaskConfiguration conf = new ExperimentTaskConfiguration(configs[i].annotatorConfig,
                             configs[i].datasetConfig, configs[i].type, configs[i].matching, f.getConfig());
                     taskId = createOrgetTaskId(conf);
@@ -108,7 +110,7 @@ public class Experimenter implements Runnable {
                     ExperimentTaskConfiguration conf = filterTask.keySet().iterator().next();
                     // if we have additional filter task we use the latest task id for storing
                     ExperimentTask task = new ExperimentTask(filterTask.get(conf), experimentDAO, globalRetriever, evFactory,
-                            conf, filterHolder, filterTask);
+                            conf, holder, filterTask);
                     task.setAnnotatorOutputWriter(annotatorOutputWriter);
                     overseer.startTask(task);
                 }

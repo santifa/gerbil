@@ -80,10 +80,9 @@ public class ExperimentTask implements Task {
 
     @Override
     public void run() {
-        LOGGER.info("Task started " + configuration.toString());
+        LOGGER.info("Task started " + configuration);
         Annotator annotator = null;
         try {
-            LOGGER.debug("Complete Tasks are: " + filterTask);
 
             // Create dataset
             Dataset dataset = configuration.datasetConfig.getDataset(configuration.type);
@@ -463,21 +462,16 @@ public class ExperimentTask implements Task {
                                              List<Evaluator<? extends Marking>> evaluators,
                                              List<List<T>> results, List<List<T>> goldStandard) {
         prepareAnnotatorResults(results, globalRetriever);
-        LOGGER.debug("Input results: " + results);
-        LOGGER.debug("Input gold:" + goldStandard);
 
         for (ExperimentTaskConfiguration conf : filterTask.keySet()) {
             FilterWrapper filter = filterHolder.getFilterByConfig(conf.filter);
             List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
             List<List<T>> filterGoldStandard = filter.filterGoldstandard(goldStandard, dataset.getName());
-            LOGGER.debug("Filter: " + conf);
-            LOGGER.debug("FilterResult: " + filterResult);
-            LOGGER.debug("FilterGold: " + filterGoldStandard);
 
-            EvaluationResult evalResult = evaluate(evaluators, filterResult, filterGoldStandard);
             if (annotatorOutputWriter != null) {
                 annotatorOutputWriter.storeAnnotatorOutput(conf, filterResult, dataset.getInstances());
             }
+            EvaluationResult evalResult = evaluate(evaluators, filterResult, filterGoldStandard);
 
             // create result object
             // FIXME Fix this workaround

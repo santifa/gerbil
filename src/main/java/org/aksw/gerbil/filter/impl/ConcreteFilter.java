@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,10 +70,9 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
      * Build the query string.
      *
      * @param entities the entities
-     * @param filter   the filter
      * @return the query
      */
-    protected String buildQuery(List<String> entities, String filter) {
+    protected String buildQuery(List<String> entities) {
         StringBuilder builder = new StringBuilder();
         builder.append(prefixes);
 
@@ -80,7 +80,9 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
             builder.append(query.get(i));
 
             for (int j = 0; j < entities.size(); j++) {
-                builder.append("<").append(entities.get(j)).append(">").append(" ");
+                String entity = entities.get(j);
+                entity = StringUtils.replaceOnce(entity, "<", "");
+                builder.append(" <").append(entity).append("> ");
             }
             builder.append(query.get(i+1));
         }

@@ -22,12 +22,13 @@ import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.utils.DatasetMetaData;
 import org.aksw.gerbil.utils.DatasetMetaDataMapping;
 import org.aksw.gerbil.utils.PearsonsSampleCorrelationCoefficient;
 import org.aksw.gerbil.web.config.AdapterList;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,12 +66,9 @@ public class ExperimentOverviewController {
 	@Qualifier("datasets")
 	private AdapterList<DatasetConfiguration> datasets;
 
-    @Autowired
-    private FilterFactory filterFactory;
-
 	@RequestMapping("/experimentoverview")
 	public @ResponseBody String experimentoverview(@RequestParam(value = "experimentType") String experimentType,
-			@RequestParam(value = "matching") String matchingString, @RequestParam(value = "filter") String filterName) {
+			@RequestParam(value = "matching") String matchingString, @RequestParam(required = false, value = "filter") String filterName) {
 		LOGGER.debug("Got request on /experimentoverview(experimentType={}, matching={}, filter={}", experimentType,
 				matchingString, filterName);
 		Matching matching = MainController.getMatching(matchingString);
@@ -79,13 +77,26 @@ public class ExperimentOverviewController {
 		String annotatorNames[] = loadAnnotators(eType);
 		String datasetNames[] = loadDatasets(eType);
 
+        // prevent loading of wrong data; only the identity filter is applicable for this experiments
+        if (isFilteredExperiment(filterName, eType)) {
+            filterName = IdentityWrapper.CONF.getName();
+        }
+
 		double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames, filterName);
 		double correlations[][] = calculateCorrelations(results, datasetNames);
 		return generateJson(results, correlations, annotatorNames, datasetNames);
 
 	}
 
-	private double[][] loadLatestResults(ExperimentType experimentType, Matching matching, String[] annotatorNames,
+    private boolean isFilteredExperiment(String filterName, ExperimentType eType) {
+        return eType.equalsOrContainsType(ExperimentType.ERec)
+                || eType.equalsOrContainsType(ExperimentType.ETyping)
+                || eType.equalsOrContainsType(ExperimentType.OKE_Task1)
+                || eType.equalsOrContainsType(ExperimentType.OKE_Task2)
+                || StringUtils.isEmpty(filterName);
+    }
+
+    private double[][] loadLatestResults(ExperimentType experimentType, Matching matching, String[] annotatorNames,
 			String[] datasetNames, String filterName) {
 		Map<String, Integer> annotator2Index = new HashMap<String, Integer>();
 		for (int i = 0; i < annotatorNames.length; ++i) {

@@ -78,7 +78,6 @@ public class ExperimentTaskResult {
         this.idInDb = idInDb;
         this.gerbilVersion = gerbilVersion;
         this.filter = filter;
-        System.out.println("created" + this);
     }
 
     public ExperimentTaskResult(String annotator, String dataset, ExperimentType type, Matching matching,

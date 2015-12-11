@@ -1,12 +1,13 @@
 #!/bin/sh
 
 # variables
-SCORE_FOLDER=gerbil_data/resources/filter/sources/*
-RESULT_FOLDER=gerbil_data/resources/filter/
+SCORE_FOLDER=../resources/filter/sources/*
+RESULT_FOLDER=../resources/filter/
 ENTITY_FILE=${RESULT_FOLDER}entities
 
 # collect entities
 cd gerbil_data/datasets
+echo `pwd`
 grep -hR http |                                         # collect all links 
 sed 's/http/\nhttp/g' |                                 # insert newline before link
 awk '{print $1}' |                                      # take only the links
@@ -19,7 +20,7 @@ for file in ${SCORE_FOLDER}
 do
 	SCORE_FILE=$(basename "${file}")
 	SCORE_NAME=${RESULT_FOLDER}ranked_"${SCORE_FILE%.*}"
-	echo "creating ranked_${SCORE_NAME}"
+	echo "creating ${SCORE_NAME}"
 	
 	grep -F -f ${ENTITY_FILE} ${file} |           # diff with entity file as search pattern 
 	awk '{print $1, $3 }' | sed 's/\^\^.*$//' |   # take only the url and score
