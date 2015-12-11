@@ -21,6 +21,11 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Parameterized.class)
 public class PopularityFilterTest {
 
+    private final static String resource = "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015";
+
+    private final static String resource2 = "gerbil_data/resources/filter/ranked_pagerank_scores_en_2015";
+
+
     @Parameterized.Parameters(name = "{index}: {0} expected with {1} for persons and {2} for places.")
     public static Collection<Object[]> data() {
         final String[] prefix = new String[] {"foaf:<http://xmlns.com/foaf/0.1/>",
@@ -30,26 +35,28 @@ public class PopularityFilterTest {
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                 "pop", "0", Collections.singletonList("http://dbpedia.org"),
-                "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                    resource2), prefix)),
             Arrays.asList(
                 (Marking) new NamedEntity(0, 5,
                         "http://dbpedia.org/resource/Secondary_education"),
                 (Marking) new NamedEntity(22, 4,
                         "http://dbpedia.org/resource/Academic_degree"),
                 (Marking) new NamedEntity(35, 5,
-                        "http://dbpedia.org/resource/Las_Vegas")
+                        "http://dbpedia.org/resource/Las_Vegas"),
+                (Marking) new NamedEntity(35, 5,
+                            "http://dbpedia.org/resource/1980_ECAC_North_Men's_Basketball_Tournament")
             ), Arrays.asList(
                 (Marking) new NamedEntity(0, 5,
                         "http://dbpedia.org/resource/Secondary_education"),
                 (Marking) new NamedEntity(22, 4,
-                        "http://dbpedia.org/resource/Academic_degree"),
-                (Marking) new NamedEntity(35, 5,
-                        "http://dbpedia.org/resource/Las_Vegas")
+                        "http://dbpedia.org/resource/Academic_degree")
+                /*(Marking) new NamedEntity(35, 5,
+                        "http://dbpedia.org/resource/Las_Vegas")*/
         )});
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                 "pop", "1", Collections.singletonList("http://dbpedia.org"),
-                "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                    resource2), prefix)),
             Arrays.asList(
                 (Marking) new NamedEntity(73, 7,
                         "http://dbpedia.org/resource/Eric_Clapton"),
@@ -66,7 +73,7 @@ public class PopularityFilterTest {
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                 "pop", "2", Collections.singletonList("http://dbpedia.org"),
-                "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                    resource2), prefix)),
             Arrays.asList(
                 (Marking) new NamedEntity(0, 5,
                         "http://dbpedia.org/resource/Julian_day"),
@@ -91,7 +98,7 @@ public class PopularityFilterTest {
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                         "pop", "3", Collections.singletonList("http://dbpedia.org"),
-                        "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                        resource2), prefix)),
                 Arrays.asList(
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/East_Africa_Time"),
@@ -116,7 +123,7 @@ public class PopularityFilterTest {
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                         "pop", "4", Collections.singletonList("http://dbpedia.org"),
-                        "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                        resource2), prefix)),
                 Arrays.asList(
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/Vysočina_Region"),
@@ -141,7 +148,7 @@ public class PopularityFilterTest {
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                         "pop", "0,2", Collections.singletonList("http://dbpedia.org"),
-                        "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015"), prefix)),
+                        resource2), prefix)),
                 Arrays.asList(
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/Secondary_education"),

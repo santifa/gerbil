@@ -9,6 +9,7 @@ import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AbstractExperimentTaskTest;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
 import org.aksw.gerbil.semantic.kb.UriKBClassifier;
@@ -17,6 +18,7 @@ import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
 import org.aksw.gerbil.web.config.RootConfig;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -35,7 +37,8 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
     private static final String TEXTS[] = new String[] {
             "Heidi and her husband Seal live in Vegas.",
             "Three of the greatest guitarists started their career in a single band : Clapton, Beck, and Page.",
-            "Allen founded the EMP in Seattle, which featured exhibitions about Hendrix and Dylan, but also about various science fiction movies." };
+            "Allen founded the EMP in Seattle, which featured exhibitions about Hendrix and Dylan, but also about various science fiction movies.",
+            "After the death of Steve, the former CEO of Apple, his commencement speech at Stanford was watched thousands of times."};
 
     private static final DatasetConfiguration REDUCED_GLD_STD = new NIFFileDatasetConfig("Kore50-reduced",
             "src/test/resources/filter_example_data/kore50-reduced-nif.ttl", false, ExperimentType.A2KB);
@@ -50,7 +53,6 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         List<Object[]> testConfigs = new ArrayList<>();
-        //
         testConfigs.add(new Object[] { new Document[] {
                 // found everything in the first sentence
                 new DocumentImpl(TEXTS[0], "http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/CEL08",
@@ -81,12 +83,28 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
                                 (Marking) new NamedEntity(67, 7,
                                         "http://dbpedia.org/resource/Jimi_Hendrix"),
                                 (Marking) new NamedEntity(79, 5,
-                                        "http://dbpedia.org/resource/Bob_Dylan"))) },
-                // found 1xnull but missed 1xDBpedia
-                // (TP=1,FP=1,FN=1,P=0.5,R=0.5,F1=0.5)
-                WES_GLD_STD, Matching.WEAK_ANNOTATION_MATCH,
-                new double[] { 1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0, 0.25, 0.25, 0.25, 0 } });
+                                        "http://dbpedia.org/resource/Bob_Dylan"))),
+                new DocumentImpl(TEXTS[3], "http://www.mpi-inf.mpg.de/yago-naga/aida/download/KORE50.tar.gz/AIDA.tsv/BUS01",
+                        Arrays.asList(
+                        (Marking) new NamedEntity(19, 24,
+                                "http://dbpedia.org/resource/Steve_Jobs"),
+                        (Marking) new NamedEntity(44, 49,
+                                "http://dbpedia.org/resource/Apple_Inc."),
+                        (Marking) new NamedEntity(78, 86,
+                                "http://dbpedia.org/resource/Stanford_University"))) },
+                // (TP=14,FP=0,FN=0,P=1,R=1,F1=1)
+                REDUCED_GLD_STD, Matching.WEAK_ANNOTATION_MATCH,
+                new double[] { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0 } });
         return testConfigs;
+    }
+
+    private static FilterHolder holder;
+
+    @BeforeClass
+    public static void setUp() {
+        FilterFactory factory = new FilterFactory(false);
+        factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
+        holder = factory.getFilters();
     }
 
     private Document annotatorResults[];
@@ -107,21 +125,35 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
-        FilterFactory factory = new FilterFactory(false);
-        factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
-
         int counter = 1;
-        HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
-        for (FilterWrapper f : factory.getFilters().getFilterList()) {
+        for (FilterWrapper f : holder.getFilterList()) {
+            HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
             ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, f.getConfig());
             filterTask.put(configuration, counter);
-            counter++;
-        }
+            FilterHolder h = new FilterHolder(Arrays.asList(f), false);
 
+            runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
+                    new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
+                    holder, filterTask);
+        }
+    }
+
+    @Test
+    public void testIdentityFilter() throws Exception {
+        int experimentTaskId = 1;
+        SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
+
+        FilterWrapper identity = new IdentityWrapper();
+        FilterHolder h = new FilterHolder(Arrays.asList(identity), false);
+
+        HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
+        ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
+                    new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, identity.getConfig());
+        filterTask.put(configuration, 1);
 
         runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
-                factory.getFilters(), filterTask);
+                h, filterTask);
     }
 }

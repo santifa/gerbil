@@ -142,7 +142,7 @@ public class ExperimentDAOImpl extends AbstractExperimentDAO {
         params.addValue("lastChanged", new java.sql.Timestamp(today.getTime()));
         params.addValue("version", GerbilConfiguration.getGerbilVersion());
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        LOGGER.error("create task " + annotatorName + " " + datasetName + " " + filterName + " " + experimentType + " " + matching);
+
         this.template.update(INSERT_TASK, params, keyHolder);
         Integer generatedKey = (Integer) keyHolder.getKey();
         if (experimentId != null) {

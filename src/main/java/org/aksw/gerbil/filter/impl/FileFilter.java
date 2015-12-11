@@ -36,7 +36,7 @@ public class FileFilter extends ConcreteFilter {
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
         try {
-            return resolve(entities, def.getFilter(), def.getServiceLocation());
+            return resolve(entities);
         } catch (IOException e) {
             LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
             return new ArrayList<>();
@@ -46,16 +46,16 @@ public class FileFilter extends ConcreteFilter {
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName) {
         try {
-            return resolve(entities, def.getFilter(), def.getServiceLocation());
+            return resolve(entities);
         } catch (IOException e) {
             LOGGER.error("Entities could not resolved, returning nothing. : " + e.getMessage(), e);
             return new ArrayList<>();
         }
     }
 
-    private List<String> resolve(List<String> entities, String filter, String fileLocation)  throws IOException {
+    private List<String> resolve(List<String> entities)  throws IOException {
         List<String> result = new ArrayList<>(entities.size());
-        String queryString = buildQuery(entities, filter);
+        String queryString = buildQuery(entities);
         Query query = QueryFactory.create(queryString);
 
         try (QueryExecution qexec = QueryExecutionFactory.create(query, knowledgeBase)) {

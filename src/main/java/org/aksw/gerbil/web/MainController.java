@@ -215,7 +215,7 @@ public class MainController {
         // run the experiment
         String experimentId = IDCreator.getInstance().createID();
         Experimenter exp;
-        exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId, filterFactory.getFilters());
+        exp = new Experimenter(overseer, dao, globalRetriever, evFactory, configs, experimentId, filterFactory);
         exp.setAnnotatorOutputWriter(annotatorOutputWriter);
         exp.run();
 
