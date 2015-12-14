@@ -1,8 +1,14 @@
 #!/bin/sh
+#
+# This script collects all entities from all datasets und gerbil_data
+# and ranks them with scores provided under gerbil_data/resources/filter/sources .
+# The result is used for popularity filters. 
+#
+
 
 # variables
-SCORE_FOLDER=../resources/filter/sources/*
-RESULT_FOLDER=../resources/filter/
+SCORE_FOLDER=../../../../gerbil_data/resources/filter/sources/*
+RESULT_FOLDER=../../../../gerbil_data/resources/filter/
 ENTITY_FILE=${RESULT_FOLDER}entities
 
 # collect entities

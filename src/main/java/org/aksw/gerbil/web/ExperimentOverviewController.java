@@ -16,12 +16,14 @@
  */
 package org.aksw.gerbil.web;
 
+import com.google.common.base.Splitter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
+import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.utils.DatasetMetaData;
@@ -38,6 +40,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 
 @Controller
@@ -66,6 +72,9 @@ public class ExperimentOverviewController {
 	@Qualifier("datasets")
 	private AdapterList<DatasetConfiguration> datasets;
 
+    @Autowired
+    private FilterFactory filterFactory;
+
 	@RequestMapping("/experimentoverview")
 	public @ResponseBody String experimentoverview(@RequestParam(value = "experimentType") String experimentType,
 			@RequestParam(value = "matching") String matchingString, @RequestParam(required = false, value = "filter") String filterName) {
@@ -87,6 +96,33 @@ public class ExperimentOverviewController {
 		return generateJson(results, correlations, annotatorNames, datasetNames);
 
 	}
+
+    @RequestMapping("/filtermetadata")
+    public @ResponseBody String filtermetadata() {
+        LOGGER.debug("Got request on /filtermetadata");
+        File metadata = new File("gerbil_data/resources/filter/metadata");
+
+        if (metadata.exists() && metadata.isFile()) {
+            List<String> values = new ArrayList<>();
+
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(metadata));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    values.add(line);
+                }
+                reader.close();
+
+                return generateMetadataJson(filterFactory.getRegisteredFilterNames(), values);
+            } catch (IOException e) {
+                LOGGER.error("Could not fetch filter metadata; Returning empty metadata. " + e.getMessage(), e);
+                return  generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
+            }
+
+        } else {
+            return generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
+        }
+    }
 
     private boolean isFilteredExperiment(String filterName, ExperimentType eType) {
         return eType.equalsOrContainsType(ExperimentType.ERec)
@@ -217,6 +253,67 @@ public class ExperimentOverviewController {
 
 		return correlations;
 	}
+
+    private int computeAmountOfEntities(String filterName, List<String> values) {
+        int result = 0;
+        for (String value : values) {
+            List<String> lst = Splitter.on(' ').splitToList(value);
+            if (StringUtils.equalsIgnoreCase(filterName, lst.get(0).replaceAll("_", " "))) {
+                result += Integer.valueOf(lst.get(2));
+            }
+        }
+        return result;
+    }
+
+    private String getMetadataAsJson(String filterName, List<String> values) {
+        StringBuilder datasets = new StringBuilder();
+        StringBuilder amount = new StringBuilder();
+        datasets.append('[');
+        amount.append('[');
+
+        String prefix = "";
+        for (String value : values) {
+            List<String> lst = Splitter.on(' ').splitToList(value);
+            if (StringUtils.equalsIgnoreCase(filterName, lst.get(0).replaceAll("_", " "))) {
+                datasets.append(prefix);
+                amount.append(prefix);
+                prefix = ",";
+                datasets.append('"').append(lst.get(1)).append('"');
+                amount.append((lst.get(2)));
+            }
+        }
+
+        datasets.append(']');
+        amount.append(']');
+        return "\"datasets\": " + datasets.toString() + ",\n\"values\": " + amount.toString();
+    }
+
+    private String generateMetadataJson(String[] filterNames, List<String> values) {
+        StringBuilder jsonBuilder = new StringBuilder();
+        if (values.isEmpty()) {
+            jsonBuilder.append('[');
+            String prefix = "";
+            for (String name : filterNames) {
+                jsonBuilder.append(prefix);
+                prefix = ",\n";
+                jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
+                jsonBuilder.append("\"amount\": 0,\n\"datasets\": [],\n\"values\": []\n}");
+            }
+            return jsonBuilder.append(']').toString();
+        }
+
+        jsonBuilder.append('[');
+        String prefix = "";
+        for (String name : filterNames) {
+            jsonBuilder.append(prefix);
+            prefix = ",\n";
+            jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
+            jsonBuilder.append("\"amount\": ").append(computeAmountOfEntities(name, values)).append(",\n");
+            jsonBuilder.append(getMetadataAsJson(name, values));
+            jsonBuilder.append("}");
+        }
+        return jsonBuilder.append(']').toString();
+    }
 
 	private String generateJson(double[][] results, double[][] correlations, String annotatorNames[],
 			String datasetNames[]) {

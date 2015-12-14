@@ -32,4 +32,5 @@ if [ ! -f "$file" ]; then
 	echo "##############################################################################"  >> $file
 fi
 
+set MAVEN_OPTS="-Xmx2g -Xms256m"
 mvn clean tomcat:run -Dmaven.tomcat.port=1234

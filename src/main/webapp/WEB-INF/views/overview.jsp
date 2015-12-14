@@ -11,14 +11,12 @@
 	          src="/gerbil/webjars/jquery/2.1.1/jquery.min.js"></script>
     <script type="text/javascript"
 	          src="/gerbil/webjars/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript"
 	          src="/gerbil/webResources/js/gerbil.color.js"></script>
-    <script type="text/javascript"
-	          src="/gerbil/webResources/js/RadarChart.js"></script>
-    <script type="text/javascript"
-	          src="/gerbil/webResources/js/script_radar_overview.js"></script>
-    
+     <script type="text/javascript"
+	           src="/gerbil/webResources/js/slidr.min.js"></script>
+     <script src="/gerbil/webResources/js/highcharts.js"></script>
+     <script src="/gerbil/webResources/js/highcharts-more.js"></script>
     <link rel="icon" type="image/png"
 	        href="/gerbil/webResources/gerbilicon_transparent.png">
 </head>
@@ -51,29 +49,32 @@
  }
 
  .chartDiv { /*position: absolute;*/
-	   //top: 50px;
+     //top: 50px;
+     padding-top: 50px;
      left: 50px;
-     height: 70%;
 	   vertical-align: center;
-	   text-align:center;
+	   //text-align:center;
  }
 
  .chartBody {
-     text-align: center;
-	   overflow: hidden;
+     //text-align: center;
+     vertical-align: center;
+     overflow: hidden;
+     width: 100%;
 	   margin: 0;
-	   font-size: 14px;
+     font-size: 14px;
 	   font-family: "Helvetica Neue", Helvetica;
  }
 </style>
 
 <body>
 	  <div class="container">
-		<!-- mappings to URLs in back-end controller -->
-		<c:url var="experimentoverview" value="/experimentoverview" />
-		<c:url var="matchings" value="/matchings" />
-		<c:url var="exptypes" value="/exptypes" />
+		    <!-- mappings to URLs in back-end controller -->
+		    <c:url var="experimentoverview" value="/experimentoverview" />
+		    <c:url var="matchings" value="/matchings" />
+		    <c:url var="exptypes" value="/exptypes" />
         <c:url var="filters" value="/filters" />
+        <c:url var="filtermetadata" value="/filtermetadata" />
 
 		<%@include file="navbar.jsp"%>
 		<h1>GERBIL Experiment Overview</h1>
@@ -114,7 +115,7 @@
 			</div>
 
 			<div class="container-fluid">
-				  <div id="resultsChartBody" class="chartBody"> </div>
+				  <div id="resultsChartBody" class="chartBody"></div>
 			</div>
 		</div>
 	</div>
@@ -174,14 +175,12 @@
    };
 
    function loadFilters() {
-       $.getJSON('${filters}',             
-                 function(data) {
-                     if (!isFilteredExperiment()) {
-                         $('#filter').html('');
-                         return;
-                     }
-
-                     
+       if (!isFilteredExperiment()) {
+           $('#filter').html('');
+           return;
+       }
+       $.getJSON('${filters}', {ajax : false},            
+                 function(data) {             
                      var htmlFilters = "";
                      for (var i = 0; i < data.Filters.length; i++) {
                          htmlFilters += "<label class=\"btn btn-primary\">";
@@ -190,12 +189,12 @@
                          htmlFilters += "</label>";
                      }
                      
-                     // append overall view
+                     // append compare view
                      htmlFilters += "<label class=\"btn btn-primary\">";
                      htmlFilters += "<input class=\"toggle\" type=\"radio\" name=\"filter\" id=\"Compare\" value=\"Compare\">Compare";
                      htmlFilters += "</label>";
-                          
-                     // append second overview
+                     
+                     // append overview
                      htmlFilters += "<label class=\"btn btn-primary\">";
                      htmlFilters += "<input class=\"toggle\" type=\"radio\" name=\"filter\" id=\"Oveview\" value=\"Overview\">Overview";
                      htmlFilters += "</label>";
@@ -219,7 +218,7 @@
    };
    
    function loadExperimentTypes() {
-	     $.getJSON('${exptypes}', {ajax : 'false'},
+	     $.getJSON('${exptypes}', {ajax : false},
 	               function(data) {
 		                 var htmlExperimentTypes = "";
 		                 for ( var i = 0; i < data.ExperimentType.length; i++) {
@@ -257,12 +256,13 @@
 	         filter : $('#filter input:checked').val(),
 	         ajax : 'false'
 	     }, function(data){
-				   var tableData = data[0];
-				   showTable(tableData,"resultsTable");
-				   drawSpiderDiagram(tableData, "resultsChart");
-				   tableData = data[1];
-				   showTable(tableData,"correlationsTable");
-				   drawSpiderDiagram(tableData, "correlationsChart");
+  			   var chartname = $('#expTypes input:checked').val() + ' '
+                         + $('#matching input:checked').val() + ' '
+                         + $('#filter input:checked').val()
+           showTable(data[0],"resultsTable");
+           drawSpiderChart(data[0], 'resultsChart', chartname);
+    		   showTable(data[1],"correlationsTable");
+           drawSpiderChart(data[1], 'correlationsChart', 'Correlations Chart');
 			 }).fail(function() {
 		       console.log("error loading data for table");
 	     });
@@ -289,118 +289,328 @@
 		   });
 		   $("#" + tableElementId + " thead").html(tbl_hd);
 		   $("#" + tableElementId + " tbody").html(tbl_body);
-	 }
-	 
-		function drawSpiderDiagram(tableData, chartElementId) {
-		    //draw spider chart
-		    var chartData = [];
-		    //Legend titles  ['Smartphone','Tablet'];
-		    var LegendOptions = [];
-		    $.each(tableData, function(i) {
-			      //iterate over rows
-			      if (i > 0) {
-				        var annotatorResults = [];
-				        $.each(this, function(k, v) {
-					          if (k == 0) {
-						            //annotator
-						            LegendOptions.push(v);
-					          } else {
-						            //results like {axis:"Email",value:0.71},
-						            var tmp = {};
-						            tmp.axis = tableData[0][k];
-						            if (v == "n.a." || v.indexOf("error") > -1) {
-							              tmp.value = 0;
-						            } else {
-									          // if the number is negative make it poositive
-									          if(v.indexOf("-") > -1) {
-										            v = v.replace("-","+");
-									          }
-							              tmp.value = v;
-						            }
-						            annotatorResults.push(tmp);
-					          }
-				        });
-				        chartData.push(annotatorResults);
-			      }
-		    });
-        //[[{axis:"Email",value:0.71},{axis:"aa",value:0}],[{axis:"Email",value:0.71},{axis:"aa",value:0.1},]];
-				console.log("start drawing into " + chartElementId);
-		    drawChart(chartData, LegendOptions, chartElementId);
-	  }
-
-   function getData(filterName) {
-       var dataChunk;
-       $.ajax({url:'${experimentoverview}', async:false, dataType:'json',
-               data:{
-        	         experimentType : $('#expTypes input:checked').val(),
-        	         matching : $('#matching input:checked').val(),
-        	         filter : filterName,
-        	         ajax : 'false'}}).done(function(data) {
-        	             dataChunk = data;
-        	         });
-       return dataChunk;
-   };
-
+	 } 
+	
    // set all needed divs for slidr animation
-   function prepareOverviews(filters) {
-       innerHtmlRes='';
-       innerHtmlCom='';
+   function prepareCompareCharts(filters) {
+       var innerHtmlRes='';
+       var innerHtmlCom='';
        for (var i = 0; i < filters.length; i++) {
-           innerHtmlRes += '<div div id="result' + i +'"" data-slidr="'+ i +'">'+ filters[i] +'</div>';
-           innerHtmlCom += '<div div id="compare' + i +'" data-slidr="'+ i +'">' + filters[i] +'</div>';
+           innerHtmlRes += '<div id="result' + i +'" data-slidr="'+ i +'">'+ filters[i] +'</div>';
+           innerHtmlCom += '<div id="compare' + i +'" data-slidr="'+ i +'">' + filters[i] +'</div>';
        }
 
-       $("#resultsChartBody").html('<div id="resultsChart" style="display: inline"></div><div id="compareChart" style="display: inline"></div>');
-       $("#resultsChart").html(innerHtmlRes);
-       $("#compareChart").html(innerHtmlCom);
-       $("#resultsTable").html("<thead></thead><tbody></tbody>");
+       $('#resultsChartBody').html('<div id="resultsChart" style="display: inline"></div><div id="compareChart" style="display: inline"></div>');
+       $('#resultsChart').html(innerHtmlRes);
+       $('#compareChart').html(innerHtmlCom);
+       $('#resultsTable').html('<thead></thead><tbody></tbody');
+   };
+
+   // convert to float array
+   function convertData(data) {
+       return data.slice(1, data.length).map(function(currentValue) {
+           if (currentValue != 'n.a.' && !currentValue.startsWith('error')) {
+               return parseFloat(currentValue);
+           } else {
+               return 0.0;
+           }
+       });
+   }
+   
+   // new draw spider chart function
+   function drawSpiderChart(data, tagname, chartname) {
+       var chartData = [];
+       
+       // fill json object with data
+       for (var i = 1; i < data.length; i++) {    
+           var dataset = {
+               type: 'area',
+               name: data[i][0],
+               data: convertData(data[i]).map(curr => curr * 100),
+               pointPlacement: 'on'
+           }
+           chartData.push(dataset);
+       }
+       
+       $('#' + tagname).highcharts({
+           chart: {
+               polar: true,
+               type: 'line',
+               height: 700
+           },
+           credits: {enabled: false},
+           title: {
+               text: chartname,
+               x: -80
+           },
+           xAxis: {
+               categories: data[0].slice(1, data[0].length),
+               tickmarkPlacement: 'on',
+               lineWidth: 0
+           },
+           yAxis: {
+               //gridLineInterpolation: 'polygon',
+               lineWidth: 0,
+               tickInterval: 10,
+               labels: {
+                   formatter: function() {
+                       return this.value + '%'
+                   }
+               }
+           },
+           tooltip: {
+               shared: true,
+               pointFormat: '<span style="color:{series.color}">{series.name}: {point.y}% <br/>',
+               borderWidth: 0
+           },
+           legend: {
+               align: 'right',
+               verticalAlign: 'top',
+               y: 70,
+               layout: 'vertical'
+           },
+           series: chartData
+       });
    };
    
    // draw all compare charts 
    function compareChart() {
-       $.getJSON('${filters}',
+       $.getJSON('${filters}', {ajax : false},
                  function(data) {
-                     prepareOverviews(data.Filters);
-
-                     var corr = [];
-                     for (var i = 0; i < data.Filters.length; i++) {
-                         var chunk = getData(data.Filters[i]);
-                         drawSpiderDiagram(chunk[0], "result" + i);
-                         drawSpiderDiagram(chunk[0], "compare" + i);
-                         corr = chunk[1];
-                     }
+                     prepareCompareCharts(data.Filters);
                      
-                     var result = slidr.create('resultsChart', {
-                         breadcrumbs: true,
-                         direction: 'horizontal',
-                         keyboard: true,
-                         overflow: true,
-                         theme: '#222',
-                         fade: true
-                     }).start();
-                     
-                     var result = slidr.create('compareChart', {
-                         breadcrumbs: true,
-                         direction: 'horizontal',
-                         keyboard: true,
-                         overflow: false,
-                         theme: '#222',
-                         fade: true
-                     }).start();
-                     
-                     showTable(corr,"correlationsTable");
-			               drawSpiderDiagram(corr, "correlationsChart");
-                 });
+                     // load data async
+                     data.Filters.forEach(function(filter, n) {
+                         $.getJSON('${experimentoverview}', {
+                             experimentType : $('#expTypes input:checked').val(),
+	                           matching : $('#matching input:checked').val(),
+                             filter : filter,
+	                           ajax : false
+                         }).done(function(data) {
+                             drawSpiderChart(data[0], "compare" + n, filter);
+                             drawSpiderChart(data[0], "result" + n, filter);
+                         });
+                     })}).done(function(){
+                         // initalize compare slides
+                         slidr.create('resultsChart', {
+                             breadcrumbs: true,
+                             direction: 'horizontal',
+                             keyboard: true,
+                             overflow: true,
+                             transition: 'fade',
+                             theme: '#222',
+                             fade: true
+                         }).start();
+                         
+                         slidr.create('compareChart', {
+                             breadcrumbs: true,
+                             direction: 'horizontal',
+                             keyboard: true,
+                             overflow: true,
+                             transition: 'fade',
+                             theme: '#222',
+                             fade: true
+                         }).start(); 
+            });
    };
 
+   function prepareOverviewCharts() {
+       $('#resultsChart').html('<div id="resultsChart" style="display: inline"></div>');
+       $('#resultsChart').html('<div id="mediumChart" data-slidr="1"></div>'
+                             + '<div id="peakChart" data-slidr="2"></div>'
+                             + '<div id="lowChart" data-slidr="3"></div>'
+                             + '<div id="metadata1" data-slidr="4"></div>'
+                             + '<div id="metadata2" data-slidr="4"></div>');
+       $('#resultsTable').html('<thead></thead><tbody></tbody');
+   };
+
+   function prepareDataForAnnotatorChart(data) {
+       return data.slice(1, data[0].length).map(function(currentValue) {
+           var convertedData = convertData(currentValue); 
+           return [currentValue[0], // annotator name
+                   // dataset medium
+                   convertedData.reduce(function(previousValue, currentValue, currentIndex, arr) {
+                       // if last iteration divide by length
+                       if (currentIndex == arr.length -1) {
+                           return (previousValue + currentValue) / arr.length;
+                       } else {
+                           return previousValue + currentValue;
+                       }
+                   }, 0),
+                   // dataset peak
+                   convertedData.reduce(function(previousValue, currentValue) {
+                       return Math.max(previousValue, currentValue);
+                   }),
+                   // dataset low
+                   convertedData.reduce(function(previousValue, currentValue) {
+                       return Math.min(previousValue, currentValue);
+                   }, 0)]; 
+       });   
+   };
+
+   function drawFilterChart(xAxisNames, data, name, tagname, formatter) {
+       $('#' + tagname).highcharts({
+           chart: {
+               type: 'line',
+               widht: 700
+           },
+           credits: {enabled: false},
+           title: {
+               text: name,
+               x: -80
+           },
+           xAxis: {
+               categories: xAxisNames,
+               //tickmarkPlacement: 'on',
+               lineWidth: 0
+           },
+           yAxis: {
+               //gridLineInterpolation: 'polygon',
+               lineWidth: 0,
+               tickInterval: 10,
+               labels: formatter.formatter
+           },
+           tooltip: {
+               shared: true,
+               pointFormat: formatter.pointFormat,
+               borderWidth: 0
+           },
+           series: data
+        });
+   };
+   
    function overviewChart() {
+       prepareOverviewCharts();
        
+       $.getJSON('${filters}', {ajax : false},
+                 function(data) {
+                     var filters = data.Filters;
+                     var dataChunks = [];
+                     
+                     // load data in sync
+                     filters.forEach(function(filter, n) {
+                         $.getJSON('${experimentoverview}', {
+                             experimentType : $('#expTypes input:checked').val(),
+	                           matching : $('#matching input:checked').val(),
+                             filter : filter,
+	                           ajax : false
+                         }).done(function(data) {
+                             // ignore dataset names
+                             var chunk = {
+                                 filter: filters[n],
+                                 data: prepareDataForAnnotatorChart(data[0])
+                             };
+                             dataChunks.push(chunk);
+
+                             var chartData1 = [];
+                             var chartData2 = [];
+                             var chartData3 = [];
+                             if (n == filters.length -1) {
+                                 for (var i = 0; i < dataChunks[0].data.length; i++) {
+                                     var series = [];
+                                     for (var j = 0; j < dataChunks.length; j++) {
+                                         var value = {
+                                             name: dataChunks[j].data[i][0],
+                                             median: dataChunks[j].data[i][1],
+                                             peak: dataChunks[j].data[i][2],
+                                             low: dataChunks[j].data[i][3],
+                                         };
+                                         series.push(value);
+                                     }
+                                     var s = {
+                                         name: series[0].name,
+                                         type: 'line',
+                                         data: series.map( curr => curr.median * 100)
+                                     };
+                                     chartData1.push(s);
+                                     s = {
+                                         name: series[0].name,
+                                         type: 'line',
+                                         data: series.map( curr => curr.peak * 100)
+                                     };
+                                     chartData2.push(s);
+                                     s = {
+                                         name: series[0].name,
+                                         type: 'line',
+                                         data: series.map( curr => curr.low * 100)
+                                     };
+                                     chartData3.push(s);
+                                     
+                                 }
+
+                                 var formatter = {
+                                     formatter: {
+                                         formatter: function() {
+                                             return this.value + '%'
+                                         }},
+                                     pointFormat: '<span style="color:{series.color}">{series.name}: {point.y}% <br/>'
+                                 };
+                                 drawFilterChart(filters, chartData1, 'Medium F1 Score per Filter', 'mediumChart', formatter);
+                                 drawFilterChart(filters, chartData2, 'Highest F1 Score per Filter', 'peakChart', formatter);
+                                 drawFilterChart(filters, chartData3, 'Lowest F1 Score per Filter', 'lowChart', formatter);
+                             }
+                         });
+                     });
+                 });
+
+       $.getJSON('${filtermetadata}', {ajax : false},
+                 function(data) {
+                     var filters = data.map(function(currentValue) {
+                         return currentValue.filter;
+                     });
+
+                     var formatter = {
+                         formatter: {
+                             formatter: function() {
+                                 return this.value + " Entities"
+                             }},
+                         pointFormat: '<span style="color:{series.color}">{series.name}: {point.y} Entities <br/>'
+                     };
+                     
+                      var amounts = [{
+                         type: 'pie',
+                         name: 'Amount of Entities',
+                         data: data.map(function(currentValue) {
+                             return {
+                                 name: currentValue.filter,
+                                 y: currentValue.amount
+                             };
+                         })
+                     }];
+
+                     var sum = data.reduce(function(previousValue, currentValue) {
+                         return previousValue + parseInt(currentValue.amount);
+                     }, 0);
+                     drawFilterChart(filters, amounts, 'Amount of Entities per Filter (Sum ' + sum + ')', 'metadata1', formatter);
+
+                     var chartData = [];
+                     for (var i = 0; i < data[0].datasets.length; i++) {
+                         var seriesData = [];
+                         for (var j = 0; j < data.length; j++) {
+                             seriesData.push(data[j].values[i]);
+                         }
+                         seriesData.unshift(data[0].datasets[i]);
+                         chartData.push(seriesData);
+                     }
+                     
+                     amounts = chartData.map(function(currentValue) {
+                         return {
+                             name: currentValue[0],
+                             type: 'spline',
+                             data: currentValue.slice(1, currentValue.length)
+                         };
+                     });
+                     console.log(amounts);
+                     drawFilterChart(filters, amounts, 'Amount of Entities per Dataset', 'metadata2', formatter);
+                 });
    };
 
    // remove diagrams and tables
    function clearDiagrams() {
-       $("#resultsChartBody").html('<div id="resultsChart" class="chartDiv"></div>');
-       $("#resultsTable").html("<thead></thead><tbody></tbody>");
+       $('#resultsChartBody').html('<div id="resultsChart" class="chartDiv"></div>');
+       $('#correlationsChart').html('');
+       $('#correlationsTable').html('<thead></thead><tbody></tbody>');
+       $('#resultsTable').html('thead></thead><tbody></tbody>');
    };
 
    function isFilteredExperiment() {
@@ -424,12 +634,15 @@
 	     $("#show").click(function(e) {
 	         if (isFilteredExperiment()) {
                if ($('#filter input:checked').val() == "Compare") {
+                   console.log("compare");
                    clearDiagrams();
                    compareChart();
                } else if ($('#filter input:checked').val() == "Overview") {
+                   console.log("overview");
                    clearDiagrams();
                    overviewChart();
                } else {
+                   console.log("else");
                    clearDiagrams();
                    loadTables();
                }
@@ -440,6 +653,4 @@
 	     });
    });
 	</script>
-  <script type="text/javascript"
-	        src="/gerbil/webResources/js/slidr.min.js"></script>
 </body>
