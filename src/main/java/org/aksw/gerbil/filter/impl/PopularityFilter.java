@@ -69,8 +69,8 @@ public class PopularityFilter extends ConcreteFilter {
                 findEntities(fileMapping.get(part), searchString, result);
                 System.gc();
             } catch (IOException e) {
-                LOGGER.error("Search in file failed for " + fileMapping.get(part) + " with "
-                        + entities + " ; Skipping... " + e.getMessage(), e);
+                LOGGER.warn("Search in file failed for " + fileMapping.get(part) + " with "
+                        + entities + " ; Skipping... " + e.getMessage());
             }
         }
 

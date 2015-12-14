@@ -87,7 +87,7 @@ public class ExperimentOverviewController {
 		String datasetNames[] = loadDatasets(eType);
 
         // prevent loading of wrong data; only the identity filter is applicable for this experiments
-        if (isFilteredExperiment(filterName, eType)) {
+        if (!isFilteredExperiment(filterName, eType)) {
             filterName = IdentityWrapper.CONF.getName();
         }
 
@@ -125,10 +125,10 @@ public class ExperimentOverviewController {
     }
 
     private boolean isFilteredExperiment(String filterName, ExperimentType eType) {
-        return eType.equalsOrContainsType(ExperimentType.ERec)
-                || eType.equalsOrContainsType(ExperimentType.ETyping)
-                || eType.equalsOrContainsType(ExperimentType.OKE_Task1)
-                || eType.equalsOrContainsType(ExperimentType.OKE_Task2)
+        return ExperimentType.ERec.equalsOrContainsType(eType)
+                || ExperimentType.ETyping.equalsOrContainsType(eType)
+                || ExperimentType.OKE_Task1.equalsOrContainsType(eType)
+                || ExperimentType.OKE_Task2.equalsOrContainsType(eType)
                 || StringUtils.isEmpty(filterName);
     }
 

@@ -2,10 +2,7 @@ package org.aksw.gerbil.filter;
 
 import com.google.common.base.Joiner;
 import org.aksw.gerbil.config.GerbilConfiguration;
-import org.aksw.gerbil.filter.impl.CacheFilter;
-import org.aksw.gerbil.filter.impl.ChunkFilter;
-import org.aksw.gerbil.filter.impl.ConcreteFilter;
-import org.aksw.gerbil.filter.impl.UriCleaner;
+import org.aksw.gerbil.filter.impl.*;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.apache.commons.collections.CollectionUtils;
@@ -86,7 +83,7 @@ public class FilterFactory {
 
     private Filter decorateFilter(Filter service) {
         // chunk filter requests
-        if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
+        if (GerbilConfiguration.getInstance().containsKey(CHUNK) && !(service instanceof PopularityFilter)) {
             service = new ChunkFilter(service, GerbilConfiguration.getInstance().getInt(CHUNK));
         }
         // cache filter requests
