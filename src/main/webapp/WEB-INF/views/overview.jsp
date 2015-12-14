@@ -296,8 +296,8 @@
        var innerHtmlRes='';
        var innerHtmlCom='';
        for (var i = 0; i < filters.length; i++) {
-           innerHtmlRes += '<div id="result' + i +'" data-slidr="'+ i +'">'+ filters[i] +'</div>';
-           innerHtmlCom += '<div id="compare' + i +'" data-slidr="'+ i +'">' + filters[i] +'</div>';
+           innerHtmlRes += '<div id="result' + i +'" data-slidr="'+ i +'" style="width: 900px">'+ filters[i] +'</div>';
+           innerHtmlCom += '<div id="compare' + i +'" data-slidr="'+ i +'" style="width: 900px">' + filters[i] +'</div>';
        }
 
        $('#resultsChartBody').html('<div id="resultsChart" style="display: inline"></div><div id="compareChart" style="display: inline"></div>');

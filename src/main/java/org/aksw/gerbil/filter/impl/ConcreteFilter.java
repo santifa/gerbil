@@ -81,11 +81,12 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
 
             for (int j = 0; j < entities.size(); j++) {
                 String entity = entities.get(j);
-                entity = StringUtils.replaceOnce(entity, " ", "");
+                entity = StringUtils.replace(entity, " ", "");
                 builder.append("<").append(entity).append("> ");
             }
             builder.append(' ').append(query.get(i+1));
         }
+        System.out.println(builder.toString());
         return builder.toString();
     }
 

@@ -53,10 +53,11 @@ public class SparqlFilter extends ConcreteFilter {
     private List<String> resolve(List<String> entities)  throws IOException {
         List<String> result = new ArrayList<>(entities.size());
         String queryString = buildQuery(entities);
-        Query query = QueryFactory.create(queryString);
 
-        try (QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query)) {
-            qexec.setTimeout(5000, 10000); // set timeout until first answer to five second and overall timeout to ten seconds
+        try {
+            Query query = QueryFactory.create(queryString);
+            QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query);
+            qexec.setTimeout(10000, 20000); // set timeout until first answer to five second and overall timeout to ten seconds
             ResultSet queryResult = qexec.execSelect();
 
             while (queryResult.hasNext()) {
@@ -64,6 +65,8 @@ public class SparqlFilter extends ConcreteFilter {
                 RDFNode node = solution.get("v");
                 result.add(node.asResource().getURI());
             }
+
+            qexec.close();
         } catch (Exception e) {
             throw new IOException("Could not retrieve answer from " + def.getServiceLocation()
                     + " for query " + queryString + " ; Skipping... " + e.getMessage());
