@@ -28,7 +28,6 @@ public class PopularityFilter extends ConcreteFilter {
 
     private HashMap<String, File> fileMapping = new HashMap<>(10);
 
-    private List<String> foundItems = new ArrayList<>();
     /**
      * Instantiates a new Concrete filter.
      *
@@ -60,12 +59,15 @@ public class PopularityFilter extends ConcreteFilter {
 
     // search all mapped files for entities
     private List<String> resolve(List<String> entities) {
-        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>(entities.size());
+        // create a newline seperated string with a whitespace in front for only exact matches
+        String searchString = Joiner.on(" \n").skipNulls().join(entities);
+        searchString = StringUtils.replace(searchString, "'", "\\'");
 
         for (String part : fileMapping.keySet()) {
-            //String filename = fileMapping.get(part);
             try {
-                findEntities(fileMapping.get(part), entities, result);
+                findEntities(fileMapping.get(part), searchString, result);
+                System.gc();
             } catch (IOException e) {
                 LOGGER.error("Search in file failed for " + fileMapping.get(part) + " with "
                         + entities + " ; Skipping... " + e.getMessage(), e);
@@ -77,27 +79,21 @@ public class PopularityFilter extends ConcreteFilter {
 
     // TODO think about a better way for searching the files instead of fgrep,
     // but it is the fastest  way at the moment, with more than 10 times faster then regular java io.
-    private void findEntities(File f, List<String> entities, List<String> result) throws IOException {
-        String searchString = Joiner.on('\n').skipNulls().join(entities);
-        searchString = StringUtils.replace(searchString, "'", "\\'");
-
+    private void findEntities(File f, String searchString, List<String> result) throws IOException {
         String cmd = "fgrep -F \"" + searchString + "\" \"" + f.getAbsolutePath() + "\"";
         CommandLine cmdLine = CommandLine.parse(cmd);
+
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         DefaultExecutor executor = new DefaultExecutor();
         executor.setStreamHandler(new PumpStreamHandler(stdout));
-        // kill process after 10 secs.
-        executor.setWatchdog(new ExecuteWatchdog(10000));
+        // kill process after 30 secs.
+        executor.setWatchdog(new ExecuteWatchdog(30000));
         executor.execute(cmdLine);
 
+        // read input string and return everything found
         List<String> output = Splitter.on("\n").omitEmptyStrings().splitToList(stdout.toString("UTF-8"));
         for (String s : output) {
-            //System.out.println("substring " + s);
-            String uri = Splitter.on(" ").split(s).iterator().next();
-           // System.out.println("uri: " + uri);
-            if (entities.contains(uri)) {
-                result.add(uri);
-            }
+            result.add(Splitter.on(" ").split(s).iterator().next());
         }
     }
 

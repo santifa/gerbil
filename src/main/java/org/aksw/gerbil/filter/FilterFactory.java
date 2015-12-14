@@ -127,6 +127,17 @@ public class FilterFactory {
         }
     }
 
+    /**
+     * @return the names of all registered filters
+     */
+    public String[] getRegisteredFilterNames() {
+        String[] names = new String[filters.size()];
+        for (int i = 0; i < filters.size(); i++) {
+            names[i] = filters.get(i).getConfiguration().getName();
+        }
+        return names;
+    }
+
     // returns a set of prefixes defined in the filter.properties
     private static List<String> getPrefixSet() {
         return new ConfigResolver<String>() {

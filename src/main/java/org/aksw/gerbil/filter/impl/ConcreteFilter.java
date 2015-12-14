@@ -56,7 +56,7 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
     }
 
     private String buildPrefixes(String[] prefixes) {
-        String prefix = "PREFIX ";
+        String prefix = " PREFIX ";
 
         // create sparql query prefix
         StringBuilder builder = new StringBuilder();
@@ -77,14 +77,14 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
         builder.append(prefixes);
 
         for (int i = 0; i < query.size() && i % 2 == 0; i =+ 2) {
-            builder.append(query.get(i));
+            builder.append(query.get(i)).append(' ');
 
             for (int j = 0; j < entities.size(); j++) {
                 String entity = entities.get(j);
-                entity = StringUtils.replaceOnce(entity, "<", "");
-                builder.append(" <").append(entity).append("> ");
+                entity = StringUtils.replaceOnce(entity, " ", "");
+                builder.append("<").append(entity).append("> ");
             }
-            builder.append(query.get(i+1));
+            builder.append(' ').append(query.get(i+1));
         }
         return builder.toString();
     }
