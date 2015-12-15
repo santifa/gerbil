@@ -58,7 +58,6 @@ public class ExperimentTask implements Task {
 
     private ExperimentDAO experimentDAO;
     private ExperimentTaskConfiguration configuration;
-    private int experimentTaskId;
     private EvaluatorFactory evFactory;
     private ExperimentTaskState taskState = null;
     private AnnotatorOutputWriter annotatorOutputWriter = null;
@@ -71,7 +70,6 @@ public class ExperimentTask implements Task {
                           Map<ExperimentTaskConfiguration, Integer> filterTask) {
         this.experimentDAO = experimentDAO;
         this.configuration = configuration;
-        this.experimentTaskId = experimentTaskId;
         this.evFactory = evFactory;
         this.globalRetriever = globalRetriever;
         this.filterHolder = filterHolder;
@@ -465,11 +463,7 @@ public class ExperimentTask implements Task {
     private <T extends Marking> void applyFilterTask(Dataset dataset, Annotator annotator,
                                              List<Evaluator<? extends Marking>> evaluators,
                                              List<List<T>> results, List<List<T>> goldStandard) {
-        System.out.println("working on " + filterTask);
-        System.out.println("");
-        System.out.println("anno" + results);
-        System.out.println("################################################################");
-        System.out.println("gold" + goldStandard);
+
         for (ExperimentTaskConfiguration conf : filterTask.keySet()) {
             FilterWrapper filter = filterHolder.getFilterByConfig(conf.filter);
             List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
