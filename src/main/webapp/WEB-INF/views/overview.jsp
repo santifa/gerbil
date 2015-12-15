@@ -256,9 +256,14 @@
 	         filter : $('#filter input:checked').val(),
 	         ajax : 'false'
 	     }, function(data){
+           var filtername = '';
+           if ($('#filter input').checked) {
+               filtername = $('#filter input:checked').val();
+           }
+           
   			   var chartname = $('#expTypes input:checked').val() + ' '
                          + $('#matching input:checked').val() + ' '
-                         + $('#filter input:checked').val()
+                         + filtername;
            showTable(data[0],"resultsTable");
            drawSpiderChart(data[0], 'resultsChart', chartname);
     		   showTable(data[1],"correlationsTable");

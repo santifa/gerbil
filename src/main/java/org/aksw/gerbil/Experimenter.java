@@ -18,6 +18,7 @@ package org.aksw.gerbil;
 
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
+import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.execute.ExperimentTask;
@@ -94,7 +95,13 @@ public class Experimenter implements Runnable {
                 Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
 
                 // create a task for every filter and the nofilter not in db
-                FilterHolder holder = filterFactory.getFilters();
+                FilterHolder holder;
+                if (isNotFilteredExperiment(configs[0].getType())) {
+                    holder = new FilterFactory(true).getFilters();
+                } else {
+                    holder = filterFactory.getFilters();
+                }
+
                 for (FilterWrapper f : holder.getFilterList()) {
                     ExperimentTaskConfiguration conf = new ExperimentTaskConfiguration(configs[i].annotatorConfig,
                             configs[i].datasetConfig, configs[i].type, configs[i].matching, f.getConfig());
@@ -147,5 +154,12 @@ public class Experimenter implements Runnable {
 
     public void setAnnotatorOutputWriter(AnnotatorOutputWriter annotatorOutputWriter) {
         this.annotatorOutputWriter = annotatorOutputWriter;
+    }
+
+    private boolean isNotFilteredExperiment(ExperimentType eType) {
+        return ExperimentType.ERec.equals(eType)
+                || ExperimentType.ETyping.equals(eType)
+                || ExperimentType.OKE_Task1.equals(eType)
+                || ExperimentType.OKE_Task2.equals(eType);
     }
 }

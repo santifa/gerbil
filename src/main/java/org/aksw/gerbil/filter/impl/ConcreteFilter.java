@@ -4,7 +4,10 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.apache.commons.lang.StringUtils;
+import org.apache.jena.iri.IRI;
+import org.apache.jena.iri.IRIFactory;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +22,10 @@ import java.util.List;
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
 public abstract class ConcreteFilter implements Filter, Cloneable {
+
+    private final static Logger LOGGER = LogManager.getLogger(ConcreteFilter.class);
+
+    private static IRIFactory iriFactory = IRIFactory.semanticWebImplementation();
 
     /**
      * The filter definition
@@ -81,12 +88,21 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
 
             for (int j = 0; j < entities.size(); j++) {
                 String entity = entities.get(j);
-                entity = StringUtils.replace(entity, " ", "");
-                builder.append("<").append(entity).append("> ");
+                // only valid iris pass this test;
+                // this is for keeping the mess of non valid iris away from the filters and backends
+                //entity = StringUtils.replace(entity, " ", "");
+                IRI iri = iriFactory.create(entity);
+                if (iri.hasViolation(false)) {
+                    LOGGER.error("IRI violates the w3c standard; ignoring " + iri.toDisplayString());
+                } else if (iri.hasViolation(true)) {
+                    LOGGER.warn("IRI is not valid; using despite of " + iri.toDisplayString());
+                    builder.append("<").append(entity).append("> ");
+                } else {
+                    builder.append("<").append(entity).append("> ");
+                }
             }
             builder.append(' ').append(query.get(i+1));
         }
-        System.out.println(builder.toString());
         return builder.toString();
     }
 

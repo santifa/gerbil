@@ -53,6 +53,7 @@ public class FilterCache {
                 return new File(file, s).isFile();
             }
         })));
+        System.out.println("cached files " + cacheFiles);
     }
 
     /**
@@ -191,7 +192,6 @@ public class FilterCache {
             CachedResult cachedResult = deserializeResult(cacheFile);
             if (cachedResult == null || !StringUtils.equals(cachedResult.getChecksum(), result.getChecksum())) {
                 serializeResult(result, cacheFile);
-                cacheFiles.add(cacheFile);
             } else {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("No new version of " + cacheFile + " stored.");

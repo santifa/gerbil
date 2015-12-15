@@ -16,7 +16,6 @@ public class IdentityWrapper implements FilterWrapper {
 
     public final static FilterDefinition CONF = new FilterDefinition("nofilter", "", new ArrayList<String>(), "");
 
-
     @Override
     public FilterDefinition getConfig() {
         return CONF;

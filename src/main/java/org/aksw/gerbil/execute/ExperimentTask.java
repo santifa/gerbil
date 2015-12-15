@@ -128,7 +128,6 @@ public class ExperimentTask implements Task {
             LOGGER.error("Error while trying to execute experiment.", e);
         } finally {
             IOUtils.closeQuietly(annotator);
-            LOGGER.error("Finished " + configuration);
         }
     }
 
@@ -279,10 +278,9 @@ public class ExperimentTask implements Task {
     }
 
     @SuppressWarnings({ "deprecation" })
-    protected EvaluationResult runExperiment(Dataset dataset, Annotator annotator,
+    protected void runExperiment(Dataset dataset, Annotator annotator,
                                              List<Evaluator<? extends Marking>> evaluators,
                                              ExperimentTaskState state) throws GerbilException {
-        EvaluationResult evalResult = null;
         switch (configuration.type) {
         case D2KB: {
             try {
@@ -297,6 +295,7 @@ public class ExperimentTask implements Task {
                     taskState.increaseExperimentStepCount();
                 }
 
+                prepareAnnotatorResults(results, globalRetriever);
                 applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
@@ -318,6 +317,7 @@ public class ExperimentTask implements Task {
                     taskState.increaseExperimentStepCount();
                 }
 
+                prepareAnnotatorResults(results, globalRetriever);
                 applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
@@ -339,6 +339,7 @@ public class ExperimentTask implements Task {
                     taskState.increaseExperimentStepCount();
                 }
 
+                prepareAnnotatorResults(results, globalRetriever);
                 applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
@@ -369,7 +370,8 @@ public class ExperimentTask implements Task {
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
-                evalResult = evaluate(evaluators, results, goldStandard);
+                //evalResult = evaluate(evaluators, results, goldStandard);
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -396,7 +398,9 @@ public class ExperimentTask implements Task {
                 if (annotatorOutputWriter != null) {
                     annotatorOutputWriter.storeAnnotatorOutput(configuration, results, dataset.getInstances());
                 }
-                evalResult = evaluate(evaluators, results, goldStandard);
+                //evalResult = evaluate(evaluators, results, goldStandard);
+                //prepareAnnotatorResults(results, globalRetriever);
+                applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
             } catch (Exception e) {
@@ -417,7 +421,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
-
+                //evalResult = evaluate(evaluators, results, goldStandard);
+                prepareAnnotatorResults(results, globalRetriever);
                 applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
@@ -439,7 +444,8 @@ public class ExperimentTask implements Task {
                     goldStandard.add(document.getMarkings(TypedNamedEntity.class));
                     taskState.increaseExperimentStepCount();
                 }
-
+                //evalResult = evaluate(evaluators, results, goldStandard);
+                prepareAnnotatorResults(results, globalRetriever);
                 applyFilterTask(dataset, annotator, evaluators, results, goldStandard);
             } catch (GerbilException e) {
                 throw e;
@@ -452,17 +458,18 @@ public class ExperimentTask implements Task {
             throw new GerbilException("This experiment type isn't implemented yet. Sorry for this.",
                     ErrorTypes.UNEXPECTED_EXCEPTION);
         }
-        return evalResult;
-
     }
 
     // this method takes care of applying all filter tasks denoted by experiment configurations
     // it stores all input directly in the db
-    private <T extends Meaning> void applyFilterTask(Dataset dataset, Annotator annotator,
+    private <T extends Marking> void applyFilterTask(Dataset dataset, Annotator annotator,
                                              List<Evaluator<? extends Marking>> evaluators,
                                              List<List<T>> results, List<List<T>> goldStandard) {
-        prepareAnnotatorResults(results, globalRetriever);
-
+        System.out.println("working on " + filterTask);
+        System.out.println("");
+        System.out.println("anno" + results);
+        System.out.println("################################################################");
+        System.out.println("gold" + goldStandard);
         for (ExperimentTaskConfiguration conf : filterTask.keySet()) {
             FilterWrapper filter = filterHolder.getFilterByConfig(conf.filter);
             List<List<T>> filterResult = filter.filterAnnotatorResults(results, dataset.getName(), annotator.getName());
