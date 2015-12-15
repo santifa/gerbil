@@ -7,8 +7,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,47 +32,35 @@ public class CacheFilter extends FilterDecorator {
 
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName, String annotatorName) {
-        List<String> resolvedEntities = new ArrayList<>();
+        List<String> resolvedEntities;
 
-        try {
-            String md5sum = CachedResult.generateMd5Checksum(entities);
-
-            if (cache.isVersionCached(getConfiguration().getName(), datasetName, annotatorName, md5sum)) {
-                resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName, annotatorName);
-            } else {
-                resolvedEntities = super.resolveEntities(entities, datasetName, annotatorName);
-                CachedResult result = new CachedResult(getConfiguration().getName(), datasetName, annotatorName,
-                        resolvedEntities.toArray(new String[entities.size()]));
-                result.setChecksum(md5sum);
-                cache.cache(result);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Could not calculate md5 checksum for caching. " + e.getMessage(), e);
+        String md5sum = CachedResult.generateMd5Checksum(entities);
+        if (cache.isVersionCached(getConfiguration().getName(), datasetName, annotatorName, md5sum)) {
+            resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName, annotatorName);
+        } else {
+            resolvedEntities = super.resolveEntities(entities, datasetName, annotatorName);
+            CachedResult result = new CachedResult(getConfiguration().getName(), datasetName, annotatorName,
+                     resolvedEntities.toArray(new String[entities.size()]));
+            result.setChecksum(md5sum);
+            cache.cache(result);
         }
-
         return resolvedEntities;
     }
 
     @Override
     public List<String> resolveEntities(List<String> entities, String datasetName) {
-        List<String> resolvedEntities = new ArrayList<>();
+        List<String> resolvedEntities;
 
-        try {
-            String md5sum = CachedResult.generateMd5Checksum(entities);
-
-            if (cache.isVersionCached(getConfiguration().getName(), datasetName, md5sum)) {
-                resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName);
-            } else {
-                resolvedEntities = super.resolveEntities(entities, datasetName);
-                CachedResult result = new CachedResult(getConfiguration().getName(), datasetName,
-                        resolvedEntities.toArray(new String[entities.size()]));
-                result.setChecksum(md5sum);
-                cache.cache(result);
-            }
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.error("Could not calculate md5 checksum for caching. " + e.getMessage(), e);
+        String md5sum = CachedResult.generateMd5Checksum(entities);
+        if (cache.isVersionCached(getConfiguration().getName(), datasetName, md5sum)) {
+            resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName);
+        } else {
+            resolvedEntities = super.resolveEntities(entities, datasetName);
+            CachedResult result = new CachedResult(getConfiguration().getName(), datasetName,
+                    resolvedEntities.toArray(new String[entities.size()]));
+            result.setChecksum(md5sum);
+            cache.cache(result);
         }
-
         return resolvedEntities;
     }
 

@@ -62,16 +62,15 @@ public class PopularityFilter extends ConcreteFilter {
         List<String> result = new ArrayList<>(entities.size());
         // create a newline seperated string with a whitespace in front for only exact matches
         String searchString = Joiner.on(" \n").skipNulls().join(entities);
-        searchString = StringUtils.replace(searchString, "'", "\\'");
+        // escape difficult characters
+        searchString = StringUtils.replace(searchString, "\"", "\\\"");
 
-        for (String part : fileMapping.keySet()) {
-            try {
-                findEntities(fileMapping.get(part), searchString, result);
+        try {
+                findEntities(searchString, result);
                 System.gc();
-            } catch (IOException e) {
-                LOGGER.warn("Search in file failed for " + fileMapping.get(part) + " with "
-                        + entities + " ; Skipping... " + e.getMessage());
-            }
+        } catch (IOException e) {
+                LOGGER.warn("Search in file failed for " + fileMapping + " with "
+                        + searchString + " ; Skipping... " + e.getMessage());
         }
 
         return result;
@@ -79,8 +78,13 @@ public class PopularityFilter extends ConcreteFilter {
 
     // TODO think about a better way for searching the files instead of fgrep,
     // but it is the fastest  way at the moment, with more than 10 times faster then regular java io.
-    private void findEntities(File f, String searchString, List<String> result) throws IOException {
-        String cmd = "fgrep -F \"" + searchString + "\" \"" + f.getAbsolutePath() + "\"";
+    private void findEntities(String searchString, List<String> result) throws IOException {
+        StringBuilder pathBuilder = new StringBuilder();
+        for (File f : fileMapping.values()) {
+            pathBuilder.append("\"").append(f.getAbsoluteFile()).append("\"").append(" ");
+        }
+
+        String cmd = "fgrep -F \"" + searchString + "\" " + pathBuilder.toString();
         CommandLine cmdLine = CommandLine.parse(cmd);
 
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
@@ -93,7 +97,7 @@ public class PopularityFilter extends ConcreteFilter {
         // read input string and return everything found
         List<String> output = Splitter.on("\n").omitEmptyStrings().splitToList(stdout.toString("UTF-8"));
         for (String s : output) {
-            result.add(Splitter.on(" ").split(s).iterator().next());
+            result.add(Splitter.on(" ").omitEmptyStrings().split(s).iterator().next());
         }
     }
 

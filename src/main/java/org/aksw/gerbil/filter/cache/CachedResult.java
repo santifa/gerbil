@@ -1,11 +1,10 @@
 package org.aksw.gerbil.filter.cache;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,7 +33,6 @@ public class CachedResult {
      * @param datasetName   the dataset name
      * @param annotatorName the annotator name
      * @param entities      the entities
-     * @throws NoSuchAlgorithmException the no such algorithm exception
      */
     public CachedResult(String filterName, String datasetName, String annotatorName, String[] entities) {
         this.filterName = filterName;
@@ -49,7 +47,6 @@ public class CachedResult {
      * @param filterName  the filter name
      * @param datasetName the dataset name
      * @param entities    the entities
-     * @throws NoSuchAlgorithmException the no such algorithm exception
      */
     public CachedResult(String filterName, String datasetName, String[] entities) {
         this.datasetName = datasetName;
@@ -144,26 +141,10 @@ public class CachedResult {
      * Generate md 5 checksum over the entities.
      *
      * @param entities the entities
-     * @return the string
-     * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @return the checksum string as hex
      */
-    public static String generateMd5Checksum(List<String> entities) throws NoSuchAlgorithmException {
-        MessageDigest md;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            throw new NoSuchAlgorithmException("Expected a MD5 implmentation. " + e.getMessage(), e);
-        }
-
-        String entityRep = entities.toString();
-        md.update(entityRep.getBytes(Charset.forName("utf8")));
-        byte[] digest = md.digest();
-        StringBuilder builder = new StringBuilder();
-        for (byte b : digest) {
-            builder.append(String.format("%02x", b & 0xff));
-        }
-
-        return builder.toString();
+    public static String generateMd5Checksum(List<String> entities) {
+        return DigestUtils.md5Hex(Joiner.on(";").join(entities));
     }
 
     @Override

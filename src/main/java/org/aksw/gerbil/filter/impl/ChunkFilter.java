@@ -26,7 +26,7 @@ public class ChunkFilter extends FilterDecorator {
         if (chunkSize >= entities.size()) {
             return super.resolveEntities(entities, datasetName, annotatorName);
         } else {
-            return chunk(entities, datasetName, annotatorName);
+            return workOffChunks(chunk(entities), datasetName, annotatorName);
         }
     }
 
@@ -35,42 +35,36 @@ public class ChunkFilter extends FilterDecorator {
         if (chunkSize >= entities.size()) {
             return super.resolveEntities(entities, datasetName);
         } else {
-            return chunk(entities, datasetName, "");
+            return workOffChunks(chunk(entities), datasetName, "");
         }
     }
 
-    private List<String> chunk(List<String> entities, String datasetName, String annotatorName) {
+    // split into parts
+    private List<List<String>> chunk(List<String> entities) {
         int parts = entities.size() / chunkSize;
         int lastPart = entities.size() % chunkSize;
-        List<String> result = new ArrayList<>(entities.size());
+        List<List<String>> chunks = new ArrayList<>(parts + 1);
 
-        // chunk the main part of the list
         for (int i = 0; i < parts; i++) {
-            List<String> subArray;
-
-            if (StringUtils.isEmpty(annotatorName)) {
-                subArray = super.resolveEntities(
-                        entities.subList(i * chunkSize, i * chunkSize + (chunkSize - 1)), datasetName);
-            } else {
-                subArray = super.resolveEntities(
-                        entities.subList(i * chunkSize, i * chunkSize + (chunkSize - 1)), datasetName, annotatorName);
-            }
-            result.addAll(subArray);
+            chunks.add(entities.subList(i * chunkSize, i * chunkSize + (chunkSize - 1)));
         }
 
-        // collect the last chunk
         if (lastPart != 0) {
-            List<String> lastArray;
-            if (StringUtils.isEmpty(annotatorName)) {
-                lastArray = super.resolveEntities(
-                        entities.subList(entities.size() - lastPart, entities.size()), datasetName);
-            } else {
-                lastArray = super.resolveEntities(
-                        entities.subList(entities.size() - lastPart, entities.size()), datasetName, annotatorName);
-            }
-            result.addAll(lastArray);
+            chunks.add(entities.subList(entities.size() - lastPart, entities.size()));
         }
+        return chunks;
+    }
 
+    // ask the filter to resolve chunks
+    private List<String> workOffChunks(List<List<String>> chunks, String datasetName, String annotatorName) {
+        List<String> result = new ArrayList<>();
+        for (List<String> chunk : chunks) {
+            if (StringUtils.isEmpty(annotatorName)) {
+                result.addAll(super.resolveEntities(chunk, datasetName));
+            } else {
+                result.addAll(super.resolveEntities(chunk, datasetName, annotatorName));
+            }
+        }
         return result;
     }
 }

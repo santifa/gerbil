@@ -28,7 +28,7 @@ public class FilterFactory {
 
     // refers to filter.properties
     private static final String CHUNK = "org.aksw.gerbil.util.filter.chunk";
-    private static final String CACHE = "org.aksw.gerbil.util.filter.cache";
+    private static final boolean CACHE = GerbilConfiguration.getInstance().getBoolean("org.aksw.gerbil.util.filter.cache");
     private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
 
     private List<ConcreteFilter> filters = new ArrayList<>(42);
@@ -83,11 +83,14 @@ public class FilterFactory {
 
     private Filter decorateFilter(Filter service) {
         // chunk filter requests
-        if (GerbilConfiguration.getInstance().containsKey(CHUNK) && !(service instanceof PopularityFilter)) {
+        if (service instanceof SparqlFilter) {
+            // grep based input limit
+            service = new ChunkFilter(service, 50);
+        } else if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
             service = new ChunkFilter(service, GerbilConfiguration.getInstance().getInt(CHUNK));
         }
         // cache filter requests
-        if (GerbilConfiguration.getInstance().getBoolean(CACHE)) {
+        if (CACHE) {
             service = new CacheFilter(service,
                     GerbilConfiguration.getInstance().getString(CACHE_LOCATION));
         }
