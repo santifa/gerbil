@@ -16,12 +16,6 @@
  */
 package org.aksw.gerbil.dataset.impl.nif;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
@@ -34,9 +28,12 @@ import org.aksw.gerbil.transfer.nif.data.TypedNamedEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.*;
+
 public class OKEChallengeTask1DatasetTest {
 
     private static final String TASK1_FILE = "src/test/resources/OKE_Challenge/example_data/task1.ttl";
+    //private static final String TASK1_FILE = "gerbil_data/datasets/oke-challenge/example_data/task1.ttl";
     private static final Document EXPECTED_DOCUMENTS[] = new Document[] {
             new DocumentImpl(
                     "Florence May Harding studied at a school in Sydney, and with Douglas Robert Dundas , but in effect had no formal training in either botany or art.",

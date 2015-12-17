@@ -17,6 +17,8 @@ public class FilterDefinition {
 
     private String serviceLocation = "";
 
+    private int chunksize = 0;
+
     /**
      * Instantiates a new Filter definition.
      *
@@ -31,6 +33,23 @@ public class FilterDefinition {
         this.filter = filter;
         this.entityUriWhitelist = whiteList;
         this.serviceLocation = serviceLocation;
+    }
+
+    /**
+     * Instantiates a new Filter definition.
+     *
+     * @param name         the name
+     * @param filter       the filter
+     * @param whiteList    the white list
+     * @param serviceLocation provide one either a url for a sparql endpoint or a file location
+     */
+    public FilterDefinition(String name, String filter, List<String> whiteList,
+                            String serviceLocation, int chunksize) {
+        this.name = name;
+        this.filter = filter;
+        this.entityUriWhitelist = whiteList;
+        this.serviceLocation = serviceLocation;
+        this.chunksize = chunksize;
     }
 
     /**
@@ -70,16 +89,14 @@ public class FilterDefinition {
     }
 
 
-    @Override
-    public String toString() {
-        return "FilterDefinition{" +
-                "name='" + name + '\'' +
-                ", filter='" + filter + '\'' +
-                ", entityUriWhitelist=" + entityUriWhitelist +
-                ", serviceLocation='" + serviceLocation + '\'' +
-                '}';
+    /**
+     * Gets chunksize.
+     *
+     * @return the chunksize
+     */
+    public int getChunksize() {
+        return chunksize;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -88,20 +105,34 @@ public class FilterDefinition {
 
         FilterDefinition that = (FilterDefinition) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
-        if (entityUriWhitelist != null ? !entityUriWhitelist.equals(that.entityUriWhitelist) : that.entityUriWhitelist != null)
-            return false;
-        return !(serviceLocation != null ? !serviceLocation.equals(that.serviceLocation) : that.serviceLocation != null);
+        if (chunksize != that.chunksize) return false;
+        if (!name.equals(that.name)) return false;
+        if (!filter.equals(that.filter)) return false;
+        if (!entityUriWhitelist.equals(that.entityUriWhitelist)) return false;
+        return serviceLocation.equals(that.serviceLocation);
 
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
-        result = 31 * result + (entityUriWhitelist != null ? entityUriWhitelist.hashCode() : 0);
-        result = 31 * result + (serviceLocation != null ? serviceLocation.hashCode() : 0);
+        int result = name.hashCode();
+        result = 31 * result + filter.hashCode();
+        result = 31 * result + entityUriWhitelist.hashCode();
+        result = 31 * result + serviceLocation.hashCode();
+        result = 31 * result + chunksize;
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "FilterDefinition{" +
+                "name='" + name + '\'' +
+                ", filter='" + filter + '\'' +
+                ", entityUriWhitelist=" + entityUriWhitelist +
+                ", serviceLocation='" + serviceLocation + '\'' +
+                ", chunksize=" + chunksize +
+                '}';
+    }
+
+
 }

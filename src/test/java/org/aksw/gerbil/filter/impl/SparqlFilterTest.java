@@ -4,6 +4,7 @@ import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.filter.NormalFilterTest;
 import org.aksw.gerbil.filter.cache.FilterCacheTest;
+import org.aksw.gerbil.filter.impl.decorators.CacheFilter;
 import org.junit.Test;
 
 import java.util.ArrayList;

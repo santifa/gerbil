@@ -44,7 +44,7 @@ public class FilterFactoryTest {
 
 
     final FilterDefinition conf = new FilterDefinition("name filter",
-            "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl);
+            "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl, 50);
 
     @Before
     public void setUp() throws IOException {

@@ -7,14 +7,13 @@
 
 
 # variables
-SCORE_FOLDER=../../../../gerbil_data/resources/filter/sources/*
-RESULT_FOLDER=../../../../gerbil_data/resources/filter/
+BASE=../../../../gerbil_data
+SCORE_FOLDER=${BASE}/resources/filter/sources/*
+RESULT_FOLDER=${BASE}/resources/filter/
 ENTITY_FILE=${RESULT_FOLDER}entities
 
 # collect entities
-cd gerbil_data/datasets
-echo `pwd`
-grep -hR http |                                         # collect all links 
+fgrep -hR http ${BASE}/datasets |                       # collect all links
 sed 's/http/\nhttp/g' |                                 # insert newline before link
 awk '{print $1}' |                                      # take only the links
 grep -E '(dbpedia|wikipedia)' |                         # take only wikipedia and dbpedia
@@ -30,8 +29,8 @@ do
 	
 	grep -F -f ${ENTITY_FILE} ${file} |           # diff with entity file as search pattern 
 	awk '{print $1, $3 }' | sed 's/\^\^.*$//' |   # take only the url and score
-	sed 's/^<//' | sed 's/>//' | sed 's/\"//g' |  # remove < > and "" 
-	sed '/E-/ s/\(.*\)E/\1e/' |                   # scientific doubles
+	sed 's/^<//' | sed 's/>//' | sed 's/\"//g' |  # remove < > and ""
+	sed '/E-/ s/\(.*\)E/\1e/' | awk 'x$2' |        # scientific doubles and delete empty lines
 	sort --stable -g -k 2 -o ${SCORE_NAME}        # store sorted result
 
 	# create five parts 10% / 10 to 32,5% / 32,5 to 55% / 55 to 75,5% / 75,5 to 100%
@@ -42,9 +41,9 @@ do
 	FOURTH=$((${LINES} * 75 / 100))
 	
 	# split file into multiple parts
-	sed -n '1,'${FIRST}'p' ${SCORE_NAME} > ${SCORE_NAME}_0
-	sed -n ''$((${FIRST} +1))','${SECOND}'p' ${SCORE_NAME} > ${SCORE_NAME}_1
-	sed -n ''$((${SECOND} +1))','${THIRD}'p' ${SCORE_NAME} > ${SCORE_NAME}_2
-	sed -n ''$((${THIRD} +1))','${FOURTH}'p' ${SCORE_NAME} > ${SCORE_NAME}_3
-	sed -n ''$((${FOURTH} +1))','${LINES}'p' ${SCORE_NAME} > ${SCORE_NAME}_4
+	sed -n '1,'${FIRST}'p' ${SCORE_NAME} | sort --stable -f -k 1 -o ${SCORE_NAME}_0
+	sed -n ''$((${FIRST} +1))','${SECOND}'p' ${SCORE_NAME} | sort --stable -f -k 1 -o ${SCORE_NAME}_1
+	sed -n ''$((${SECOND} +1))','${THIRD}'p' ${SCORE_NAME} | sort --stable -f -k 1 -o ${SCORE_NAME}_2
+	sed -n ''$((${THIRD} +1))','${FOURTH}'p' ${SCORE_NAME} | sort --stable -f -k 1 -o ${SCORE_NAME}_3
+	sed -n ''$((${FOURTH} +1))','${LINES}'p' ${SCORE_NAME} | sort --stable -f -k 1 -o ${SCORE_NAME}_4
 done

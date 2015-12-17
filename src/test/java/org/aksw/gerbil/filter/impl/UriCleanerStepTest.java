@@ -2,6 +2,7 @@ package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
+import org.aksw.gerbil.filter.impl.decorators.UriCleaner;
 import org.junit.Assert;
 import org.junit.Test;
 

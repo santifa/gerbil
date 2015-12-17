@@ -3,6 +3,9 @@ package org.aksw.gerbil.filter;
 import com.google.common.base.Joiner;
 import org.aksw.gerbil.config.GerbilConfiguration;
 import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.impl.decorators.CacheFilter;
+import org.aksw.gerbil.filter.impl.decorators.ChunkFilter;
+import org.aksw.gerbil.filter.impl.decorators.UriCleaner;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.apache.commons.collections.CollectionUtils;
@@ -27,7 +30,6 @@ public class FilterFactory {
     private final static Logger LOGGER = LoggerFactory.getLogger(FilterFactory.class);
 
     // refers to filter.properties
-    private static final String CHUNK = "org.aksw.gerbil.util.filter.chunk";
     private static final boolean CACHE = GerbilConfiguration.getInstance().getBoolean("org.aksw.gerbil.util.filter.cache");
     private static final String CACHE_LOCATION = "org.aksw.gerbil.util.filter.cachelocation";
 
@@ -83,11 +85,8 @@ public class FilterFactory {
 
     private Filter decorateFilter(Filter service) {
         // chunk filter requests
-        if (service instanceof SparqlFilter) {
-            // grep based input limit
-            service = new ChunkFilter(service, 50);
-        } else if (GerbilConfiguration.getInstance().containsKey(CHUNK)) {
-            service = new ChunkFilter(service, GerbilConfiguration.getInstance().getInt(CHUNK));
+        if (service.getConfiguration().getChunksize() > 0) {
+            service = new ChunkFilter(service, service.getConfiguration().getChunksize());
         }
         // cache filter requests
         if (CACHE) {
@@ -170,9 +169,17 @@ public class FilterFactory {
                         GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".service")) {
 
-                    result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
-                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList,
-                            GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".service")));
+                    if (GerbilConfiguration.getInstance().containsKey(FILTER_BASIC + counter + ".chunk")) {
+                        result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
+                                GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".service"),
+                                GerbilConfiguration.getInstance().getInt(FILTER_BASIC + counter + ".chunk")));
+                    } else {
+                        result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".name"),
+                                GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".filter"), whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_BASIC + counter + ".service")));
+                    }
+
                     return ++counter;
                 }
                 return -1;
@@ -195,11 +202,20 @@ public class FilterFactory {
                         GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".filter") &&
                         GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".service")) {
 
-                    result.add(new FilterDefinition(
-                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".name"),
-                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".filter"),
-                            whiteList,
-                            GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".service")));
+                    if (GerbilConfiguration.getInstance().containsKey(FILTER_FILE + counter + ".chunk")) {
+                        result.add(new FilterDefinition(
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".name"),
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".filter"),
+                                whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".service"),
+                                GerbilConfiguration.getInstance().getInt(FILTER_FILE + counter + ".chunk")));
+                    } else {
+                        result.add(new FilterDefinition(
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".name"),
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".filter"),
+                                whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_FILE + counter + ".service")));
+                    }
                     return ++counter;
                 }
                 return -1;
@@ -225,10 +241,19 @@ public class FilterFactory {
                     String filter = Joiner.on(",")
                             .join(GerbilConfiguration.getInstance().getStringArray(FILTER_POP + counter + ".filter"));
 
-                    result.add(new FilterDefinition(
-                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
-                            filter, whiteList,
-                            GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
+                    if (GerbilConfiguration.getInstance().containsKey(FILTER_POP + counter + ".chunk")) {
+                        result.add(new FilterDefinition(
+                                GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
+                                filter, whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service"),
+                                GerbilConfiguration.getInstance().getInt(FILTER_POP + counter + ".chunk")));
+                    } else {
+                        result.add(new FilterDefinition(
+                                GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".name"),
+                                filter, whiteList,
+                                GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
+                    }
+
                     return ++counter;
                 }
                 return -1;

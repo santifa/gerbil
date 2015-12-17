@@ -1,4 +1,4 @@
-package org.aksw.gerbil.filter.impl;
+package org.aksw.gerbil.filter.impl.decorators;
 
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.cache.CachedResult;

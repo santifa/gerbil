@@ -8,6 +8,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AbstractExperimentTaskTest;
+import org.aksw.gerbil.filter.impl.PopularityFilter;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
@@ -120,7 +121,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         this.matching = matching;
     }
 
-    @Test
+    //@Test
     public void test() throws Exception {
         int experimentTaskId = 1;
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
@@ -151,6 +152,29 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, identity.getConfig());
         filterTask.put(configuration, 1);
+
+        runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
+                new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
+                h, filterTask);
+    }
+
+    @Test
+    public void testPopFilter() throws Exception {
+        int experimentTaskId = 1;
+        SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
+
+        FilterFactory factory = new FilterFactory(false);
+        factory.registerFilter(PopularityFilter.class, factory.getPopularityFilterResolver());
+        FilterHolder h = factory.getFilters();
+
+        HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
+        int count = 0;
+        for (FilterWrapper w : h.getFilterList()) {
+            ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
+                    new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, w.getConfig());
+            filterTask.put(configuration, 1);
+            count++;
+        }
 
         runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),

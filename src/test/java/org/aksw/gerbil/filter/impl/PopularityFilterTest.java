@@ -23,7 +23,7 @@ public class PopularityFilterTest {
 
     private final static String resource = "src/test/resources/filter_example_data/ranked_pagerank_scores_reduced_en_2015";
 
-    private final static String resource2 = "gerbil_data/resources/filter/ranked_pagerank_scores_en_2015";
+    private final static String resource2 = "gerbil_data/resources/filter/ranked_hits_scores_en_2015";
 
 
     @Parameterized.Parameters(name = "{index}: {0} expected with {1} for persons and {2} for places.")
@@ -34,7 +34,7 @@ public class PopularityFilterTest {
         List<Object[]> testObjects = new ArrayList<>(5);
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
-                "pop", "0", Collections.singletonList("http://dbpedia.org"),
+                "pop 20%", "0", Collections.singletonList("http://dbpedia.org"),
                     resource2), prefix)),
             Arrays.asList(
                 (Marking) new NamedEntity(0, 5,
@@ -44,14 +44,14 @@ public class PopularityFilterTest {
                 (Marking) new NamedEntity(35, 5,
                         "http://dbpedia.org/resource/Las_Vegas"),
                 (Marking) new NamedEntity(35, 5,
-                            "http://dbpedia.org/resource/1980_ECAC_North_Men's_Basketball_Tournament")
+                            "http://dbpedia.org/resource/Þurið_Þorkilsdóttir")
             ), Arrays.asList(
-                (Marking) new NamedEntity(0, 5,
-                        "http://dbpedia.org/resource/Secondary_education"),
                 (Marking) new NamedEntity(22, 4,
-                        "http://dbpedia.org/resource/Academic_degree")
-                /*(Marking) new NamedEntity(35, 5,
-                        "http://dbpedia.org/resource/Las_Vegas")*/
+                        "http://dbpedia.org/resource/Academic_degree"),
+                (Marking) new NamedEntity(35, 5,
+                        "http://dbpedia.org/resource/Las_Vegas"),
+                (Marking) new NamedEntity(35, 5,
+                        "http://dbpedia.org/resource/Þurið_Þorkilsdóttir")
         )});
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
@@ -63,12 +63,10 @@ public class PopularityFilterTest {
                 (Marking) new NamedEntity(82, 4,
                         "http://dbpedia.org/resource/Julian_day"),
                 (Marking) new NamedEntity(92, 4,
-                        "http://dbpedia.org/resource/Jimmy_Page")
+                        "http://dbpedia.org/resource/007:_Quantum_of_Solace_(video_game)")
             ), Arrays.asList(
-                (Marking) new NamedEntity(73, 7,
-                        "http://dbpedia.org/resource/Eric_Clapton"),
-                (Marking) new NamedEntity(82, 4,
-                        "http://dbpedia.org/resource/Julian_day")
+                (Marking) new NamedEntity(92, 4,
+                        "http://dbpedia.org/resource/007:_Quantum_of_Solace_(video_game)")
         )});
         testObjects.add(new Object[] {
             new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
@@ -78,22 +76,20 @@ public class PopularityFilterTest {
                 (Marking) new NamedEntity(0, 5,
                         "http://dbpedia.org/resource/Julian_day"),
                 (Marking) new NamedEntity(18, 3,
-                        "http://dbpedia.org/resource/University_of_Cambridge"),
+                        "http://dbpedia.org/resource/University_of_Cambridge_Press"),
                 (Marking) new NamedEntity(25, 7,
                         "http://dbpedia.org/resource/Seattle"),
                 (Marking) new NamedEntity(67, 7,
-                        "http://dbpedia.org/resource/Jimi_Hendrix"),
+                        "http://dbpedia.org/resource/Jimi_Hendrix_(soundtrack)"),
                 (Marking) new NamedEntity(79, 5,
                         "http://dbpedia.org/resource/Bob_Dylan"),
                 (Marking) new NamedEntity(79, 5,
                         "http://www.org/resource/Bob_Dylan")
             ), Arrays.asList(
                 (Marking) new NamedEntity(18, 3,
-                        "http://dbpedia.org/resource/University_of_Cambridge"),
-                (Marking) new NamedEntity(25, 7,
-                        "http://dbpedia.org/resource/Seattle"),
-                (Marking) new NamedEntity(79, 5,
-                        "http://dbpedia.org/resource/Bob_Dylan")
+                        "http://dbpedia.org/resource/University_of_Cambridge_Press"),
+                (Marking) new NamedEntity(67, 7,
+                        "http://dbpedia.org/resource/Jimi_Hendrix_(soundtrack)")
                 )});
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
@@ -109,17 +105,13 @@ public class PopularityFilterTest {
                         (Marking) new NamedEntity(67, 7,
                                 "http://dbpedia.org/resource/Jimi_Hendrix"),
                         (Marking) new NamedEntity(79, 5,
-                                "http://dbpedia.org/resource/Bob_Dylan"),
-                        (Marking) new NamedEntity(79, 5,
-                                "http://www.org/resource/Bob_Dylan")
+                                "http://dbpedia.org/resource/Bob_Dylan")
                 ), Arrays.asList(
-                (Marking) new NamedEntity(0, 5,
-                        "http://dbpedia.org/resource/East_Africa_Time"),
-                (Marking) new NamedEntity(18, 3,
-                        "http://dbpedia.org/resource/Hard_rock"),
                 (Marking) new NamedEntity(25, 7,
-                        "http://dbpedia.org/resource/Kazakhstan")
-                )});
+                        "http://dbpedia.org/resource/Kazakhstan"),
+                (Marking) new NamedEntity(67, 7,
+                        "http://dbpedia.org/resource/Jimi_Hendrix")
+        )});
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
                         "pop", "4", Collections.singletonList("http://dbpedia.org"),
@@ -128,47 +120,60 @@ public class PopularityFilterTest {
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/Vysočina_Region"),
                         (Marking) new NamedEntity(18, 3,
-                                "http://dbpedia.org/resource/Württemberg"),
+                                "http://dbpedia.org/resource/Württemberger"),
                         (Marking) new NamedEntity(25, 7,
                                 "http://dbpedia.org/resource/Georgia_(country)"),
                         (Marking) new NamedEntity(67, 7,
                                 "http://dbpedia.org/resource/Port_Vale_F.C."),
                         (Marking) new NamedEntity(79, 5,
-                                "http://dbpedia.org/resource/Bob_Dylan"),
+                                "http://dbpedia.org/resource/Bob_Dylan_discography"),
                         (Marking) new NamedEntity(79, 5,
                                 "http://www.org/resource/Bob_Dylan")
                 ), Arrays.asList(
-                (Marking) new NamedEntity(0, 5,
-                        "http://dbpedia.org/resource/Vysočina_Region"),
                 (Marking) new NamedEntity(18, 3,
-                        "http://dbpedia.org/resource/Württemberg"),
-                (Marking) new NamedEntity(67, 7,
-                        "http://dbpedia.org/resource/Port_Vale_F.C.")
+                        "http://dbpedia.org/resource/Württemberger"),
+                (Marking) new NamedEntity(79, 5,
+                        "http://dbpedia.org/resource/Bob_Dylan_discography")
                 )});
         testObjects.add(new Object[] {
                 new FilterWrapperImpl(new PopularityFilter(new FilterDefinition(
-                        "pop", "0,2", Collections.singletonList("http://dbpedia.org"),
+                        "pop 10%", "0,2", Collections.singletonList("http://dbpedia.org"),
                         resource2), prefix)),
                 Arrays.asList(
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/Secondary_education"),
                         (Marking) new NamedEntity(22, 4,
                                 "http://dbpedia.org/resource/Academic_degree"),
+                        (Marking) new NamedEntity(35, 5,
+                                "http://dbpedia.org/resource/Las_Vegas"),
+                        (Marking) new NamedEntity(35, 5,
+                                "http://dbpedia.org/resource/Þurið_Þorkilsdóttir"),
                         (Marking) new NamedEntity(0, 5,
                                 "http://dbpedia.org/resource/Julian_day"),
                         (Marking) new NamedEntity(18, 3,
-                                "http://dbpedia.org/resource/University_of_Cambridge"),
+                                "http://dbpedia.org/resource/University_of_Cambridge_Press"),
+                        (Marking) new NamedEntity(25, 7,
+                                "http://dbpedia.org/resource/Seattle"),
+                        (Marking) new NamedEntity(67, 7,
+                                "http://dbpedia.org/resource/Jimi_Hendrix_(soundtrack)"),
                         (Marking) new NamedEntity(79, 5,
                                 "http://dbpedia.org/resource/Bob_Dylan"),
                         (Marking) new NamedEntity(79, 5,
                                 "http://www.org/resource/Bob_Dylan")
+
                 ), Arrays.asList(
-                (Marking) new NamedEntity(0, 5,
-                "http://dbpedia.org/resource/Secondary_education"),
                 (Marking) new NamedEntity(22, 4,
                         "http://dbpedia.org/resource/Academic_degree"),
+                (Marking) new NamedEntity(35, 5,
+                        "http://dbpedia.org/resource/Las_Vegas"),
+                (Marking) new NamedEntity(35, 5,
+                        "http://dbpedia.org/resource/Þurið_Þorkilsdóttir"),
                 (Marking) new NamedEntity(18, 3,
-                        "http://dbpedia.org/resource/University_of_Cambridge"),
+                        "http://dbpedia.org/resource/University_of_Cambridge_Press"),
+                (Marking) new NamedEntity(25, 7,
+                        "http://dbpedia.org/resource/Seattle"),
+                (Marking) new NamedEntity(67, 7,
+                        "http://dbpedia.org/resource/Jimi_Hendrix_(soundtrack)"),
                 (Marking) new NamedEntity(79, 5,
                         "http://dbpedia.org/resource/Bob_Dylan")
         )});
