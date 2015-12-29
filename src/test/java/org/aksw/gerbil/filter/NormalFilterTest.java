@@ -1,6 +1,7 @@
 package org.aksw.gerbil.filter;
 
 import org.aksw.gerbil.filter.impl.FileFilter;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.transfer.nif.Marking;
@@ -106,7 +107,7 @@ public class NormalFilterTest {
 
     @Test
     public void testFilterAnnotatorResultsPlace() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
+        FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
                 "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
                 Collections.EMPTY_LIST, SERVICE_URL, 20), prefix));
 
@@ -116,7 +117,7 @@ public class NormalFilterTest {
 
     @Test
     public void testFilterAnnotatorResultsPerson() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
+        FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
                 "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }",
                 Collections.singletonList("http://dbpedia.org/"), SERVICE_URL, 20), prefix));
 
@@ -126,7 +127,7 @@ public class NormalFilterTest {
 
     @Test
     public void testFilterGoldstandardPerson() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
+        FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("person",
                 "select distinct ?v where { values ?v {##} ?v rdf:type foaf:Person . }",
                 Collections.singletonList("http://dbpedia.org/"), SERVICE_URL, 20), prefix));
 
@@ -136,7 +137,7 @@ public class NormalFilterTest {
 
     @Test
     public void testFilterGoldstandardPlace() throws Exception {
-        org.aksw.gerbil.filter.FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
+        FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
                 "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
                 Collections.EMPTY_LIST, SERVICE_URL, 20), prefix));
 
@@ -146,8 +147,8 @@ public class NormalFilterTest {
 
     @Test
     public void testFileFilter() {
-        // TODO NOT TESTED
-        org.aksw.gerbil.filter.FilterWrapper filter3 = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
+        // TODO Currently NOT TESTED
+        FilterWrapper filter3 = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
                 "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
                 "gerbil_data/resources/filter/sources/pagerank_scores_reduced_en_2015.ttl", 20), prefix));
 

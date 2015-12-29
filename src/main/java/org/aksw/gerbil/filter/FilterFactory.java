@@ -6,6 +6,7 @@ import org.aksw.gerbil.filter.impl.*;
 import org.aksw.gerbil.filter.impl.decorators.CacheFilter;
 import org.aksw.gerbil.filter.impl.decorators.ChunkFilter;
 import org.aksw.gerbil.filter.impl.decorators.UriCleaner;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.apache.commons.collections.CollectionUtils;
@@ -39,8 +40,6 @@ public class FilterFactory {
 
     private final String[] prefixes;
 
-    private final boolean preaching;
-
     private final boolean isDummy;
 
     /**
@@ -50,7 +49,6 @@ public class FilterFactory {
      */
     public FilterFactory(boolean isDummy) {
         this.isDummy = isDummy;
-        this.preaching = GerbilConfiguration.getInstance().getBoolean("org.aksw.gerbil.util.filter.precache");
         List<String> p = getPrefixSet();
         this.prefixes = p.toArray(new String[p.size()]);
         CollectionUtils.addAll(whiteList,
@@ -106,7 +104,7 @@ public class FilterFactory {
     public FilterHolder getFilters() {
         if (isDummy) {
             // create new dummy objects
-            return new FilterHolder(Collections.singletonList((FilterWrapper) new IdentityWrapper()), false);
+            return new FilterHolder(Collections.singletonList((FilterWrapper) new IdentityWrapper()));
         } else {
             List<FilterWrapper> clonedFilters = new ArrayList<>(filters.size());
             clonedFilters.add(new IdentityWrapper());
@@ -122,7 +120,7 @@ public class FilterFactory {
                 LOGGER.error("Filter could not be cloned. " + e.getMessage(), e);
             }
 
-            return new FilterHolder(clonedFilters, preaching);
+            return new FilterHolder(clonedFilters);
         }
     }
 

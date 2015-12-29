@@ -4,6 +4,7 @@ import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.TestDataset;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;

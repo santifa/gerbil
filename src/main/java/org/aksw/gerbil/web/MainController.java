@@ -21,17 +21,13 @@ import org.aksw.gerbil.Experimenter;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.database.ResultNameToIdMapping;
 import org.aksw.gerbil.dataid.DataIDGenerator;
-import org.aksw.gerbil.dataset.Dataset;
-import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
-import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterFactory;
-import org.aksw.gerbil.filter.FilterHolder;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
@@ -40,7 +36,6 @@ import org.aksw.gerbil.web.config.AdapterManager;
 import org.aksw.gerbil.web.config.RootConfig;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -85,37 +80,9 @@ public class MainController {
         // DatasetMapping.getDatasetsForExperimentType(ExperimentType.EExt);
     }
 
-    // precache the goldstandard for every dataset
-    private static synchronized void precacheGoldstandard(FilterHolder filterHolder, AdapterManager adapterManager) {
-        for (DatasetConfiguration conf : adapterManager.getDatasets().getConfigurations()) {
-            // FIXME ugly workaround oke breaks everything
-            if (StringUtils.contains(conf.getName(), "OKE")) {
-                continue;
-            }
-
-            for (ExperimentType type : ExperimentType.values()) {
-
-                if (conf.isApplicableForExperiment(type)) {
-                    try {
-                        Dataset dataset = conf.getDataset(type);
-                        LOGGER.info("Caching dataset " + dataset.getName());
-                        filterHolder.cacheGoldstandard(dataset.getInstances(), dataset.getName());
-
-                    } catch (GerbilException e) {
-                        LOGGER.error("Failed to cache " + conf + " . " + e.getMessage(), e);
-                    }
-                }
-            }
-        }
-    }
-
     @PostConstruct
     public void init() {
         initialize(dao);
-        FilterHolder holder = filterFactory.getFilters();
-        if (holder.isCacheGolstandard) {
-            precacheGoldstandard(holder, adapterManager);
-        }
     }
 
     @Autowired

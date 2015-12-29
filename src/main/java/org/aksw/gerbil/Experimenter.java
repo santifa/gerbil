@@ -24,7 +24,7 @@ import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.execute.ExperimentTask;
 import org.aksw.gerbil.filter.FilterFactory;
 import org.aksw.gerbil.filter.FilterHolder;
-import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.utils.ExpTaskConfigComparator;
 import org.aksw.simba.topicmodeling.concurrent.overseers.Overseer;

@@ -10,6 +10,7 @@ import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AbstractExperimentTaskTest;
 import org.aksw.gerbil.filter.impl.PopularityFilter;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.semantic.kb.SimpleWhiteListBasedUriKBClassifier;
@@ -18,6 +19,7 @@ import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.DocumentImpl;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;
+import org.aksw.gerbil.web.config.AdapterList;
 import org.aksw.gerbil.web.config.RootConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,9 +28,13 @@ import org.junit.runners.Parameterized;
 
 import java.util.*;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Runs a full fledged filter test. Uses the sparql filters defined in filter.properties.
  * Use this for deeper investigation how the filter subsystem works on datasets.
+ * Test the creation of the correct metadata.
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
@@ -132,7 +138,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
             ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, f.getConfig());
             filterTask.put(configuration, counter);
-            FilterHolder h = new FilterHolder(Arrays.asList(f), false);
+            FilterHolder h = new FilterHolder(Collections.singletonList(f), false);
 
             runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
                     new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
@@ -146,7 +152,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         FilterWrapper identity = new IdentityWrapper();
-        FilterHolder h = new FilterHolder(Arrays.asList(identity), false);
+        FilterHolder h = new FilterHolder(Collections.singletonList(identity), false);
 
         HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
@@ -179,5 +185,29 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
                 new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
                 h, filterTask);
+    }
+
+    @Test
+    public void testMetadataCreation() {
+        AdapterList<DatasetConfiguration> configurations = new AdapterList<>(Collections.singletonList(dataset));
+        FilterFactory factory = new FilterFactory(false);
+        factory.registerFilter(SparqlFilter.class, factory.getBasicFilterResolver());
+        factory.registerFilter(PopularityFilter.class, factory.getPopularityFilterResolver());
+
+        MetadataUtils utils = new MetadataUtils(configurations, factory.getFilters());
+        assertEquals(14, utils.getAmountOfEntities());
+
+        HashMap<String, Integer> expected = new HashMap<>(13);
+        expected.put("Filter Persons", 9);
+        expected.put("Filter Organizations", 1);
+        expected.put("Filter Pagerank 10%-55%", 8);
+        expected.put("Filter Hitsscore 55%-100%", 2);
+        expected.put("nofilter", 14);
+        expected.put("Filter Hitsscore 10%", 7);
+        expected.put("Filter Places", 1);
+        expected.put("Filter Pagerank 55%-100%", 3);
+        expected.put("Filter Pagerank 10%", 3);
+        expected.put("Filter Hitsscore 10%-55%", 5);
+        assertTrue(expected.equals(utils.getAmountOfEntitiesPerFilter()));
     }
 }

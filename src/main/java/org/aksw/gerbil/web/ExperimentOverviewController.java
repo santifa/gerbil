@@ -24,6 +24,7 @@ import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.MetadataUtils;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.utils.DatasetMetaData;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -60,6 +62,13 @@ public class ExperimentOverviewController {
 																				 * "corr. based on # datasets"
 																				 */};
 
+    @PostConstruct
+    public void init() {
+        // create metadata for later usage
+        // also cache datasets used later for faster filtering
+        metadataUtils = new MetadataUtils(datasets, filterFactory.getFilters());
+    }
+
 	@Autowired
 	@Qualifier("experimentDAO")
 	private ExperimentDAO dao;
@@ -75,7 +84,9 @@ public class ExperimentOverviewController {
     @Autowired
     private FilterFactory filterFactory;
 
-	@RequestMapping("/experimentoverview")
+    private MetadataUtils metadataUtils;
+
+    @RequestMapping("/experimentoverview")
 	public @ResponseBody String experimentoverview(@RequestParam(value = "experimentType") String experimentType,
 			@RequestParam(value = "matching") String matchingString, @RequestParam(required = false, value = "filter") String filterName) {
 		LOGGER.debug("Got request on /experimentoverview(experimentType={}, matching={}, filter={}", experimentType,

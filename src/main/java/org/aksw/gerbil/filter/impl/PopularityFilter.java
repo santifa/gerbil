@@ -103,7 +103,7 @@ public class PopularityFilter extends ConcreteFilter {
         }
 
         // read input string and return everything found
-        System.out.println(entityFile + " gives " + stdout.toString());
+        //System.out.println(entityFile + " gives " + stdout.toString());
         List<String> output = Splitter.on("\n").omitEmptyStrings().splitToList(stdout.toString("UTF-8"));
         for (String s : output) {
             result.add(Splitter.on(" ").omitEmptyStrings().split(s).iterator().next());

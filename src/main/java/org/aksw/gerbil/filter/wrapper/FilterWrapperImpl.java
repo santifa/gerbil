@@ -2,7 +2,6 @@ package org.aksw.gerbil.filter.wrapper;
 
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.Meaning;
 import org.aksw.gerbil.transfer.nif.TypedSpan;

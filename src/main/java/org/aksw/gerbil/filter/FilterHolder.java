@@ -1,10 +1,8 @@
 package org.aksw.gerbil.filter;
 
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
-import org.aksw.gerbil.transfer.nif.Document;
-import org.aksw.gerbil.transfer.nif.Marking;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,28 +16,12 @@ public final class FilterHolder {
 
     private final List<FilterWrapper> filterList;
 
-    public final boolean isCacheGolstandard;
-
-    public  FilterHolder(List<FilterWrapper> filterList, boolean isCacheGoldstandard) {
+    public  FilterHolder(List<FilterWrapper> filterList) {
         this.filterList = filterList;
-        this.isCacheGolstandard = isCacheGoldstandard;
     }
 
     public List<FilterWrapper> getFilterList() {
         return filterList;
-    }
-
-    public void cacheGoldstandard(List<Document> datasets, String datasetName) {
-        List<List<Marking>> goldstandard = new ArrayList<>();
-        for (Document doc : datasets) {
-            goldstandard.add(doc.getMarkings());
-        }
-
-        for (FilterWrapper f : filterList) {
-            if (!f.getConfig().equals(IdentityWrapper.CONF)) {
-                f.filterGoldstandard(goldstandard, datasetName);
-            }
-        }
     }
 
     /**

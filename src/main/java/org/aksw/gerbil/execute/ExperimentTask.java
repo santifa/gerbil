@@ -29,7 +29,7 @@ import org.aksw.gerbil.datatypes.ExperimentTaskState;
 import org.aksw.gerbil.evaluate.*;
 import org.aksw.gerbil.evaluate.impl.FMeasureCalculator;
 import org.aksw.gerbil.exceptions.GerbilException;
-import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.semantic.sameas.DatasetBasedSameAsRetriever;
 import org.aksw.gerbil.semantic.sameas.MultipleSameAsRetriever;

@@ -1,7 +1,7 @@
 package org.aksw.gerbil.filter.impl;
 
 import org.aksw.gerbil.filter.FilterDefinition;
-import org.aksw.gerbil.filter.FilterWrapper;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.transfer.nif.data.NamedEntity;

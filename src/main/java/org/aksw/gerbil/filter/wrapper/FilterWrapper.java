@@ -1,5 +1,6 @@
-package org.aksw.gerbil.filter;
+package org.aksw.gerbil.filter.wrapper;
 
+import org.aksw.gerbil.filter.FilterDefinition;
 import org.aksw.gerbil.transfer.nif.Marking;
 
 import java.util.List;
