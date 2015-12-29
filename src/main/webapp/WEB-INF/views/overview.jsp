@@ -420,12 +420,16 @@
    };
 
    function prepareOverviewCharts() {
-       $('#resultsChart').html('<div id="resultsChart" style="display: inline"></div>');
-       $('#resultsChart').html('<div id="mediumChart" data-slidr="1"></div>'
-                             + '<div id="peakChart" data-slidr="2"></div>'
-                             + '<div id="lowChart" data-slidr="3"></div>'
-                             + '<div id="metadata1" data-slidr="4"></div>'
-                             + '<div id="metadata2" data-slidr="4"></div>');
+       $('#resultsChartBody').html('<div id="fscore" style="display: inline"></div>'
+                                 + '<div id="entities" style=display: inline></div>'
+                                 + '<div id="metadata" style="display: inline"></div>');
+       $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>'
+                       + '<div id="peakChart" data-slidr="2" style="width: 900px"></div>'
+                       + '<div id="lowChart" data-slidr="3" style="width: 900px"></div>');
+       $('#entities').html('<div id="entities1" data-slidr="1" style="width: 900px"></div>'
+                         + '<div id="entities2" data-slidr="2" style="width: 900px"></div>'
+                         + '<div id="entities3" data-slidr="3" style="width: 900px"></div>');
+       $('#metadata').html('<div id="metadata1" data-slidr="1" style="width: 900px"></div>');
        $('#resultsTable').html('<thead></thead><tbody></tbody');
    };
 
@@ -524,19 +528,19 @@
                                      }
                                      var s = {
                                          name: series[0].name,
-                                         type: 'line',
+                                         type: 'spline',
                                          data: series.map( curr => curr.median * 100)
                                      };
                                      chartData1.push(s);
                                      s = {
                                          name: series[0].name,
-                                         type: 'line',
+                                         type: 'spline',
                                          data: series.map( curr => curr.peak * 100)
                                      };
                                      chartData2.push(s);
                                      s = {
                                          name: series[0].name,
-                                         type: 'line',
+                                         type: 'spline',
                                          data: series.map( curr => curr.low * 100)
                                      };
                                      chartData3.push(s);
@@ -552,10 +556,21 @@
                                  };
                                  drawFilterChart(filters, chartData1, 'Medium F1 Score per Filter', 'mediumChart', formatter);
                                  drawFilterChart(filters, chartData2, 'Highest F1 Score per Filter', 'peakChart', formatter);
-                                 drawFilterChart(filters, chartData3, 'Lowest F1 Score per Filter', 'lowChart', formatter);
+                                 drawFilterChart(filters, chartData3, 'Lowest F1 Score per Filter', 'lowChart', formatter);                 
                              }
                          });
                      });
+                 }).done(function() {
+                     
+                     slidr.create('fscore', {
+                         breadcrumbs: true,
+                         direction: 'horizontal',
+                         keyboard: true,
+                         overflow: true,
+                         transition: 'fade',
+                         theme: '#222',
+                         fade: true
+                     }).start();
                  });
 
        $.getJSON('${filtermetadata}', {ajax : false},
@@ -571,23 +586,78 @@
                              }},
                          pointFormat: '<span style="color:{series.color}">{series.name}: {point.y} Entities <br/>'
                      };
+
+                     var t_filter = []
+                     var p_filter = [];
+                     var h_filter = [];
+                     for (var i = 0; i < data.length; i++) {
+                         var currentValue = data[i];
+                         if (currentValue.filter.indexOf('Hitsscore') > -1) {
+                             h_filter.push({
+                                 name: currentValue.filter,
+                                 y: currentValue.amount
+                             });
+                         } else if(currentValue.filter.indexOf('Pagerank') > -1) {
+                             p_filter.push({
+                                 name: currentValue.filter,
+                                 y: currentValue.amount
+                             });
+                         } else {
+                             t_filter.push({
+                                 name: currentValue.filter,
+                                 y: currentValue.amount
+                             });
+                         }
+                     }
                      
                       var amounts = [{
                          type: 'pie',
                          name: 'Amount of Entities',
-                         data: data.map(function(currentValue) {
-                             return {
-                                 name: currentValue.filter,
-                                 y: currentValue.amount
-                             };
-                         })
+                         data: t_filter
                      }];
 
-                     var sum = data.reduce(function(previousValue, currentValue) {
-                         return previousValue + parseInt(currentValue.amount);
+                     var sum = t_filter.reduce(function(previousValue, currentValue) {
+                         return previousValue + parseInt(currentValue.y);
                      }, 0);
-                     drawFilterChart(filters, amounts, 'Amount of Entities per Filter (Sum ' + sum + ')', 'metadata1', formatter);
+                     var filternames = h_filter.map(function(currentValue) {
+                        return h_filter.name 
+                     });
+                     drawFilterChart(filternames, amounts, 'Amount of Entities per Type Filter (Sum ' + sum + ')', 'entities1', formatter);
 
+
+                      var amounts = [{
+                         type: 'pie',
+                         name: 'Amount of Entities',
+                         data: h_filter
+                     }];
+
+                     var sum = h_filter.reduce(function(previousValue, currentValue) {
+                         return previousValue + parseInt(currentValue.y);
+                     }, 0);
+                     var filternames = h_filter.map(function(currentValue) {
+                        return h_filter.name 
+                     });
+                     drawFilterChart(filternames, amounts, 'Amount of Entities per Hitscore Filter (Sum ' + sum + ')', 'entities2', formatter);
+                     
+
+
+                      var amounts = [{
+                         type: 'pie',
+                         name: 'Amount of Entities',
+                         data: p_filter
+                     }];
+
+                     var sum = p_filter.reduce(function(previousValue, currentValue) {
+                         return previousValue + parseInt(currentValue.y);
+                     }, 0);
+                     var filternames = h_filter.map(function(currentValue) {
+                        return h_filter.name 
+                     });
+                     drawFilterChart(filternames, amounts, 'Amount of Entities per Pagerank Filter (Sum ' + sum + ')', 'entities3', formatter);
+
+
+
+                     console.log(data);
                      var chartData = [];
                      for (var i = 0; i < data[0].datasets.length; i++) {
                          var seriesData = [];
@@ -597,8 +667,8 @@
                          seriesData.unshift(data[0].datasets[i]);
                          chartData.push(seriesData);
                      }
-                     
-                     amounts = chartData.map(function(currentValue) {
+                     console.log(chartData);
+                     var amounts = chartData.map(function(currentValue) {
                          return {
                              name: currentValue[0],
                              type: 'spline',
@@ -606,7 +676,21 @@
                          };
                      });
                      console.log(amounts);
-                     drawFilterChart(filters, amounts, 'Amount of Entities per Dataset', 'metadata2', formatter);
+                     drawFilterChart(filters, amounts, 'Amount of Entities per Dataset', 'metadata1', formatter);
+                 
+
+                     
+                 }).done(function() {
+
+                     slidr.create('entities', {
+                         breadcrumbs: true,
+                         direction: 'horizontal',
+                         keyboard: true,
+                         overflow: true,
+                         transition: 'fade',
+                         theme: '#222',
+                         fade: true
+                     }).start();                     
                  });
    };
 

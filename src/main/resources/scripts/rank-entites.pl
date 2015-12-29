@@ -3,7 +3,8 @@
 # This script creates the files used for popularity filtering.
 # It takes all entities stored in the datasets and ranks them using the 
 # score files in /gerbil_data/resources/filter/source . These files should be
-# in trippel format.
+# in trippel format. It works offline and should be done before you run gerbil.
+#
 #
 use strict;
 use warnings;
