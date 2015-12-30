@@ -1,9 +1,8 @@
 package org.aksw.gerbil.filter;
 
-import org.aksw.gerbil.dataset.Dataset;
-import org.aksw.gerbil.dataset.TestDataset;
-import org.aksw.gerbil.datatypes.ExperimentType;
-import org.aksw.gerbil.filter.impl.*;
+import org.aksw.gerbil.filter.impl.FileFilter;
+import org.aksw.gerbil.filter.impl.PopularityFilter;
+import org.aksw.gerbil.filter.impl.SparqlFilter;
 import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.FilterWrapperImpl;
 import org.aksw.gerbil.transfer.nif.Document;
@@ -74,21 +73,6 @@ public class FilterFactoryTest {
         // IdentityWrapper is trivial
         Assert.assertEquals(expected, holder.getFilterList().get(1));
 
-    }
-
-    @Test
-    public void testPrecache() throws Exception {
-        FilterFactory factory = new FilterFactory(false);
-        factory.registerFilter(SparqlFilter.class, new FilterFactory.ConfigResolver<FilterDefinition>() {
-            @Override
-            int resolve(int counter, List<FilterDefinition> result) {
-                result.add(new FilterDefinition("place filter",
-                        "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl));
-                return -1;
-            }
-        });
-        Dataset test = new TestDataset(INSTANCES, ExperimentType.ERec);
-        factory.getFilters().cacheGoldstandard(test.getInstances(), "test");
     }
 
     // ugly quick loading from config test

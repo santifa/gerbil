@@ -9,6 +9,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class FilterWrapperImpl implements FilterWrapper {
 
     // convert documents into a plain entity list
     private <E extends Marking> List<String> collectEntityNames(List<List<E>> document) {
-        List<String> result = new ArrayList<>();
+        HashSet<String> result = new HashSet<>();
 
         for (List<E> documentPart : document) {
             for (E entity : documentPart) {
@@ -64,7 +65,7 @@ public class FilterWrapperImpl implements FilterWrapper {
                 }
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
     // be a bad ass and remove everything which is not found

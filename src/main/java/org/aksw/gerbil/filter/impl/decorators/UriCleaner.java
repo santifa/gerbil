@@ -4,7 +4,7 @@ import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.FilterDefinition;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -48,14 +48,13 @@ public class UriCleaner extends FilterDecorator {
     }
 
     private List<String> cleanUris(List<String> entities, List<String> whitelist) {
-        List<String> result = new ArrayList<>(entities.size());
-
-        for (String uri : entities) {
-            if (isWhitelisted(uri, whitelist)) {
-                result.add(uri);
+        Iterator<String> itr = entities.iterator();
+        while (itr.hasNext()) {
+            if (!isWhitelisted(itr.next(), whitelist)) {
+                itr.remove();
             }
         }
-        return result;
+        return entities;
     }
 
     private boolean isWhitelisted(String uri, List<String> whitelist) {

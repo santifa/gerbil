@@ -21,8 +21,8 @@ import org.aksw.gerbil.database.SimpleLoggingResultStoringDAO4Debugging;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
-import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.semantic.sameas.SameAsRetriever;
 import org.aksw.gerbil.web.config.RootConfig;
@@ -57,7 +57,7 @@ public abstract class AbstractExperimentTaskTest {
                         ExperimentTaskConfiguration configuration, TaskObserver observer, SameAsRetriever sameAsRetriever) {
         List<FilterWrapper> filter = new ArrayList<>();
         filter.add(new IdentityWrapper());
-        FilterHolder holder = new FilterHolder(filter, false);
+        FilterHolder holder = new FilterHolder(filter);
         Map<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>();
         filterTask.put(configuration, experimentTaskId);
         runTest(experimentTaskId, experimentDAO, sameAsRetriever, evFactory, configuration, observer, holder, filterTask);

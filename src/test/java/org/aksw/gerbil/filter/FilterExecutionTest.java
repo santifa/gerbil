@@ -138,7 +138,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
             ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, f.getConfig());
             filterTask.put(configuration, counter);
-            FilterHolder h = new FilterHolder(Collections.singletonList(f), false);
+            FilterHolder h = new FilterHolder(Collections.singletonList(f));
 
             runTest(experimentTaskId, experimentDAO, RootConfig.createSameAsRetriever(), new EvaluatorFactory(URI_KB_CLASSIFIER), filterTask.keySet().iterator().next(),
                     new F1MeasureTestingObserver(this, experimentTaskId, experimentDAO, expectedResults),
@@ -152,7 +152,7 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         SimpleLoggingResultStoringDAO4Debugging experimentDAO = new SimpleLoggingResultStoringDAO4Debugging();
 
         FilterWrapper identity = new IdentityWrapper();
-        FilterHolder h = new FilterHolder(Collections.singletonList(identity), false);
+        FilterHolder h = new FilterHolder(Collections.singletonList(identity));
 
         HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
         ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(

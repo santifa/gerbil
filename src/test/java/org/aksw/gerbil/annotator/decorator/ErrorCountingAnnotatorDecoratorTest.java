@@ -31,8 +31,8 @@ import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.execute.ExperimentTask;
-import org.aksw.gerbil.filter.FilterWrapper;
 import org.aksw.gerbil.filter.FilterHolder;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.transfer.nif.Document;
@@ -54,7 +54,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         List<FilterWrapper> filter = new ArrayList<>();
         filter.add(new IdentityWrapper());
-        FilterHolder holder = new FilterHolder(filter, false);
+        FilterHolder holder = new FilterHolder(filter);
 
         ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(5), new SimpleTestDatasetConfig(100),
                 ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, IdentityWrapper.CONF);
@@ -74,7 +74,7 @@ public class ErrorCountingAnnotatorDecoratorTest {
         SimpleLoggingResultStoringDAO4Debugging db = new SimpleLoggingResultStoringDAO4Debugging();
         List<FilterWrapper> filter = new ArrayList<>();
         filter.add(new IdentityWrapper());
-        FilterHolder holder = new FilterHolder(filter, false);
+        FilterHolder holder = new FilterHolder(filter);
 
         ExperimentTaskConfiguration conf =  new ExperimentTaskConfiguration(new ErrorCausingAnnotatorConfig(30), new SimpleTestDatasetConfig(1000),
                 ExperimentType.ERec, Matching.STRONG_ENTITY_MATCH, IdentityWrapper.CONF);
