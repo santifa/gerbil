@@ -45,7 +45,7 @@ public class FilterCache {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
     }
 
-    // collects all cached files
+    // collect all cached files
     private void initCache() {
         cacheFiles.addAll(Arrays.asList(cacheLocation.listFiles(new FilenameFilter() {
             @Override
@@ -53,7 +53,6 @@ public class FilterCache {
                 return new File(file, s).isFile();
             }
         })));
-        System.out.println("cached files " + cacheFiles);
     }
 
     /**

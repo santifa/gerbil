@@ -55,7 +55,7 @@ public class SparqlFilter extends ConcreteFilter {
         String queryString = buildQuery(entities);
 
         try {
-            // prevent from exiting the whole task if we get maleformed uris for querying
+            // prevent from exiting the whole task if we get malformed uris for querying
             Query query = QueryFactory.create(queryString);
             QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query);
             qexec.setTimeout(10000, 20000); // set timeout until first answer to five second and overall timeout to ten seconds
