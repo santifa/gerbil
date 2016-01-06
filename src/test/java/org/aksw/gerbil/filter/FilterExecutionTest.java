@@ -50,10 +50,6 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
     private static final DatasetConfiguration REDUCED_GLD_STD = new NIFFileDatasetConfig("Kore50-reduced",
             "src/test/resources/filter_example_data/kore50-reduced-nif.ttl", false, ExperimentType.A2KB);
 
-    // works only with wes2015
-    private static final DatasetConfiguration WES_GLD_STD = new NIFFileDatasetConfig("wes2015",
-            "gerbil_data/datasets/wes2015/wes2015-dataset-nif.rdf", false, ExperimentType.A2KB);
-
     private static final UriKBClassifier URI_KB_CLASSIFIER = new SimpleWhiteListBasedUriKBClassifier(
             "http://dbpedia.org/resource/");
 

@@ -4,7 +4,6 @@ import org.aksw.gerbil.dataset.Dataset;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.filter.wrapper.FilterWrapper;
-import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.web.config.AdapterList;
@@ -31,7 +30,9 @@ public class MetadataUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(MetadataUtils.class);
 
-    private HashMap<String, Integer> amountOfEntitiesPerFilter;
+    private HashMap<String, HashMap<String, Integer>> entitiesPerFilterAndDataset;
+
+    private int amountOfEntities = 0;
 
     /**
      * Instantiates a new Metadata utils.
@@ -42,12 +43,14 @@ public class MetadataUtils {
      */
     public MetadataUtils(AdapterList<DatasetConfiguration> datasets, FilterHolder holder) {
         LOGGER.info("Creating metadata...");
-        int size = (int)Math.round(holder.getFilterList().size() * 1.25); // hashmap grows when 0.75 percent filled
-        amountOfEntitiesPerFilter = new HashMap<>(size);
+        int size = (int)Math.round(holder.getFilterList().size() * 1.3); // hashmap grows when 0.75 percent filled
+        entitiesPerFilterAndDataset = new HashMap<>(size);
+
         for (FilterWrapper wrapper : holder.getFilterList()) {
-            amountOfEntitiesPerFilter.put(wrapper.getConfig().getName(), 0);
+            entitiesPerFilterAndDataset.put(wrapper.getConfig().getName(),
+                    new HashMap<String, Integer>());
         }
-        createMetadata(datasets, holder);
+        createMetadataForFilters(datasets, holder);
     }
 
     /**
@@ -56,7 +59,7 @@ public class MetadataUtils {
      * @return the amount of entities
      */
     public int getAmountOfEntities() {
-        return amountOfEntitiesPerFilter.get(IdentityWrapper.CONF.getName());
+        return amountOfEntities;
     }
 
     /**
@@ -64,30 +67,28 @@ public class MetadataUtils {
      *
      * @return the amount of entities per filter
      */
-    public HashMap<String, Integer> getAmountOfEntitiesPerFilter() {
-        return amountOfEntitiesPerFilter;
+    public HashMap<String, HashMap<String, Integer>> getAmountOfEntitiesPerFilter() {
+        return entitiesPerFilterAndDataset;
     }
 
-    private void createMetadata(AdapterList<DatasetConfiguration> datasets, FilterHolder holder) {
+    private void createMetadataForFilters(AdapterList<DatasetConfiguration> datasets, FilterHolder holder) {
         for (DatasetConfiguration conf : datasets.getConfigurations()) {
             // if dataset loading failes
             try {
                 LOGGER.info("Processing " + conf.getName());
                 Dataset dataset = conf.getDataset(conf.getExperimentType());
                 List<List<Marking>> goldStandard = getGoldStandard(dataset);
+                amountOfEntities += getAmountOfEntities(goldStandard);
 
                 // run every filter and collect metadata
                 // as well as precache every goldstandard for faster processing later
                 for (FilterWrapper wrapper : holder.getFilterList()) {
                     List<List<Marking>> result = wrapper.filterGoldstandard(goldStandard, conf.getName());
-
-                    int amount = getAmountOfEntities(result);
-                    amountOfEntitiesPerFilter.put(wrapper.getConfig().getName(),
-                            amountOfEntitiesPerFilter.get(wrapper.getConfig().getName()) + amount);
+                    entitiesPerFilterAndDataset.get(wrapper.getConfig().getName())
+                        .put(dataset.getName(), getAmountOfEntities(result));
                 }
-
             } catch (GerbilException e) {
-                LOGGER.error("Failed to load dataset. " + e.getMessage(), e);
+                LOGGER.error("Failed to load dataset. " + e.getMessage());
             }
         }
     }
@@ -101,7 +102,7 @@ public class MetadataUtils {
         return goldStandard;
     }
 
-    // count entities
+    // count sub lists
     private int getAmountOfEntities(List<List<Marking>> result) {
         int amount = 0;
         for (List<Marking> entities : result) {
@@ -109,4 +110,43 @@ public class MetadataUtils {
         }
         return amount;
     }
+
+    // convert amount of entities per filter per dataset to a json object
+    public String entityMetadataToJson() {
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append('{');
+
+        // first the amount of all entities
+        jsonBuilder.append("\"overallAmount:\"")
+                .append('"').append(amountOfEntities).append('"').append(",\n{");
+        String prefix = "";
+
+        for (String name : entitiesPerFilterAndDataset.keySet()) {
+            jsonBuilder.append(prefix);
+            prefix = ",\n";
+            jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
+            createJsonTable(jsonBuilder, entitiesPerFilterAndDataset.get(name));
+            jsonBuilder.append("}");
+        }
+        return jsonBuilder.append('}').toString();
+    }
+
+    private void createJsonTable(StringBuilder builder, HashMap<String, Integer> datasets) {
+        StringBuilder tableBuilder = new StringBuilder();
+        int amount = 0;
+
+        tableBuilder.append('{');
+        String prefix = "";
+        for (String dataset : datasets.keySet()) {
+            amount += datasets.get(dataset);
+            tableBuilder.append(prefix);
+            prefix = ",\n";
+            tableBuilder.append('"').append(dataset).append("\":")
+                    .append('"').append(datasets.get(dataset)).append("\"");
+        }
+        tableBuilder.append("}\n");
+        builder.append("\"amount\": ").append(amount).append(",\n");
+        builder.append(tableBuilder.toString());
+    }
+
 }

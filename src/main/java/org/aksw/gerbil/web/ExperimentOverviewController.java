@@ -16,7 +16,6 @@
  */
 package org.aksw.gerbil.web;
 
-import com.google.common.base.Splitter;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import org.aksw.gerbil.annotator.AnnotatorConfiguration;
 import org.aksw.gerbil.database.ExperimentDAO;
@@ -42,10 +41,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.*;
 
 @Controller
@@ -111,7 +106,9 @@ public class ExperimentOverviewController {
     @RequestMapping("/filtermetadata")
     public @ResponseBody String filtermetadata() {
         LOGGER.debug("Got request on /filtermetadata");
-        File metadata = new File("gerbil_data/resources/filter/metadata");
+        return metadataUtils.entityMetadataToJson();
+
+        /*File metadata = new File("gerbil_data/resources/filter/metadata");
 
         if (metadata.exists() && metadata.isFile()) {
             List<String> values = new ArrayList<>();
@@ -124,7 +121,7 @@ public class ExperimentOverviewController {
                 }
                 reader.close();
 
-                return generateMetadataJson(filterFactory.getRegisteredFilterNames(), values);
+                //return generateMetadataJson(filterFactory.getRegisteredFilterNames(), values);
             } catch (IOException e) {
                 LOGGER.error("Could not fetch filter metadata; Returning empty metadata. " + e.getMessage(), e);
                 return  generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
@@ -132,7 +129,7 @@ public class ExperimentOverviewController {
 
         } else {
             return generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
-        }
+        }*/
     }
 
     private boolean isNotFilteredExperiment(String filterName, ExperimentType eType) {
@@ -265,7 +262,7 @@ public class ExperimentOverviewController {
 		return correlations;
 	}
 
-    private int computeAmountOfEntities(String filterName, List<String> values) {
+  /*  private int computeAmountOfEntities(String filterName, List<String> values) {
         int result = 0;
         for (String value : values) {
             List<String> lst = Splitter.on(' ').splitToList(value);
@@ -325,7 +322,7 @@ public class ExperimentOverviewController {
         }
         return jsonBuilder.append(']').toString();
     }
-
+*/
 	private String generateJson(double[][] results, double[][] correlations, String annotatorNames[],
 			String datasetNames[]) {
 		StringBuilder jsonBuilder = new StringBuilder();
