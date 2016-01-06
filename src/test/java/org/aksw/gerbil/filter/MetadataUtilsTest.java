@@ -49,6 +49,8 @@ public class MetadataUtilsTest {
 
         HashMap<String, Integer> result = reduceMap(utils.getAmountOfEntitiesPerFilter());
         assertTrue(expected.equals(result));
+
+        System.out.println(utils.entityMetadataToJson());
     }
 
     private HashMap<String, Integer> reduceMap(HashMap<String, HashMap<String, Integer>> result) {

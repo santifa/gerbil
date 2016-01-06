@@ -7,8 +7,11 @@ import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.transfer.nif.Document;
 import org.aksw.gerbil.transfer.nif.Marking;
 import org.aksw.gerbil.web.config.AdapterList;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,6 +76,11 @@ public class MetadataUtils {
 
     private void createMetadataForFilters(AdapterList<DatasetConfiguration> datasets, FilterHolder holder) {
         for (DatasetConfiguration conf : datasets.getConfigurations()) {
+            // ignore OKE Task 2
+            if (StringUtils.contains(conf.getName(), "OKE 2015 Task 2")) {
+                continue;
+            }
+
             // if dataset loading failes
             try {
                 LOGGER.info("Processing " + conf.getName());
@@ -112,41 +120,29 @@ public class MetadataUtils {
     }
 
     // convert amount of entities per filter per dataset to a json object
+    @SuppressWarnings("rawtypes")
     public String entityMetadataToJson() {
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.append('{');
+        JSONObject base = new JSONObject();
+        base.put("overallAmount", amountOfEntities);
 
-        // first the amount of all entities
-        jsonBuilder.append("\"overallAmount:\"")
-                .append('"').append(amountOfEntities).append('"').append(",\n{");
-        String prefix = "";
-
+        JSONArray a = new JSONArray();
         for (String name : entitiesPerFilterAndDataset.keySet()) {
-            jsonBuilder.append(prefix);
-            prefix = ",\n";
-            jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
-            createJsonTable(jsonBuilder, entitiesPerFilterAndDataset.get(name));
-            jsonBuilder.append("}");
+            JSONObject o = new JSONObject();
+            mapToJson(o, entitiesPerFilterAndDataset.get(name));
+            o.put("filter", name);
+            a.add(o);
         }
-        return jsonBuilder.append('}').toString();
+        base.put("filters", a);
+        return base.toJSONString();
     }
 
-    private void createJsonTable(StringBuilder builder, HashMap<String, Integer> datasets) {
-        StringBuilder tableBuilder = new StringBuilder();
+    @SuppressWarnings("rawtypes")
+    private void mapToJson(JSONObject o, HashMap<String, Integer> datasets) {
         int amount = 0;
-
-        tableBuilder.append('{');
-        String prefix = "";
         for (String dataset : datasets.keySet()) {
             amount += datasets.get(dataset);
-            tableBuilder.append(prefix);
-            prefix = ",\n";
-            tableBuilder.append('"').append(dataset).append("\":")
-                    .append('"').append(datasets.get(dataset)).append("\"");
         }
-        tableBuilder.append("}\n");
-        builder.append("\"amount\": ").append(amount).append(",\n");
-        builder.append(tableBuilder.toString());
+        o.put("amount", amount);
+        o.putAll(datasets);
     }
-
 }
