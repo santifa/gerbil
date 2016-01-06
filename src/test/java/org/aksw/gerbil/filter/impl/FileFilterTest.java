@@ -75,7 +75,7 @@ public class FileFilterTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws InstantiationException {
         this.f = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
                 "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),
                 "gerbil_data/resources/filter/sources/pagerank_scores_en_2015.ttl"), prefix));

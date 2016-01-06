@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,8 +27,26 @@ public class SparqlFilter extends ConcreteFilter {
      *
      * @param prefixes   the prefixes for all sparql questions
      */
-    public SparqlFilter(FilterDefinition def, String[] prefixes) {
+    public SparqlFilter(FilterDefinition def, String[] prefixes) throws InstantiationException {
         super(def, prefixes);
+        checkEndpoint();
+    }
+
+    // check if the endpoint is available
+    private void checkEndpoint() throws InstantiationException {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(def.getServiceLocation()).openConnection();
+            connection.setRequestMethod("HEAD");
+            int responseCode = connection.getResponseCode();
+            connection.disconnect();
+
+            if (responseCode != 200) {
+                throw new InstantiationException("Endpoint not reachable. " + def.getServiceLocation());
+            }
+        } catch (IOException e) {
+            throw new InstantiationException("Endpoint not reachable. " +
+                    def.getServiceLocation() + " " + e.getMessage());
+        }
     }
 
     @Override
@@ -58,7 +78,7 @@ public class SparqlFilter extends ConcreteFilter {
             // prevent from exiting the whole task if we get malformed uris for querying
             Query query = QueryFactory.create(queryString);
             QueryExecution qexec = QueryExecutionFactory.sparqlService(def.getServiceLocation(), query);
-            qexec.setTimeout(10000, 20000); // set timeout until first answer to five second and overall timeout to ten seconds
+            qexec.setTimeout(50000, 100000); // set timeout until first answer to fifty seconds and overall timeout to one minute
             ResultSet queryResult = qexec.execSelect();
 
             while (queryResult.hasNext()) {
@@ -83,7 +103,7 @@ public class SparqlFilter extends ConcreteFilter {
     }
 
     @Override
-    Object cloneChild() {
+    Object cloneChild() throws InstantiationException {
         return new SparqlFilter(getConfiguration(), prefixMap);
     }
 }

@@ -9,13 +9,18 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.unix4j.Unix4j;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
+ * The popularity filter interacts with a perl script via common-exec.
+ * It provides a as first argument a file containing all entities and one or more files
+ * for searching.
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */
@@ -31,17 +36,22 @@ public class PopularityFilter extends ConcreteFilter {
      * @param def      the def
      * @param prefixes the prefixes
      */
-    public PopularityFilter(FilterDefinition def, String[] prefixes) {
+    public PopularityFilter(FilterDefinition def, String[] prefixes) throws InstantiationException {
         super(def, prefixes);
         createMapping();
     }
 
     // create a simple filter part to filename mapping; the filename is the base part
-    private void createMapping() {
+    private void createMapping() throws InstantiationException {
         String[] parts = def.getFilter().split(",");
         this.fileMapping = new ArrayList<>(parts.length);
         for (String part : parts) {
-            fileMapping.add(new File(def.getServiceLocation() + "_" + part));
+            File f = new File(def.getServiceLocation() + "_" + part);
+            // check is the files are present
+            if (!f.exists() || !f.isFile()) {
+                throw new InstantiationException("File not found or usable. " + f);
+            }
+            fileMapping.add(f);
         }
     }
 
@@ -70,15 +80,22 @@ public class PopularityFilter extends ConcreteFilter {
         return result;
     }
 
-    public File writeEntities(List<String> entities) {
+    // write all entities to a temporary file
+    private File writeEntities(List<String> entities) throws IOException {
         File entityFile = new File(System.getProperty("java.io.tmpdir"),
                 getConfiguration().getName().replace(" ", "_") + Thread.currentThread().getName());
-        Unix4j.from(entities).toFile(entityFile);
+
+        FileWriter writer = new FileWriter(entityFile);
+        for (String entity : entities) {
+            writer.write(entity);
+            writer.write("\n");
+        }
+        writer.flush();
+        writer.close();
         return entityFile;
     }
 
-    // TODO think about a better way for searching the files instead of fgrep,
-    // but it is the fastest  way at the moment, with more than 10 times faster then regular java io.
+    // a bit ugly but use perl for text processing; cause java is to slow
     private void findEntities(File entityFile, List<String> result) throws IOException {
         CommandLine cmdLine = new CommandLine("perl");
         cmdLine.addArgument("src/main/resources/scripts/entity-filter.pl");
@@ -102,17 +119,13 @@ public class PopularityFilter extends ConcreteFilter {
                 + " Cmd was " + cmdLine + " ;" + e.getMessage(), e);
         }
 
-        // read input string and return everything found
-        //System.out.println(entityFile + " gives " + stdout.toString());
+        // read input string, every line represents a entity IRI
         List<String> output = Splitter.on("\n").omitEmptyStrings().splitToList(stdout.toString("UTF-8"));
-        for (String s : output) {
-            result.add(Splitter.on(" ").omitEmptyStrings().split(s).iterator().next());
-        }
+        result.addAll(output);
     }
 
-
     @Override
-    Object cloneChild() {
+    Object cloneChild() throws InstantiationException {
         return new PopularityFilter(getConfiguration(), new String[0]);
     }
 }

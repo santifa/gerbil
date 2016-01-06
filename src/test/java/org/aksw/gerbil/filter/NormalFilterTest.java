@@ -13,6 +13,8 @@ import org.junit.runners.Parameterized;
 
 import java.util.*;
 
+import static java.util.Collections.EMPTY_LIST;
+
 /**
  * Test the so called normal filters which uses plain sparql queries against a knowledge base for entity filtering.
  *
@@ -109,7 +111,7 @@ public class NormalFilterTest {
     public void testFilterAnnotatorResultsPlace() throws Exception {
         FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
                 "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
-                Collections.EMPTY_LIST, SERVICE_URL, 20), prefix));
+                EMPTY_LIST, SERVICE_URL, 20), prefix));
 
         List<List<Marking>> results = f.filterAnnotatorResults(input, "dataset1", "anno1");
         Assert.assertTrue(expectedPlaces.equals(results));
@@ -139,14 +141,14 @@ public class NormalFilterTest {
     public void testFilterGoldstandardPlace() throws Exception {
         FilterWrapper f = new FilterWrapperImpl(new SparqlFilter(new FilterDefinition("place",
                 "select distinct ?v where { values ?v {##} ?v rdf:type dbo:Place . }",
-                Collections.EMPTY_LIST, SERVICE_URL, 20), prefix));
+                EMPTY_LIST, SERVICE_URL, 20), prefix));
 
          List<List<Marking>> results = f.filterGoldstandard(input, "dataset1");
          Assert.assertTrue(expectedPlaces.equals(results));
     }
 
     @Test
-    public void testFileFilter() {
+    public void testFileFilter() throws InstantiationException {
         // TODO Currently NOT TESTED
         FilterWrapper filter3 = new FilterWrapperImpl(new FileFilter(new FilterDefinition("pop",
                 "select distinct ?v ?pagerank WHERE { values ?v {##} ?v dbo:wikiPageRank ?pagerank . } ORDER BY DESC (?pagerank)", new ArrayList<String>(),

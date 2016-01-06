@@ -27,7 +27,7 @@ public class PopularityFilterTest {
 
 
     @Parameterized.Parameters(name = "{index}: {0} expected with {1} for persons and {2} for places.")
-    public static Collection<Object[]> data() {
+    public static Collection<Object[]> data() throws InstantiationException {
         final String[] prefix = new String[] {"foaf:<http://xmlns.com/foaf/0.1/>",
                 "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>", "dbo:<http://dbpedia.org/ontology/>"};
 

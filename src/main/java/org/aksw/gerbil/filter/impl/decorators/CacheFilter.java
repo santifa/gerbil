@@ -3,12 +3,10 @@ package org.aksw.gerbil.filter.impl.decorators;
 import org.aksw.gerbil.filter.Filter;
 import org.aksw.gerbil.filter.cache.CachedResult;
 import org.aksw.gerbil.filter.cache.FilterCache;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -41,7 +39,6 @@ public class CacheFilter extends FilterDecorator {
             resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName, annotatorName);
         } else {
             resolvedEntities = super.resolveEntities(entities, datasetName, annotatorName);
-            cleanResult(resolvedEntities);
             CachedResult result = new CachedResult(getConfiguration().getName(), datasetName, annotatorName,
                      resolvedEntities.toArray(new String[resolvedEntities.size()]));
             result.setChecksum(md5sum);
@@ -59,25 +56,12 @@ public class CacheFilter extends FilterDecorator {
             resolvedEntities = cache.getCachedResults(getConfiguration().getName(), datasetName);
         } else {
             resolvedEntities = super.resolveEntities(entities, datasetName);
-            //cleanResult(resolvedEntities);
-            System.out.println(resolvedEntities);
-
             CachedResult result = new CachedResult(getConfiguration().getName(), datasetName,
                     resolvedEntities.toArray(new String[resolvedEntities.size()]));
             result.setChecksum(md5sum);
             cache.cache(result);
         }
         return resolvedEntities;
-    }
-
-    // clean empty IRIs
-    private void cleanResult(List<String> result) {
-        Iterator<String> itr = result.iterator();
-        while (itr.hasNext()) {
-            if (StringUtils.isEmpty(itr.next())) {
-                itr.remove();
-            }
-        }
     }
 
     @Override

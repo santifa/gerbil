@@ -174,11 +174,11 @@ public class FilterExecutionTest extends AbstractExperimentTaskTest {
         FilterHolder h = factory.getFilters();
 
         HashMap<ExperimentTaskConfiguration, Integer> filterTask = new HashMap<>(6);
-        int count = 0;
+        int count = 1;
         for (FilterWrapper w : h.getFilterList()) {
             ExperimentTaskConfiguration configuration = new ExperimentTaskConfiguration(
                     new TestA2KBAnnotator(Arrays.asList(annotatorResults)), dataset, ExperimentType.A2KB, matching, w.getConfig());
-            filterTask.put(configuration, 1);
+            filterTask.put(configuration, count);
             count++;
         }
 

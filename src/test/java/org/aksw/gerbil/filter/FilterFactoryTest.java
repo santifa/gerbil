@@ -13,7 +13,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,12 +46,10 @@ public class FilterFactoryTest {
             "select ?v where { values ?v {##} ?v rdf:type dbo:Place . }", new ArrayList<String>(), serviceUrl, 50);
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
         expectedService = new SparqlFilter(conf, new String[] {"dbo:<http://dbpedia.org/ontology/>",
                 "foaf:<http://xmlns.com/foaf/0.1/>",
                 "rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>"});
-        //expectedService = new CacheFilter(expectedService, "/tmp/filter");
-        //expectedService = new UriCleaner(expectedService);
     }
 
     @Test

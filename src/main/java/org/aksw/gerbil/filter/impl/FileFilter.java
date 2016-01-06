@@ -28,8 +28,12 @@ public class FileFilter extends ConcreteFilter {
 
     private Model knowledgeBase;
 
-    public FileFilter(FilterDefinition def, String[] prefixes) {
+    public FileFilter(FilterDefinition def, String[] prefixes) throws InstantiationException {
         super(def, prefixes);
+        if (!new File(def.getServiceLocation()).exists()) {
+            throw new InstantiationException("File as backend not found. " + def.getServiceLocation());
+        }
+
         this.knowledgeBase = getModel(def.getServiceLocation());
     }
 
@@ -86,7 +90,7 @@ public class FileFilter extends ConcreteFilter {
 
 
     @Override
-    Object cloneChild() {
+    Object cloneChild() throws InstantiationException {
         return new FileFilter(getConfiguration(), prefixMap);
     }
 }

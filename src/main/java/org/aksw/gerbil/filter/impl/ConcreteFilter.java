@@ -109,7 +109,12 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        return cloneChild();
+        try {
+            return cloneChild();
+        } catch (InstantiationException e) {
+            LOGGER.error("Could not clone filter. " + def);
+        }
+        return null;
     }
 
     /**
@@ -117,7 +122,7 @@ public abstract class ConcreteFilter implements Filter, Cloneable {
      *
      * @return the child object
      */
-    abstract Object cloneChild();
+    abstract Object cloneChild() throws InstantiationException;
 
     @Override
     public String toString() {
