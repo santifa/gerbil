@@ -121,7 +121,7 @@ public class MetadataUtils {
 
     // convert amount of entities per filter per dataset to a json object
     @SuppressWarnings("rawtypes")
-    public String entityMetadataToJson() {
+    public JSONObject entityMetadataToJson() {
         JSONObject base = new JSONObject();
         base.put("overallAmount", amountOfEntities);
 
@@ -133,7 +133,7 @@ public class MetadataUtils {
             a.add(o);
         }
         base.put("filters", a);
-        return base.toJSONString();
+        return base;
     }
 
     @SuppressWarnings("rawtypes")

@@ -23,7 +23,9 @@ import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.FilterHolder;
 import org.aksw.gerbil.filter.MetadataUtils;
+import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
 import org.aksw.gerbil.utils.DatasetMetaData;
@@ -31,6 +33,8 @@ import org.aksw.gerbil.utils.DatasetMetaDataMapping;
 import org.aksw.gerbil.utils.PearsonsSampleCorrelationCoefficient;
 import org.aksw.gerbil.web.config.AdapterList;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +48,7 @@ import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Controller
+@SuppressWarnings("rawtypes")
 public class ExperimentOverviewController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExperimentOverviewController.class);
@@ -99,45 +104,71 @@ public class ExperimentOverviewController {
 
 		double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames, filterName);
 		double correlations[][] = calculateCorrelations(results, datasetNames);
-		return generateJson(results, correlations, annotatorNames, datasetNames);
+		return generateExperimentJson(results, correlations, annotatorNames, datasetNames).toJSONString();
 
 	}
 
-    @RequestMapping("/filtermetadata")
-    public @ResponseBody String filtermetadata() {
-        LOGGER.debug("Got request on /filtermetadata");
-        return metadataUtils.entityMetadataToJson();
+    @RequestMapping("/compare")
+    public @ResponseBody String compareOverview(@RequestParam(value = "experimentType") String experimentType,
+                                                @RequestParam(value = "matching") String matchingString) {
+        LOGGER.debug("Got request on /compare(experiemntType={}, matching={}", experimentType, matchingString);
+        Matching matching = MainController.getMatching(matchingString);
+        ExperimentType eType = ExperimentType.valueOf(experimentType);
 
-        /*File metadata = new File("gerbil_data/resources/filter/metadata");
+        String annotatorNames[] = loadAnnotators(eType);
+        String datasetNames[] = loadDatasets(eType);
+        FilterHolder holder = isNotFilteredExperiment(eType) ?
+                new FilterFactory(true).getFilters() : filterFactory.getFilters();
 
-        if (metadata.exists() && metadata.isFile()) {
-            List<String> values = new ArrayList<>();
-
-            try {
-                BufferedReader reader = new BufferedReader(new FileReader(metadata));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    values.add(line);
-                }
-                reader.close();
-
-                //return generateMetadataJson(filterFactory.getRegisteredFilterNames(), values);
-            } catch (IOException e) {
-                LOGGER.error("Could not fetch filter metadata; Returning empty metadata. " + e.getMessage(), e);
-                return  generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
-            }
-
-        } else {
-            return generateMetadataJson(filterFactory.getRegisteredFilterNames(), new ArrayList<String>());
-        }*/
+        JSONArray array = new JSONArray();
+        for (FilterWrapper filter : holder.getFilterList()) {
+            JSONObject o = new JSONObject();
+            double[][] results = loadLatestResults(eType, matching, annotatorNames, datasetNames, filter.getConfig().getName());
+            double[][] correlations = calculateCorrelations(results, datasetNames);
+            o.put("filter", filter.getConfig().getName());
+            o.put("data", generateExperimentJson(results, annotatorNames, datasetNames));
+            array.add(o);
+        }
+        return array.toJSONString();
     }
 
-    private boolean isNotFilteredExperiment(String filterName, ExperimentType eType) {
+    @RequestMapping("/filtermetadata")
+    public @ResponseBody String filtermetadata(@RequestParam(value = "experimentType") String experimentType,
+                                               @RequestParam(value = "matching") String matchingString) {
+        LOGGER.debug("Got request on /filtermetadata");
+        JSONObject o = metadataUtils.entityMetadataToJson();
+        Matching matching = MainController.getMatching(matchingString);
+        ExperimentType eType = ExperimentType.valueOf(experimentType);
+
+        String annotatorNames[] = loadAnnotators(eType);
+        String datasetNames[] = loadDatasets(eType);
+        FilterHolder holder = isNotFilteredExperiment(eType) ?
+                new FilterFactory(true).getFilters() : filterFactory.getFilters();
+
+
+        JSONArray array = new JSONArray();
+        for (FilterWrapper filter : holder.getFilterList()) {
+            JSONObject result = new JSONObject();
+            double[][] results = loadLatestResults(eType, matching, annotatorNames, datasetNames, filter.getConfig().getName());
+            double[][] correlations = calculateCorrelations(results, datasetNames);
+            result.put("filter", filter.getConfig().getName());
+            result.put("data", generateExperimentJson(results, annotatorNames, datasetNames));
+            array.add(result);
+        }
+
+        o.put("scores", array);
+        return o.toJSONString();
+    }
+
+    private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {
+        return StringUtils.isEmpty(filtername) || isNotFilteredExperiment(eType);
+    }
+
+    private boolean isNotFilteredExperiment(ExperimentType eType) {
         return ExperimentType.ERec.equals(eType)
                 || ExperimentType.ETyping.equals(eType)
                 || ExperimentType.OKE_Task1.equals(eType)
-                || ExperimentType.OKE_Task2.equals(eType)
-                || StringUtils.isEmpty(filterName);
+                || ExperimentType.OKE_Task2.equals(eType);
     }
 
     private double[][] loadLatestResults(ExperimentType experimentType, Matching matching, String[] annotatorNames,
@@ -262,111 +293,47 @@ public class ExperimentOverviewController {
 		return correlations;
 	}
 
-  /*  private int computeAmountOfEntities(String filterName, List<String> values) {
-        int result = 0;
-        for (String value : values) {
-            List<String> lst = Splitter.on(' ').splitToList(value);
-            if (StringUtils.equalsIgnoreCase(filterName, lst.get(0).replaceAll("_", " "))) {
-                result += Integer.valueOf(lst.get(2));
-            }
-        }
-        return result;
+    private JSONArray generateExperimentJson(double[][] results, String[] annotatorNames, String[] datasetNames) {
+        return generateJSonTable(results, datasetNames, annotatorNames, "Micro F1-measure");
     }
 
-    private String getMetadataAsJson(String filterName, List<String> values) {
-        StringBuilder datasets = new StringBuilder();
-        StringBuilder amount = new StringBuilder();
-        datasets.append('[');
-        amount.append('[');
-
-        String prefix = "";
-        for (String value : values) {
-            List<String> lst = Splitter.on(' ').splitToList(value);
-            if (StringUtils.equalsIgnoreCase(filterName, lst.get(0).replaceAll("_", " "))) {
-                datasets.append(prefix);
-                amount.append(prefix);
-                prefix = ",";
-                datasets.append('"').append(lst.get(1)).append('"');
-                amount.append((lst.get(2)));
-            }
-        }
-
-        datasets.append(']');
-        amount.append(']');
-        return "\"datasets\": " + datasets.toString() + ",\n\"values\": " + amount.toString();
-    }
-
-    private String generateMetadataJson(String[] filterNames, List<String> values) {
-        StringBuilder jsonBuilder = new StringBuilder();
-        if (values.isEmpty()) {
-            jsonBuilder.append('[');
-            String prefix = "";
-            for (String name : filterNames) {
-                jsonBuilder.append(prefix);
-                prefix = ",\n";
-                jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
-                jsonBuilder.append("\"amount\": 0,\n\"datasets\": [],\n\"values\": []\n}");
-            }
-            return jsonBuilder.append(']').toString();
-        }
-
-        jsonBuilder.append('[');
-        String prefix = "";
-        for (String name : filterNames) {
-            jsonBuilder.append(prefix);
-            prefix = ",\n";
-            jsonBuilder.append("{ \"filter\": ").append('"').append(name).append('"').append(",\n");
-            jsonBuilder.append("\"amount\": ").append(computeAmountOfEntities(name, values)).append(",\n");
-            jsonBuilder.append(getMetadataAsJson(name, values));
-            jsonBuilder.append("}");
-        }
-        return jsonBuilder.append(']').toString();
-    }
-*/
-	private String generateJson(double[][] results, double[][] correlations, String annotatorNames[],
-			String datasetNames[]) {
-		StringBuilder jsonBuilder = new StringBuilder();
-		// jsonBuilder.append("results=");
-		jsonBuilder.append('[');
-		jsonBuilder.append(generateJSonTableString(results, datasetNames, annotatorNames, "Micro F1-measure"));
-		jsonBuilder.append(',');
-		jsonBuilder.append(generateJSonTableString(correlations, CORRELATION_TABLE_COLUMN_HEADINGS, annotatorNames,
-				"Correlations"));
-		jsonBuilder.append(']');
-		return jsonBuilder.toString();
+	private JSONArray generateExperimentJson(double[][] results, double[][] correlations, String[] annotatorNames,
+                                             String[] datasetNames) {
+		JSONArray a = new JSONArray();
+        a.add(generateJSonTable(results, datasetNames, annotatorNames, "Micro F1-measure"));
+        a.add(generateJSonTable(correlations, CORRELATION_TABLE_COLUMN_HEADINGS, annotatorNames,
+                "Correlations"));
+        return a;
 	}
 
-	private String generateJSonTableString(double values[][], String columnHeadings[], String lineHeadings[],
-			String tableName) {
-		StringBuilder dataBuilder = new StringBuilder();
-		dataBuilder.append("[[\"");
-		dataBuilder.append(tableName);
-		for (int i = 0; i < columnHeadings.length; ++i) {
-			dataBuilder.append("\",\"");
-			dataBuilder.append(columnHeadings[i]);
-		}
-		for (int i = 0; i < lineHeadings.length; ++i) {
-			dataBuilder.append("\"],\n[\"");
-			dataBuilder.append(lineHeadings[i]);
-			for (int j = 0; j < columnHeadings.length; ++j) {
-				dataBuilder.append("\",\"");
-				// if this is a real result
-				if (values[i][j] > NOT_AVAILABLE_SENTINAL) {
-					dataBuilder.append(String.format(Locale.US, "%.3f", values[i][j]));
-				} else {
-					// if this value is simply missing
-					if (values[i][j] == NOT_AVAILABLE_SENTINAL) {
-						dataBuilder.append("n.a.");
-					} else {
-						// this is an error value
-						dataBuilder.append("error (");
-						dataBuilder.append((int) values[i][j]);
-						dataBuilder.append(')');
-					}
-				}
-			}
-		}
-		dataBuilder.append("\"]]");
-		return dataBuilder.toString();
-	}
+	private JSONArray generateJSonTable(double values[][], String columnHeadings[], String lineHeadings[],
+                                        String tableName) {
+        JSONArray table = new JSONArray();
+
+        // add table header
+        JSONArray header = new JSONArray();
+        header.add(tableName);
+        Collections.addAll(header, columnHeadings);
+        table.add(header);
+
+        for (int i = 0; i < lineHeadings.length; ++i) {
+            JSONArray row = new JSONArray();
+            row.add(lineHeadings[i]);
+
+            for (int j = 0; j < columnHeadings.length; ++j) {
+                if (values[i][j] > NOT_AVAILABLE_SENTINAL) {
+                    // we have a real result
+                    row.add(String.format(Locale.US, "%.3f", values[i][j]));
+                } else if (values[i][j] == NOT_AVAILABLE_SENTINAL) {
+                    // the result is simply missing
+                    row.add("n.a.");
+                } else {
+                    // error value
+                    row.add("error (" + (int) values[i][j] + ")");
+                }
+            }
+            table.add(row);
+        }
+        return table;
+    }
 }
