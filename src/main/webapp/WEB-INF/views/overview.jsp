@@ -265,28 +265,7 @@
 		     $("#" + tableElementId + " tbody").html(tbl_body);
 	   }
 	   
-     // convert to float array
-     function convertToFloat (data) {
-         return data.slice(1, data.length).map(function (value) {
-             if (value != 'n.a.' && !value.startsWith('error')) {
-                 return parseFloat(value);
-             } else {
-                 return 0.0;
-             }
-         });
-     };
-
-     // prepare data for spider chart
-     function prepareDataForSpider (data) {
-         return data.slice(1, data.length).map(function (value) {
-             return {
-                 type: 'area',
-                 name: value[0],
-                 data: convertToFloat(value.slice(1, value.length)).map(curr => curr * 100),
-                 pointPlacement: 'on'
-             };
-         });
-     };
+     
 
      // set all needed divs for slidr animation
      function prepareCompareCharts(filters) {
@@ -342,63 +321,80 @@
            
          });
      };
-
-   function prepareOverviewCharts() {
-       $('#resultsChartBody').html('<div id="fscore" style="display: inline"></div>'
-                                 + '<div id="entities" style=display: inline></div>'
-                                 + '<div id="metadata" style="display: inline"></div>');
-       $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>');
-       $('#entities').html('<div id="entities1" data-slidr="1" style="width: 900px"></div>'
-                         + '<div id="entities2" data-slidr="2" style="width: 900px"></div>'
-                         + '<div id="entities3" data-slidr="3" style="width: 900px"></div>');
-       $('#metadata').html('<div id="metadata1" data-slidr="1" style="width: 900px"></div>');
-       $('#resultsTable').html('<thead></thead><tbody></tbody');
-   };
-
-   function prepareDataForAnnotatorChart(data) {
-       return data.slice(1, data[0].length).map(function(currentValue) {
-           var convertedData = convertData(currentValue); 
-           return [currentValue[0], // annotator name
-                   // dataset medium
-                   convertedData.reduce(function(previousValue, currentValue, currentIndex, arr) {
-                       // if last iteration divide by length
-                       if (currentIndex == arr.length -1) {
-                           return (previousValue + currentValue) / arr.length;
-                       } else {
-                           return previousValue + currentValue;
-                       }
-                   }, 0),
-                   // dataset peak
-                   convertedData.reduce(function(previousValue, currentValue) {
-                       return Math.max(previousValue, currentValue);
-                   }),
-                   // dataset low
-                   convertedData.reduce(function(previousValue, currentValue) {
-                       return Math.min(previousValue, currentValue);
-                   }, 0)]; 
-       });   
-   };
-
-
-     function caclulateMediumScore(data) {
-         return data.map(function (value) {
-             return {
-                 filter: value.filter,
-                 data: prepareDataForAnnotatorChart(value.data[0])
-             }; 
-         });
-     }
      
-   function overviewChart() {
-       prepareOverviewCharts();
+     function prepareOverviewCharts() {
+         $('#resultsChartBody').html('<div id="fscore" style="display: inline"></div>'
+                                   + '<div id="entities" style=display: inline></div>'
+                                   + '<div id="metadata" style="display: inline"></div>');
+         $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>');
+         $('#entities').html('<div id="entitiesabs1" data-slidr="1" style="width: 900px"></div>'
+                           + '<div id="entitiesabs2" data-slidr="2" style="width: 900px"></div>'
+                           + '<div id="entitiesabs3" data-slidr="3" style="width: 900px"></div>'
+                           + '<div id="entitiesabs4" data-slidr="4" style="width: 900px"></div>');
+         $('#metadata').html('<div id="metadata1" data-slidr="1" style="width: 900px"></div>');
+         $('#resultsTable').html('<thead></thead><tbody></tbody');
+     };
+     
+     
+     
+     function drawFilterChart2(categories, data, name, tagname) {
+         $('#' + tagname).highcharts({
+             chart: {
+                 widht: 700,
+                 zoomType: 'xy',
+                 panning: true,
+                 panKey: 'shift'
+             },
+             credits: {enabled: false},
+             title: {
+                 text: name,
+                 x: -80
+             },
+             xAxis:{
+                 categories: categories
+             },
+             plotOptions:{
+                 column: {
+                     stacking: 'normal'
+                 }
+             },
+             series: data,
+             tooltip: {
+                 borderWidth: 0
+             }
+         });
+     };
+     
+     function overviewChart() {
+         prepareOverviewCharts();
+         
+         $.getJSON('${filtermetadata}', {
+             experimentType : $('#expTypes input:checked').val(),
+	           matching : $('#matching input:checked').val(),
+         }, function (data) {
+             var categories = data.scores.map(function (value) {
+                 return value.filter;
+             });
+             var scores = caclulateMediumScores(data.scores);
+             drawScoreChart(categories, scores, 'Medium Micro F1 Scores', 'mediumChart');           
+             drawAbsoluteCharts(data.filters, data.overallAmount);
 
-       $.getJSON('${filtermetadata}', {
-           experimentType : $('#expTypes input:checked').val(),
-	         matching : $('#matching input:checked').val(),
-       }, function (data) {
-           caclulateMediumScore(data.scores);
-           console.log(data);
-       });
+             
+
+
+//             drawFilterChart2(categories, series, 'Absolute Amount of Filtered Entities per Dataset', 'entitiesabs1');
+             slidr.create('entities', {
+                 breadcrumbs: true,
+                 direction: 'horizontal',
+                 keyboard: true,
+                 overflow: true,
+                 transition: 'fade',
+                 theme: '#222',
+                 fade: true
+             }).start();                     
+             
+             
+         });
 
        /*
        $.getJSON('${filtermetadata}', {ajax : false},
@@ -593,27 +589,18 @@
                      
                  }).done(function() {
 
-                     slidr.create('entities', {
-                         breadcrumbs: true,
-                         direction: 'horizontal',
-                         keyboard: true,
-                         overflow: true,
-                         transition: 'fade',
-                         theme: '#222',
-                         fade: true
-                     }).start();                     
-                 });
+                    
        */
    };
 
-   // remove diagrams and tables
-   function clearDiagrams() {
-       $('#resultsChartBody').html('<div id="resultsChart" class="chartDiv"></div>');
-       $('#correlationsChart').html('');
-       $('#correlationsTable').html('<thead></thead><tbody></tbody>');
-       $('#resultsTable').html('<thead></thead><tbody></tbody>');
-   };
-
+     // remove diagrams and tables
+     function clearDiagrams() {
+         $('#resultsChartBody').html('<div id="resultsChart" class="chartDiv"></div>');
+         $('#correlationsChart').html('');
+         $('#correlationsTable').html('<thead></thead><tbody></tbody>');
+         $('#resultsTable').html('<thead></thead><tbody></tbody>');
+     };
+     
      function isFilteredExperiment() {
          switch ($('#expTypes input:checked').val()) {
              case 'A2KB':
@@ -623,7 +610,7 @@
              default: return false;
                  break;
          }
-     }
+     };
      
      $(document).ready(function () {
        //++++++++++++
@@ -651,6 +638,6 @@
                loadExperiment();
            }
        });
-   });
-  </script>  
+     });
+    </script>  
 </body>
