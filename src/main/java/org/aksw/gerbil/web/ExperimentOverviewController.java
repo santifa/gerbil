@@ -87,80 +87,63 @@ public class ExperimentOverviewController {
     private MetadataUtils metadataUtils;
 
     @RequestMapping("/experimentoverview")
-	public @ResponseBody String experimentoverview(@RequestParam(value = "experimentType") String experimentType,
+	public @ResponseBody JSONArray experimentoverview(@RequestParam(value = "experimentType") String experimentType,
 			@RequestParam(value = "matching") String matchingString, @RequestParam(required = false, value = "filter") String filterName) {
 		LOGGER.debug("Got request on /experimentoverview(experimentType={}, matching={}, filter={}", experimentType,
 				matchingString, filterName);
-		Matching matching = MainController.getMatching(matchingString);
-		ExperimentType eType = ExperimentType.valueOf(experimentType);
-
-		String annotatorNames[] = loadAnnotators(eType);
-		String datasetNames[] = loadDatasets(eType);
+        Matching matching = MainController.getMatching(matchingString);
+        ExperimentType eType = ExperimentType.valueOf(experimentType);
 
         // prevent loading of wrong data; only the identity filter is applicable for this experiments
         if (isNotFilteredExperiment(filterName, eType)) {
             filterName = IdentityWrapper.CONF.getName();
         }
 
-		double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames, filterName);
-		double correlations[][] = calculateCorrelations(results, datasetNames);
-		return generateExperimentJson(results, correlations, annotatorNames, datasetNames).toJSONString();
-
+        return loadExperimentData(filterName, matching, eType);
 	}
 
     @RequestMapping("/compare")
-    public @ResponseBody String compareOverview(@RequestParam(value = "experimentType") String experimentType,
+    public @ResponseBody JSONArray compareOverview(@RequestParam(value = "experimentType") String experimentType,
                                                 @RequestParam(value = "matching") String matchingString) {
         LOGGER.debug("Got request on /compare(experiemntType={}, matching={}", experimentType, matchingString);
         Matching matching = MainController.getMatching(matchingString);
         ExperimentType eType = ExperimentType.valueOf(experimentType);
 
-        String annotatorNames[] = loadAnnotators(eType);
-        String datasetNames[] = loadDatasets(eType);
         FilterHolder holder = isNotFilteredExperiment(eType) ?
                 new FilterFactory(true).getFilters() : filterFactory.getFilters();
-
-        JSONArray array = new JSONArray();
-        for (FilterWrapper filter : holder.getFilterList()) {
-            JSONObject o = new JSONObject();
-            double[][] results = loadLatestResults(eType, matching, annotatorNames, datasetNames, filter.getConfig().getName());
-            double[][] correlations = calculateCorrelations(results, datasetNames);
-            o.put("filter", filter.getConfig().getName());
-            o.put("data", generateExperimentJson(results, annotatorNames, datasetNames));
-            array.add(o);
-        }
-        return array.toJSONString();
+        return loadAllExperimts(eType, matching, holder);
     }
 
     @RequestMapping("/filtermetadata")
-    public @ResponseBody String filtermetadata(@RequestParam(value = "experimentType") String experimentType,
+    public @ResponseBody JSONObject filtermetadata(@RequestParam(value = "experimentType") String experimentType,
                                                @RequestParam(value = "matching") String matchingString) {
         LOGGER.debug("Got request on /filtermetadata");
-        JSONObject o = metadataUtils.entityMetadataToJson();
+        JSONObject o = new JSONObject();
+        o.put("overallAmount", metadataUtils.getAmountOfEntities());
+        o.put("filters", metadataUtils.getAmountOfEntitiesPerFilterAsJson());
+        o.put("words", metadataUtils.getAnnotationsPerWordAsJson());
+
+        // add all experiment scores
         Matching matching = MainController.getMatching(matchingString);
         ExperimentType eType = ExperimentType.valueOf(experimentType);
-
-        String annotatorNames[] = loadAnnotators(eType);
-        String datasetNames[] = loadDatasets(eType);
         FilterHolder holder = isNotFilteredExperiment(eType) ?
                 new FilterFactory(true).getFilters() : filterFactory.getFilters();
-
-
-        JSONArray array = new JSONArray();
-        for (FilterWrapper filter : holder.getFilterList()) {
-            JSONObject result = new JSONObject();
-            double[][] results = loadLatestResults(eType, matching, annotatorNames, datasetNames, filter.getConfig().getName());
-            double[][] correlations = calculateCorrelations(results, datasetNames);
-            result.put("filter", filter.getConfig().getName());
-            result.put("data", generateExperimentJson(results, annotatorNames, datasetNames));
-            array.add(result);
-        }
-
-        o.put("scores", array);
-        return o.toJSONString();
+        o.put("scores", loadAllExperimts(eType, matching, holder));
+        return o;
     }
 
-    private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {
+    @RequestMapping("/ambiguityEntities")
+    public @ResponseBody JSONObject ambiguityEntities() {
+        return metadataUtils.getAmbiguityOfEntitiesAsJson();
+    }
+
+
+    @RequestMapping("/ambiguitySurface")
+    public @ResponseBody JSONObject ambiguitySurface() {
+        return metadataUtils.getAmbiguityOfSurfaceAsJson();
+    }
+
+        private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {
         return StringUtils.isEmpty(filtername) || isNotFilteredExperiment(eType);
     }
 
@@ -170,6 +153,38 @@ public class ExperimentOverviewController {
                 || ExperimentType.OKE_Task1.equals(eType)
                 || ExperimentType.OKE_Task2.equals(eType);
     }
+
+    // return the results of all experiments as json array
+    private JSONArray loadAllExperimts(ExperimentType eType, Matching matching, FilterHolder holder) {
+        String annotatorNames[] = loadAnnotators(eType);
+        String datasetNames[] = loadDatasets(eType);
+
+        JSONArray array = new JSONArray();
+        for (FilterWrapper filter : holder.getFilterList()) {
+            JSONObject result = new JSONObject();
+            result.put("filter", filter.getConfig().getName());
+            result.put("data", loadExperimentData(filter.getConfig().getName(),
+                    matching, eType, annotatorNames, datasetNames));
+            array.add(result);
+        }
+        return array;
+    }
+
+    // load experiment as json object
+    private JSONArray loadExperimentData(String filterName, Matching matching, ExperimentType eType) {
+        String annotatorNames[] = loadAnnotators(eType);
+        String datasetNames[] = loadDatasets(eType);
+        return  loadExperimentData(filterName, matching, eType, annotatorNames, datasetNames);
+    }
+
+    // load experiment as json object
+    private JSONArray loadExperimentData(String filterName, Matching matching, ExperimentType eType,
+                                         String[] annotatorNames, String[] datasetNames) {
+        double results[][] = loadLatestResults(eType, matching, annotatorNames, datasetNames, filterName);
+        double correlations[][] = calculateCorrelations(results, datasetNames);
+        return generateExperimentJson(results, correlations, annotatorNames, datasetNames);
+    }
+
 
     private double[][] loadLatestResults(ExperimentType experimentType, Matching matching, String[] annotatorNames,
 			String[] datasetNames, String filterName) {

@@ -16,6 +16,7 @@
     <script type="text/javascript" src="/gerbil/webResources/js/highcharts.js"></script>
     <script type="text/javascript" src="/gerbil/webResources/js/highcharts-more.js"></script>
     <script type="text/javascript" src="/gerbil/webResources/js/charts.js""></script>
+    <script src="http://code.highcharts.com/highcharts-3d.js"></script>
 </head>
 <style>
  table {
@@ -70,6 +71,8 @@
         <c:url var="filters" value="/filters" />
         <c:url var="compare" value="/compare" />
         <c:url var="filtermetadata" value="/filtermetadata" />
+        <c:url var="ambiguityEntities" value="/ambiguityEntities" />
+        <c:url var="ambiguitySurface" value="/ambiguitySurface" />
         
 		    <%@include file="navbar.jsp"%>
 		    <h1>GERBIL Experiment Overview</h1>
@@ -293,8 +296,8 @@
              }));
 
              for (var i = 0; i < data.length; i++) {
-                 var categories = data[i].data[0].slice(1, data[i].data[0].length);
-                 var chartData = prepareDataForSpider(data[i].data);
+                 var categories = data[i].data[0][0].slice(1, data[i].data[0][0].length);
+                 var chartData = prepareDataForSpider(data[i].data[0]);
                  drawSpiderChart(chartData, categories, "result" + i, data[i].filter);
                  drawSpiderChart(chartData, categories, "compare" + i, data[i].filter);
              }
@@ -325,46 +328,91 @@
      function prepareOverviewCharts() {
          $('#resultsChartBody').html('<div id="fscore" style="display: inline"></div>'
                                    + '<div id="entities" style=display: inline></div>'
-                                   + '<div id="metadata" style="display: inline"></div>');
+                                   + '<div id="entityMetadata" style="display: inline"></div>'
+                                   + '<div id="words" style="display: inline; width: 900px"></div>'
+                                   + '<div id="ambiguityEntities" style="display: inline"></div>'
+                                   + '<div id="ambiguitySurface" style="display: inline"></div>');
          $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>');
          $('#entities').html('<div id="entitiesabs1" data-slidr="1" style="width: 900px"></div>'
                            + '<div id="entitiesabs2" data-slidr="2" style="width: 900px"></div>'
                            + '<div id="entitiesabs3" data-slidr="3" style="width: 900px"></div>'
                            + '<div id="entitiesabs4" data-slidr="4" style="width: 900px"></div>');
-         $('#metadata').html('<div id="metadata1" data-slidr="1" style="width: 900px"></div>');
+         $('#entityMetadata').html('<div id="entitiesrel" style="width: 900px"></div>'
+                                 + '<table id="relTable" class="table table-hover table-condensed"><thead></thead><tbody></tbody></div>');
+         
          $('#resultsTable').html('<thead></thead><tbody></tbody');
      };
-     
-     
-     
-     function drawFilterChart2(categories, data, name, tagname) {
-         $('#' + tagname).highcharts({
-             chart: {
-                 widht: 700,
-                 zoomType: 'xy',
-                 panning: true,
-                 panKey: 'shift'
-             },
-             credits: {enabled: false},
-             title: {
-                 text: name,
-                 x: -80
-             },
-             xAxis:{
-                 categories: categories
-             },
-             plotOptions:{
-                 column: {
-                     stacking: 'normal'
+
+// shows the ambiguity of datasets
+function drawAmbiguityChart(categories, data, name, tagname) {
+    $('#' + tagname).highcharts({
+        chart: {
+            type: 'column',
+            widht: 700,
+            zoomType: 'x',
+            panning: true,
+            panKey: 'shift'
+        },
+        credits: {enabled: false},
+        title: {text: name},
+        xAxis:{
+            title: 'Datasets',
+            categories: categories
+        },
+        yAxis: {
+            title: 'Ambiguity of Surface Forms',
+        },
+        series: data,
+        tooltip: {
+            borderWidth: 0
+        }
+    });  
+};
+
+
+     function drawEntitiesAmbiguityCharts(data) {
+         var html = '<div id="entitiesAmbigMedium" data-slidr="med" style="width: 900px"></div>'; 
+         var datasets = []
+        
+         // create medium average and collect dataset names
+         var values = [];
+         for (var key in data.medium) {
+             datasets.push(key);
+             values.push(parseFloat(data.medium[key].toFixed(4)));
+         }
+         var mediumSeries = [{
+             name: 'Medium Ambiguity',
+             data: values
+         }];
+         // create chart divs with slidr id's
+         for (var i = 0; i < datasets.length; i++) {
+             html += '<div id="entitiesAmbig' + i + '" data-slidr="' + i + '" style="width: 900px"></div>';             
+         }
+         $('#ambiguityEntities').html(html);
+
+         drawAmbiguityChart(datasets, mediumSeries, 'Medium Entity Ambiguity', 'entitiesAmbigMedium');
+
+         // creat all single charts
+         for (var i = 0; i < datasets.length; i++) {
+             var categories = [];
+             values = [];
+             for (var j = 0; j < data.data.length; j++) {
+                 if (data.data[j].hasOwnProperty(datasets[i])) {
+                     categories.push(data.data[j].entity);
+                     values.push(data.data[j]['Entity Ambiguity']);
                  }
-             },
-             series: data,
-             tooltip: {
-                 borderWidth: 0
              }
-         });
+
+             var series = [{
+                 name: datasets[i] + ' Ambiguity',
+                 data: values
+             }];
+             drawAmbiguityChart(categories, series, datasets[i] + ' Entity Ambiguity', 'entitiesAmbig' + i);
+         }
+         
+
      };
-     
+
      function overviewChart() {
          prepareOverviewCharts();
          
@@ -372,17 +420,11 @@
              experimentType : $('#expTypes input:checked').val(),
 	           matching : $('#matching input:checked').val(),
          }, function (data) {
-             var categories = data.scores.map(function (value) {
-                 return value.filter;
-             });
-             var scores = caclulateMediumScores(data.scores);
-             drawScoreChart(categories, scores, 'Medium Micro F1 Scores', 'mediumChart');           
-             drawAbsoluteCharts(data.filters, data.overallAmount);
-
-             
-
-
-//             drawFilterChart2(categories, series, 'Absolute Amount of Filtered Entities per Dataset', 'entitiesabs1');
+             drawMediumScoreChart(data.scores);
+             drawAbsoluteEntityCharts(data.filters, data.overallAmount);
+             drawRelativeEntityChart(data.filters, data.overallAmount);
+             drawMetadataCharts(data);
+      
              slidr.create('entities', {
                  breadcrumbs: true,
                  direction: 'horizontal',
@@ -391,208 +433,30 @@
                  transition: 'fade',
                  theme: '#222',
                  fade: true
-             }).start();                     
-             
-             
+             }).start();
          });
 
-       /*
-       $.getJSON('${filtermetadata}', {ajax : false},
-                 function(data) {
+         $.getJSON('${ambiguityEntities}',
+                   function (data) {
+                       drawEntitiesAmbiguityCharts(data);
 
-                     var filters = data.Filters;
-                     var dataChunks = [];
-                     
-                     // load data in sync
-                     filters.forEach(function(filter, n) {
-                         $.getJSON('${experimentoverview}', {
-                             experimentType : $('#expTypes input:checked').val(),
-	                           matching : $('#matching input:checked').val(),
-                             filter : filter,
-	                           ajax : false
-                         }).done(function(data) {
-                             // ignore dataset names
-                             var chunk = {
-                                 filter: filters[n],
-                                 data: prepareDataForAnnotatorChart(data[0])
-                             };
-                             dataChunks.push(chunk);
+                       slidr.create('ambiguityEntities', {
+                           breadcrumbs: true,
+                           direction: 'horizontal',
+                           keyboard: true,
+                           overflow: true,
+                           transition: 'fade',
+                           theme: '#222',
+                           fade: true
+                       }).start();
+                   });
 
-                             var chartData1 = [];
-                             var chartData2 = [];
-                             var chartData3 = [];
-                             if (n == filters.length -1) {
-                                 for (var i = 0; i < dataChunks[0].data.length; i++) {
-                                     var series = [];
-                                     for (var j = 0; j < dataChunks.length; j++) {
-                                         var value = {
-                                             name: dataChunks[j].data[i][0],
-                                             median: dataChunks[j].data[i][1],
-                                             peak: dataChunks[j].data[i][2],
-                                             low: dataChunks[j].data[i][3],
-                                         };
-                                         series.push(value);
-                                     }
-                                     var s = {
-                                         name: series[0].name,
-                                         type: 'spline',
-                                         data: series.map( curr => curr.median * 100)
-                                     };
-                                     chartData1.push(s);
-                                     s = {
-                                         name: series[0].name,
-                                         type: 'spline',
-                                         data: series.map( curr => curr.peak * 100)
-                                     };
-                                     chartData2.push(s);
-                                     s = {
-                                         name: series[0].name,
-                                         type: 'spline',
-                                         data: series.map( curr => curr.low * 100)
-                                     };
-                                     chartData3.push(s);
-                                     
-                                 }
-
-                                 var formatter = {
-                                     formatter: {
-                                         formatter: function() {
-                                             return this.value + '%'
-                                         }},
-                                     pointFormat: '<span style="color:{series.color}">{series.name}: {point.y}% <br/>'
-                                 };
-                                 drawFilterChart(filters, chartData1, 'Medium F1 Score per Filter', 'mediumChart', formatter);
-                                 drawFilterChart(filters, chartData2, 'Highest F1 Score per Filter', 'peakChart', formatter);
-                                 drawFilterChart(filters, chartData3, 'Lowest F1 Score per Filter', 'lowChart', formatter);                 
-                             }
-                         });
-                     });
-                 }).done(function() {
-                     
-                     slidr.create('fscore', {
-                         breadcrumbs: true,
-                         direction: 'horizontal',
-                         keyboard: true,
-                         overflow: true,
-                         transition: 'fade',
-                         theme: '#222',
-                         fade: true
-                     }).start();
-                 });
-
-       $.getJSON('${filtermetadata}', {ajax : false},
-                 function(data) {
-                     var filters = data.map(function(currentValue) {
-                         return currentValue.filter;
-                     });
-
-                     var formatter = {
-                         formatter: {
-                             formatter: function() {
-                                 return this.value + " Entities"
-                             }},
-                         pointFormat: '<span style="color:{series.color}">{series.name}: {point.y} Entities <br/>'
-                     };
-
-                     var t_filter = []
-                     var p_filter = [];
-                     var h_filter = [];
-                     for (var i = 0; i < data.length; i++) {
-                         var currentValue = data[i];
-                         if (currentValue.filter.indexOf('Hitsscore') > -1) {
-                             h_filter.push({
-                                 name: currentValue.filter,
-                                 y: currentValue.amount
-                             });
-                         } else if(currentValue.filter.indexOf('Pagerank') > -1) {
-                             p_filter.push({
-                                 name: currentValue.filter,
-                                 y: currentValue.amount
-                             });
-                         } else {
-                             t_filter.push({
-                                 name: currentValue.filter,
-                                 y: currentValue.amount
-                             });
-                         }
-                     }
-                     
-                      var amounts = [{
-                         type: 'pie',
-                         name: 'Amount of Entities',
-                         data: t_filter
-                     }];
-
-                     var sum = t_filter.reduce(function(previousValue, currentValue) {
-                         return previousValue + parseInt(currentValue.y);
-                     }, 0);
-                     var filternames = h_filter.map(function(currentValue) {
-                        return h_filter.name 
-                     });
-                     drawFilterChart(filternames, amounts, 'Amount of Entities per Type Filter (Sum ' + sum + ')', 'entities1', formatter);
-
-
-                      var amounts = [{
-                         type: 'pie',
-                         name: 'Amount of Entities',
-                         data: h_filter
-                     }];
-
-                     var sum = h_filter.reduce(function(previousValue, currentValue) {
-                         return previousValue + parseInt(currentValue.y);
-                     }, 0);
-                     var filternames = h_filter.map(function(currentValue) {
-                        return h_filter.name 
-                     });
-                     drawFilterChart(filternames, amounts, 'Amount of Entities per Hitscore Filter (Sum ' + sum + ')', 'entities2', formatter);
-                     
-
-
-                      var amounts = [{
-                         type: 'pie',
-                         name: 'Amount of Entities',
-                         data: p_filter
-                     }];
-
-                     var sum = p_filter.reduce(function(previousValue, currentValue) {
-                         return previousValue + parseInt(currentValue.y);
-                     }, 0);
-                     var filternames = h_filter.map(function(currentValue) {
-                        return h_filter.name 
-                     });
-                     drawFilterChart(filternames, amounts, 'Amount of Entities per Pagerank Filter (Sum ' + sum + ')', 'entities3', formatter);
-
-
-
-                     console.log(data);
-                     var chartData = [];
-                     for (var i = 0; i < data[0].datasets.length; i++) {
-                         var seriesData = [];
-                         for (var j = 0; j < data.length; j++) {
-                             seriesData.push(data[j].values[i]);
-                         }
-                         seriesData.unshift(data[0].datasets[i]);
-                         chartData.push(seriesData);
-                     }
-                     console.log(chartData);
-                     var amounts = chartData.map(function(currentValue) {
-                         return {
-                             name: currentValue[0],
-                             type: 'spline',
-                             data: currentValue.slice(1, currentValue.length)
-                         };
-                     });
-                     console.log(amounts);
-                     drawFilterChart(filters, amounts, 'Amount of Entities per Dataset', 'metadata1', formatter);
-                 
-
-                     
-                 }).done(function() {
-
-                    
-       */
-   };
-
+         $.getJSON('${ambiguitySurface}',
+                   function (data) {
+                       console.log(data);
+                   });
+     };
+     
      // remove diagrams and tables
      function clearDiagrams() {
          $('#resultsChartBody').html('<div id="resultsChart" class="chartDiv"></div>');
@@ -613,31 +477,31 @@
      };
      
      $(document).ready(function () {
-       //++++++++++++
-       //creating the radioboxes
-       //++++++++++++
-       loadExperimentTypes();
-       
-	     $("#show").click(function (e) {
-	         if (isFilteredExperiment()) {
-               if ($('#filter input:checked').val() == "Compare") {
-                   console.log("compare");
-                   clearDiagrams();
-                   compareChart();
-               } else if ($('#filter input:checked').val() == "Overview") {
-                   console.log("overview");
-                   clearDiagrams();
-                   overviewChart();
-               } else {
-                   console.log("else");
-                   clearDiagrams();
-                   loadExperiment();
-               }
-           } else {
-               clearDiagrams();
-               loadExperiment();
-           }
-       });
+         //++++++++++++
+         //creating the radioboxes
+         //++++++++++++
+         loadExperimentTypes();
+         
+	       $("#show").click(function (e) {
+	           if (isFilteredExperiment()) {
+                 if ($('#filter input:checked').val() == "Compare") {
+                     console.log("compare");
+                     clearDiagrams();
+                     compareChart();
+                 } else if ($('#filter input:checked').val() == "Overview") {
+                     console.log("overview");
+                     clearDiagrams();
+                     overviewChart();
+                 } else {
+                     console.log("else");
+                     clearDiagrams();
+                     loadExperiment();
+                 }
+             } else {
+                 clearDiagrams();
+                 loadExperiment();
+             }
+         });
      });
     </script>  
 </body>
