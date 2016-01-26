@@ -1,10 +1,7 @@
 package org.aksw.gerbil.filter;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
+import com.google.common.collect.*;
 import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.exceptions.GerbilException;
 import org.aksw.gerbil.filter.wrapper.FilterWrapper;
@@ -28,6 +25,10 @@ import java.util.*;
  * Some metrics are: <br/>
  * - number of entities
  * - amount of entities per filter per dataset
+ * - relative amount of entities per dataset and filter
+ * - annotions per word
+ * - ambiguity of entities and surface forms
+ * - diversity of entities
  * <p/>
  * <br/>
  * This also can be used for precaching all dataset goldstandards.
@@ -61,6 +62,14 @@ public class MetadataUtils {
 
     private static final String ENTITIES_AMBIGUITY = "Entity Ambiguity";
 
+    private static final String ALL_DATASETS = "All Datasets";
+
+    // row: entity, column: dataset, cell: duplicate count
+    private Table<String, String, HashSet<String>> entityDiversity;
+
+    // row: surfaceform, column: dataset, cell: duplicate count
+    private Table<String, String, HashSet<String>> surfaceDiversity;
+
     private int amountOfEntities = 0;
 
     private int amountOfWords = 0;
@@ -86,6 +95,7 @@ public class MetadataUtils {
         createFilterMetadata(datasets, holder);
         calculateDensity(datasets);
         calculateAmbiguity(datasets);
+        calculateDiversity(datasets);
     }
 
     /**
@@ -172,17 +182,7 @@ public class MetadataUtils {
     @SuppressWarnings("rawtypes")
     public JSONObject getAmbiguityOfEntitiesAsJson() {
         JSONObject ambig = new JSONObject();
-        JSONArray a = new JSONArray();
-        for (String row : ambiguityEntities.rowKeySet()) {
-            if (ambiguityEntities.contains(row, ENTITIES_AMBIGUITY)) {
-                JSONObject o = new JSONObject();
-                o.put("entity", row);
-                o.putAll(ambiguityEntities.row(row));
-                a.add(o);
-            }
-        }
-
-        ambig.put("data", a);
+        ambig.put("data", convertAmbiguityTable(ambiguityEntities, ENTITIES_AMBIGUITY, "entity"));
         ambig.put("medium", calculateAmbiguityMedium(ambiguityEntities, ENTITIES_AMBIGUITY));
         return ambig;
     }
@@ -196,22 +196,115 @@ public class MetadataUtils {
         return ambiguitySurface;
     }
 
+    /**
+     * Gets ambiguity of surface as json.
+     *
+     * @return the ambiguity of surface as json
+     */
     @SuppressWarnings("rawtypes")
     public JSONObject getAmbiguityOfSurfaceAsJson() {
         JSONObject ambig = new JSONObject();
+        ambig.put("data", convertAmbiguityTable(ambiguitySurface, SURFACE_AMBIGUITY, "surface"));
+        ambig.put("medium", calculateAmbiguityMedium(ambiguitySurface, SURFACE_AMBIGUITY));
+        return ambig;
+    }
+
+
+    /**
+     * Gets entity diversity table.
+     *
+     * @return the entity diversity
+     */
+    public Table<String, String, HashSet<String>> getEntityDiversity() {
+        return entityDiversity;
+    }
+
+    /**
+     * Gets entity diversity table as json.
+     *
+     * @return the entity diversity as json
+     */
+    @SuppressWarnings("rawtypes")
+    public JSONObject getEntityDiversityAsJson() {
+        JSONObject div = new JSONObject();
         JSONArray a = new JSONArray();
-        for (String row : ambiguitySurface.rowKeySet()) {
-            if (ambiguitySurface.contains(row, SURFACE_AMBIGUITY)) {
+        for (String row : entityDiversity.rowKeySet()) {
+            if (ambiguityEntities.contains(row, ENTITIES_AMBIGUITY)) {
                 JSONObject o = new JSONObject();
                 o.put("entity", row);
-                o.putAll(ambiguitySurface.row(row));
+
+                for (String s : entityDiversity.row(row).keySet()) {
+                    double diversity = (double)entityDiversity.get(row, s).size() / (double)ambiguityEntities.get(row, ENTITIES_AMBIGUITY);
+                    o.put(s, diversity);
+                }
                 a.add(o);
             }
         }
 
-        ambig.put("data", a);
-        ambig.put("medium", calculateAmbiguityMedium(ambiguitySurface, SURFACE_AMBIGUITY));
-        return ambig;
+        div.put("data", a);
+        div.put("medium", calculateMediumDiversity(entityDiversity, ambiguityEntities.column(ENTITIES_AMBIGUITY)));
+        return div;
+    }
+
+    public Table<String, String, HashSet<String>> getSurfaceDiversity() {
+        return surfaceDiversity;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public JSONObject getSurfaceDiversityAsJson() {
+        JSONObject div = new JSONObject();
+        JSONArray a = new JSONArray();
+        for (String row : surfaceDiversity.rowKeySet()) {
+            if (ambiguitySurface.contains(row, SURFACE_AMBIGUITY)) {
+                JSONObject o = new JSONObject();
+                o.put("entity", row);
+
+                for (String s : surfaceDiversity.row(row).keySet()) {
+                    double diversity = (double)surfaceDiversity.get(row, s).size() / (double)ambiguitySurface.get(row, SURFACE_AMBIGUITY);
+                    o.put(s, diversity);
+                }
+                a.add(o);
+            }
+        }
+
+        div.put("data", a);
+        div.put("medium", calculateMediumDiversity(surfaceDiversity, ambiguitySurface.column(SURFACE_AMBIGUITY)));
+        return div;
+    }
+
+    // medium_diversity = (sum (#used_sf / #sf) / #rows)
+    @SuppressWarnings("rawtypes")
+    private JSONObject calculateMediumDiversity(Table<String, String, HashSet<String>> diversityTable,
+                                                Map<String, Integer> ambiguity) {
+        JSONObject o = new JSONObject();
+        for (String column : diversityTable.columnKeySet()) {
+            int counter = 0;
+            double diversity = 0.0;
+
+            for (String row : diversityTable.column(column).keySet()) {
+                if (ambiguity.containsKey(row)) {
+                    counter++;
+                    diversity += (double)diversityTable.get(row, column).size() / (double)ambiguity.get(row);
+                }
+            }
+            diversity = diversity / (double)counter;
+            o.put(column, diversity);
+        }
+        return o;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private JSONArray convertAmbiguityTable(Table<String, String, Integer> table, String ambiguityColumn, String name) {
+        JSONArray a = new JSONArray();
+        for (String row : table.rowKeySet()) {
+            if (table.contains(row, ambiguityColumn)) {
+                JSONObject o = new JSONObject();
+                o.put(name, row);
+                o.putAll(table.row(row));
+                a.add(o);
+            }
+        }
+        return a;
     }
 
     // calculate medium ambiguity for every column
@@ -226,14 +319,14 @@ public class MetadataUtils {
             double medium = 0.0;
             int counter = 0;
             Map<String, Integer> columnEntries = table.column(column);
-
             for (String row : columnEntries.keySet()) {
                 if (table.contains(row, ambiguityColumn)) {
+
                     counter++;
                     medium += table.get(row, ambiguityColumn);
                 }
             }
-            medium = medium / counter;
+            medium = medium / (double)counter;
             o.put(column, medium);
         }
         return o;
@@ -242,7 +335,6 @@ public class MetadataUtils {
     // load and hold datasets for different inspections
     private Multimap<String, Document> preloadDatasets(AdapterList<DatasetConfiguration> configurations) {
         Multimap<String, Document> goldStandards = ArrayListMultimap.create();
-
         for (DatasetConfiguration conf : configurations.getConfigurations()) {
             // ignore OKE Task 2
             if (StringUtils.contains(conf.getName(), "OKE 2015 Task 2")) {
@@ -314,6 +406,68 @@ public class MetadataUtils {
         }
     }
 
+    private void calculateDiversity(Multimap<String, Document> datasets) {
+        LOGGER.info("Calculating diversity");
+        entityDiversity = HashBasedTable.create();
+        surfaceDiversity = HashBasedTable.create();
+
+        for (String datasetName : datasets.keySet()) {
+            for (Document d : datasets.get(datasetName)) {
+                for (Marking m : d.getMarkings()) {
+
+                    // get all entities and it's corresponding surface forms
+                    if (m instanceof Meaning) {
+                        Set<String> uris = ((Meaning) m).getUris();
+                        if (m instanceof Span) {
+                            String t = StringUtils.substring(d.getText(), ((Span) m).getStartPosition(),
+                                    ((Span) m).getStartPosition() + ((Span) m).getLength());
+                            t = StringUtils.replace(t, " ", "_").toLowerCase();
+
+                            for (String uri : uris) {
+                                if (!StringUtils.contains(uri, "IITB")) {
+                                    String shortUri = getEntityName(uri);
+                                    // handle empty cells
+                                    if (entityDiversity.contains(shortUri, datasetName)) {
+                                        entityDiversity.get(shortUri, datasetName).add(t);
+                                    } else {
+                                        entityDiversity.put(shortUri, datasetName, new HashSet<String>());
+                                        entityDiversity.get(shortUri, datasetName).add(t);
+                                    }
+                                    break;
+                                }
+                            }
+
+                            if (!surfaceDiversity.contains(t, datasetName)) {
+                                surfaceDiversity.put(t, datasetName, new HashSet<String>());
+                            }
+
+                            // add all short uris and IITB
+                            for (String uri : uris) {
+                                if (!StringUtils.contains(uri, "IITB")) {
+                                    surfaceDiversity.get(t, datasetName).add(getEntityName(uri));
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        addToAllDatasets(surfaceDiversity);
+        addToAllDatasets(entityDiversity);
+    }
+
+    private void addToAllDatasets(Table<String, String, HashSet<String>> table) {
+        for (String row : table.rowKeySet()) {
+            HashSet<String> forms = new HashSet<>();
+            for (String column : table.row(row).keySet()) {
+                forms.addAll(table.get(row, column));
+            }
+            table.put(row, ALL_DATASETS, forms);
+        }
+    }
+
+
     private void fillSurfaceAmbiguityTalbe(Multimap<String, Document> datasets,
                                            Table<String, String, Integer> ambiguitySurface) {
         for (String datasetName : datasets.keySet()) {
@@ -329,9 +483,9 @@ public class MetadataUtils {
             if (m instanceof Span) {
                 String t = StringUtils.substring(text, ((Span) m).getStartPosition(),
                         ((Span) m).getStartPosition() + ((Span) m).getLength());
-                t = StringUtils.replace(t, " ", "_");
+                t = StringUtils.replace(t, " ", "_").toLowerCase();
                 ambiguitySurface.put(t, column, 1);
-                ambiguitySurface.put(t, "All Datasets", 1);
+                ambiguitySurface.put(t, ALL_DATASETS, 1);
             }
             // ignore the rest of entities
         }
@@ -343,7 +497,6 @@ public class MetadataUtils {
         // check for every entity if there is a match wihtin the ambiguity tables
         for (String datasetName : datasets.keySet()) {
             List<List<Marking>> goldStandard = getGoldStandard(datasets.get(datasetName));
-            //System.out.println("adding column " + datasetName);
             for (List<Marking> entities : goldStandard) {
                 checkEntitiesAmbiguity(entities, datasetName, ambiguityEntities);
             }
@@ -367,17 +520,11 @@ public class MetadataUtils {
     // add found entities to the table if there is a match
     private void addEntitiesToTable(String column, Table<String, String, Integer> table, Set<String> uris) {
         for (String uri : uris) {
-            String shortUri = shortenUri(uri);
+            String shortUri = getEntityName(uri);
             table.put(shortUri, column, 1);
-            table.put(shortUri, "All Datasets", 1);
+            table.put(shortUri, ALL_DATASETS, 1);
         }
     }
-
-    // returns the part after the last slash
-    private String shortenUri(String uri) {
-        return StringUtils.substringAfterLast(uri, "/");
-    }
-
 
     // calculates the quotient of annotations or entities per dataset based on the amount of words in this dataset.
     private double calculateAnnotationsPerWord(Collection<Document> documents, int amountOfAnnotations) {
@@ -417,9 +564,18 @@ public class MetadataUtils {
             Integer ambiguity = Integer.decode(parts.get(0));
             String entity = parts.get(1).replace("<", "").replace(">", "");
             // store only entities we found in our datasets
-            if (table.containsRow(entity)) {
+            if (table.containsRow(entity) || table.containsRow(entity.toLowerCase())) {
                 table.put(entity, columnName, ambiguity);
             }
+        }
+    }
+
+    // treat entitiy names correctly
+    private String getEntityName(String s) {
+        if (StringUtils.contains(s, "sentence-")) {
+            return StringUtils.substringAfterLast(s, "sentence-");
+        } else {
+            return StringUtils.substringAfterLast(s, "/");
         }
     }
 }

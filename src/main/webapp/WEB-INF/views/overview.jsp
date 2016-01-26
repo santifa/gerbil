@@ -73,6 +73,8 @@
         <c:url var="filtermetadata" value="/filtermetadata" />
         <c:url var="ambiguityEntities" value="/ambiguityEntities" />
         <c:url var="ambiguitySurface" value="/ambiguitySurface" />
+        <c:url var="diversityEntities" value="/diversityEntities" />
+        <c:url var="diversitySurface" value="/diversitySurface" />
         
 		    <%@include file="navbar.jsp"%>
 		    <h1>GERBIL Experiment Overview</h1>
@@ -302,26 +304,8 @@
                  drawSpiderChart(chartData, categories, "compare" + i, data[i].filter);
              }
              
-         }).done(function () {
-             // initalize compare slides
-             slidr.create('resultsChart', {
-                 breadcrumbs: true,
-                 keyboard: true,
-                 overflow: true,
-                 transition: 'fade',
-                 theme: '#222',
-                 fade: true
-             }).start();
-             
-             slidr.create('compareChart', {
-                 breadcrumbs: true,
-                 keyboard: true,
-                 overflow: true,
-                 transition: 'fade',
-                 theme: '#222',
-                 fade: true
-             }).start(); 
-           
+             createSlidr('resultsChart');
+             createSlidr('compareChart');
          });
      };
      
@@ -331,7 +315,9 @@
                                    + '<div id="entityMetadata" style="display: inline"></div>'
                                    + '<div id="words" style="display: inline; width: 900px"></div>'
                                    + '<div id="ambiguityEntities" style="display: inline"></div>'
-                                   + '<div id="ambiguitySurface" style="display: inline"></div>');
+                                   + '<div id="ambiguitySurface" style="display: inline"></div>'
+                                   + '<div id="diversityEntities" style="display: inline"></div>'
+                                   + '<div id="diversitySurface" style="display: inline"></div>');
          $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>');
          $('#entities').html('<div id="entitiesabs1" data-slidr="1" style="width: 900px"></div>'
                            + '<div id="entitiesabs2" data-slidr="2" style="width: 900px"></div>'
@@ -339,79 +325,11 @@
                            + '<div id="entitiesabs4" data-slidr="4" style="width: 900px"></div>');
          $('#entityMetadata').html('<div id="entitiesrel" style="width: 900px"></div>'
                                  + '<table id="relTable" class="table table-hover table-condensed"><thead></thead><tbody></tbody></div>');
-         
          $('#resultsTable').html('<thead></thead><tbody></tbody');
      };
 
-// shows the ambiguity of datasets
-function drawAmbiguityChart(categories, data, name, tagname) {
-    $('#' + tagname).highcharts({
-        chart: {
-            type: 'column',
-            widht: 700,
-            zoomType: 'x',
-            panning: true,
-            panKey: 'shift'
-        },
-        credits: {enabled: false},
-        title: {text: name},
-        xAxis:{
-            title: 'Datasets',
-            categories: categories
-        },
-        yAxis: {
-            title: 'Ambiguity of Surface Forms',
-        },
-        series: data,
-        tooltip: {
-            borderWidth: 0
-        }
-    });  
-};
 
 
-     function drawEntitiesAmbiguityCharts(data) {
-         var html = '<div id="entitiesAmbigMedium" data-slidr="med" style="width: 900px"></div>'; 
-         var datasets = []
-        
-         // create medium average and collect dataset names
-         var values = [];
-         for (var key in data.medium) {
-             datasets.push(key);
-             values.push(parseFloat(data.medium[key].toFixed(4)));
-         }
-         var mediumSeries = [{
-             name: 'Medium Ambiguity',
-             data: values
-         }];
-         // create chart divs with slidr id's
-         for (var i = 0; i < datasets.length; i++) {
-             html += '<div id="entitiesAmbig' + i + '" data-slidr="' + i + '" style="width: 900px"></div>';             
-         }
-         $('#ambiguityEntities').html(html);
-
-         drawAmbiguityChart(datasets, mediumSeries, 'Medium Entity Ambiguity', 'entitiesAmbigMedium');
-
-         // creat all single charts
-         for (var i = 0; i < datasets.length; i++) {
-             var categories = [];
-             values = [];
-             for (var j = 0; j < data.data.length; j++) {
-                 if (data.data[j].hasOwnProperty(datasets[i])) {
-                     categories.push(data.data[j].entity);
-                     values.push(data.data[j]['Entity Ambiguity']);
-                 }
-             }
-
-             var series = [{
-                 name: datasets[i] + ' Ambiguity',
-                 data: values
-             }];
-             drawAmbiguityChart(categories, series, datasets[i] + ' Entity Ambiguity', 'entitiesAmbig' + i);
-         }
-         
-
-     };
 
      function overviewChart() {
          prepareOverviewCharts();
@@ -424,38 +342,50 @@ function drawAmbiguityChart(categories, data, name, tagname) {
              drawAbsoluteEntityCharts(data.filters, data.overallAmount);
              drawRelativeEntityChart(data.filters, data.overallAmount);
              drawMetadataCharts(data);
-      
-             slidr.create('entities', {
-                 breadcrumbs: true,
-                 direction: 'horizontal',
-                 keyboard: true,
-                 overflow: true,
-                 transition: 'fade',
-                 theme: '#222',
-                 fade: true
-             }).start();
+             createSlidr('entities');
          });
 
          $.getJSON('${ambiguityEntities}',
                    function (data) {
                        drawEntitiesAmbiguityCharts(data);
-
-                       slidr.create('ambiguityEntities', {
-                           breadcrumbs: true,
-                           direction: 'horizontal',
-                           keyboard: true,
-                           overflow: true,
-                           transition: 'fade',
-                           theme: '#222',
-                           fade: true
-                       }).start();
+                       createSlidr('ambiguityEntities');
                    });
 
          $.getJSON('${ambiguitySurface}',
                    function (data) {
                        console.log(data);
+                       drawSurfaceAmbiguityCharts(data);
+                       createSlidr('ambiguitySurface');
+                 });
+        
+         $.getJSON('${diversityEntities}',
+                   function (data) {
+                       drawEntitiesDiversityCharts(data);
+                       createSlidr('diversityEntities');
+                   });
+
+
+         $.getJSON('${diversitySurface}',
+                   function (data) {
+                       console.log(data);
+                       drawSurfaceDiversityCharts(data);
+                       createSlidr('diversitySurface');
                    });
      };
+
+     function createSlidr(name) {
+         slidr.create(name, {
+             breadcrumbs: true,
+             direction: 'horizontal',
+             keyboard: true,
+             overflow: true,
+             transition: 'fade',
+             theme: '#222',
+             fade: true
+         }).start();  
+     };
+
+
      
      // remove diagrams and tables
      function clearDiagrams() {

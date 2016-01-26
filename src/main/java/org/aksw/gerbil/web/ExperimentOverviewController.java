@@ -143,7 +143,17 @@ public class ExperimentOverviewController {
         return metadataUtils.getAmbiguityOfSurfaceAsJson();
     }
 
-        private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {
+    @RequestMapping("/diversityEntities")
+    public @ResponseBody JSONObject diversityEntities() {
+        return metadataUtils.getEntityDiversityAsJson();
+    }
+
+    @RequestMapping("/diversitySurface")
+    public @ResponseBody JSONObject diversitySurface() {
+        return metadataUtils.getEntityDiversityAsJson();
+    }
+
+    private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {
         return StringUtils.isEmpty(filtername) || isNotFilteredExperiment(eType);
     }
 
