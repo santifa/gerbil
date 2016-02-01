@@ -74,6 +74,8 @@ public class MetadataUtils {
 
     private int amountOfWords = 0;
 
+    private HashSet<DatasetConfiguration> alreadyProcessed;
+
     /**
      * Instantiates a new Metadata utils.
      * The metadata utils creates and holds different measurements.
@@ -84,6 +86,7 @@ public class MetadataUtils {
      */
     public MetadataUtils(AdapterList<DatasetConfiguration> configurations, FilterHolder holder) {
         LOGGER.info("Creating metadata...");
+        alreadyProcessed = new HashSet<>();
         Multimap<String, Document> datasets = preloadDatasets(configurations);
 
         // Row: Filter, Column: Dataset
@@ -94,8 +97,39 @@ public class MetadataUtils {
 
         createFilterMetadata(datasets, holder);
         calculateDensity(datasets);
+
+        // start with amount of all entities and 3 columns more see -> ambiguityData definition
+        int rowSize = (int)Math.round(amountOfEntities * 1.3);
+        int columnsSize = (int)Math.round((datasets.keySet().size() + 2) * 1.3);
+        ambiguityEntities = HashBasedTable.create(rowSize, columnsSize);
+        ambiguitySurface = HashBasedTable.create(rowSize, columnsSize);
         calculateAmbiguity(datasets);
+
+        entityDiversity = HashBasedTable.create();
+        surfaceDiversity = HashBasedTable.create();
         calculateDiversity(datasets);
+        alreadyProcessed.addAll(configurations.getConfigurations());
+    }
+
+    /**
+     * Process a single dataset and add the created metadata to
+     * the overall metadata collection.
+     *
+     * @param conf   the conf
+     * @param holder the holder
+     */
+    public void processDataset(DatasetConfiguration conf, FilterHolder holder) {
+        LOGGER.info("Processing dataset " + conf.getName());
+        Multimap<String, Document> dataset  = preloadDatasets(new AdapterList<>(Collections.singletonList(conf)));
+        createFilterMetadata(dataset, holder);
+        calculateDensity(dataset);
+        calculateAmbiguity(dataset);
+        calculateDiversity(dataset);
+        alreadyProcessed.add(conf);
+    }
+
+    public boolean isAlreadyProcess(DatasetConfiguration conf) {
+        return alreadyProcessed.contains(conf);
     }
 
     /**
@@ -384,13 +418,6 @@ public class MetadataUtils {
 
     private void calculateAmbiguity(Multimap<String, Document> datasets) {
         LOGGER.info("Calculating ambiguity");
-        // start with amount of all entities and 3 columns more see -> ambiguityData definition
-        int rowSize = (int)Math.round(amountOfEntities * 1.3);
-        int columnsSize = (int)Math.round((datasets.keySet().size() + 2) * 1.3);
-        ambiguityEntities = HashBasedTable.create(rowSize, columnsSize);
-        ambiguitySurface = HashBasedTable.create(rowSize, columnsSize);
-
-
         File ambiguityEntitiesFile = new File("gerbil_data/resources/filter/ambiguity_e");
         File ambiguitySurfaceFile = new File("gerbil_data/resources/filter/ambiguity_sf");
         fillEntitiesAmbiguityTable(datasets, ambiguityEntities);
@@ -408,9 +435,6 @@ public class MetadataUtils {
 
     private void calculateDiversity(Multimap<String, Document> datasets) {
         LOGGER.info("Calculating diversity");
-        entityDiversity = HashBasedTable.create();
-        surfaceDiversity = HashBasedTable.create();
-
         for (String datasetName : datasets.keySet()) {
             for (Document d : datasets.get(datasetName)) {
                 for (Marking m : d.getMarkings()) {

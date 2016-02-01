@@ -21,12 +21,14 @@ import org.aksw.gerbil.Experimenter;
 import org.aksw.gerbil.database.ExperimentDAO;
 import org.aksw.gerbil.database.ResultNameToIdMapping;
 import org.aksw.gerbil.dataid.DataIDGenerator;
+import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskConfiguration;
 import org.aksw.gerbil.datatypes.ExperimentTaskResult;
 import org.aksw.gerbil.datatypes.ExperimentType;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.MetadataUtils;
 import org.aksw.gerbil.filter.wrapper.FilterWrapper;
 import org.aksw.gerbil.filter.wrapper.IdentityWrapper;
 import org.aksw.gerbil.matching.Matching;
@@ -104,6 +106,9 @@ public class MainController {
     @Autowired
     private FilterFactory filterFactory;
 
+    @Autowired
+    private MetadataUtils metadataUtils;
+
     // DataID URL is generated automatically in the experiment method?
     private DataIDGenerator dataIdGenerator;
 
@@ -172,10 +177,14 @@ public class MainController {
         ExperimentType expType = ExperimentType.valueOf(type);
         for (String annotator : annotators) {
             for (String dataset : datasets) {
-                    configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
-                            adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), IdentityWrapper.CONF);
-                    LOGGER.debug("Created config: {}", configs[count]);
-                    ++count;
+                DatasetConfiguration c = adapterManager.getDatasetConfig(dataset, expType);
+                if (!metadataUtils.isAlreadyProcess(c)) {
+                    metadataUtils.processDataset(c, filterFactory.getFilters());
+                }
+                configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),
+                        adapterManager.getDatasetConfig(dataset, expType), expType, getMatching(matching), IdentityWrapper.CONF);
+                LOGGER.debug("Created config: {}", configs[count]);
+                ++count;
             }
         }
 

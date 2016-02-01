@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Controller
@@ -62,13 +61,6 @@ public class ExperimentOverviewController {
 																				 * "corr. based on # datasets"
 																				 */};
 
-    @PostConstruct
-    public void init() {
-        // create metadata for later usage
-        // also cache datasets used later for faster filtering
-        metadataUtils = new MetadataUtils(datasets, filterFactory.getFilters());
-    }
-
 	@Autowired
 	@Qualifier("experimentDAO")
 	private ExperimentDAO dao;
@@ -84,6 +76,7 @@ public class ExperimentOverviewController {
     @Autowired
     private FilterFactory filterFactory;
 
+    @Autowired
     private MetadataUtils metadataUtils;
 
     @RequestMapping("/experimentoverview")
@@ -150,7 +143,7 @@ public class ExperimentOverviewController {
 
     @RequestMapping("/diversitySurface")
     public @ResponseBody JSONObject diversitySurface() {
-        return metadataUtils.getEntityDiversityAsJson();
+        return metadataUtils.getSurfaceDiversityAsJson();
     }
 
     private boolean isNotFilteredExperiment(String filtername, ExperimentType eType) {

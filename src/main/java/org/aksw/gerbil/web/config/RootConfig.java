@@ -19,9 +19,11 @@ package org.aksw.gerbil.web.config;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import org.aksw.gerbil.config.GerbilConfiguration;
+import org.aksw.gerbil.dataset.DatasetConfiguration;
 import org.aksw.gerbil.evaluate.EvaluatorFactory;
 import org.aksw.gerbil.execute.AnnotatorOutputWriter;
 import org.aksw.gerbil.filter.FilterFactory;
+import org.aksw.gerbil.filter.MetadataUtils;
 import org.aksw.gerbil.filter.impl.FileFilter;
 import org.aksw.gerbil.filter.impl.PopularityFilter;
 import org.aksw.gerbil.filter.impl.SparqlFilter;
@@ -37,6 +39,8 @@ import org.aksw.simba.topicmodeling.concurrent.reporter.Reporter;
 import org.apache.commons.configuration.ConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -83,8 +87,10 @@ public class RootConfig {
     private static final String ANNOTATOR_OUTPUT_WRITER_DIRECTORY_KEY = "org.aksw.gerbil.execute.AnnotatorOutputWriter.outputDirectory";
 
     private static final String FILTER = "org.aksw.gerbil.util.filter.enabled";
-    private static final String FILTER_SERVICE = "org.aksw.gerbil.util.filter.service";
 
+    @Autowired
+    @Qualifier("datasets")
+    private AdapterList<DatasetConfiguration> datasets;
 
     // {
     // // FIXME this is an extremely ugly workaround to be able to log the
@@ -178,6 +184,13 @@ public class RootConfig {
         } else {
             return new FilterFactory(true);
         }
+    }
+
+    public @Bean MetadataUtils createMetadataUtils() {
+        // create metadata for later usage
+        // also cache datasets used later for faster filtering
+        return new MetadataUtils(datasets, createFilterFactory().getFilters());
+
     }
 
     public static AnnotatorOutputWriter getAnnotatorOutputWriter() {
