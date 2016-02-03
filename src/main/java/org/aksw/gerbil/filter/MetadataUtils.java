@@ -74,6 +74,8 @@ public class MetadataUtils {
 
     private int amountOfWords = 0;
 
+    private HashMap<String, Double> amountOfEmptyDocuments;
+
     private HashSet<DatasetConfiguration> alreadyProcessed;
 
     /**
@@ -89,6 +91,7 @@ public class MetadataUtils {
         alreadyProcessed = new HashSet<>();
         Multimap<String, Document> datasets = preloadDatasets(configurations);
 
+        amountOfEmptyDocuments = new HashMap<>();
         // Row: Filter, Column: Dataset
         entitiesPerFilterAndDataset = HashBasedTable.create(holder.getFilterList().size(),
                 datasets.size());
@@ -96,6 +99,7 @@ public class MetadataUtils {
         annotationsPerWords = new HashMap<>(size);
 
         createFilterMetadata(datasets, holder);
+        findEmptyDocuments(datasets);
         calculateDensity(datasets);
 
         // start with amount of all entities and 3 columns more see -> ambiguityData definition
@@ -122,6 +126,7 @@ public class MetadataUtils {
         LOGGER.info("Processing dataset " + conf.getName());
         Multimap<String, Document> dataset  = preloadDatasets(new AdapterList<>(Collections.singletonList(conf)));
         createFilterMetadata(dataset, holder);
+        findEmptyDocuments(dataset);
         calculateDensity(dataset);
         calculateAmbiguity(dataset);
         calculateDiversity(dataset);
@@ -150,6 +155,12 @@ public class MetadataUtils {
      */
     public Map<String, Map<String, Integer>> getAmountOfEntitiesPerFilter() {
         return entitiesPerFilterAndDataset.rowMap();
+    }
+
+    public JSONObject getAmountOfEmptyDocsAsJson() {
+        JSONObject o = new JSONObject();
+        o.putAll(amountOfEmptyDocuments);
+        return o;
     }
 
     /**
@@ -559,6 +570,22 @@ public class MetadataUtils {
         }
         amountOfWords += words;
         return (double)amountOfAnnotations / (double)words;
+    }
+
+    private void findEmptyDocuments(Multimap<String, Document> datasets) {
+        LOGGER.info("Searching for empty documents in datasets.");
+        for (String dataset : datasets.keySet()) {
+            int docs = datasets.get(dataset).size();
+            int emptydocs = 0;
+
+            for (Document d : datasets.get(dataset)) {
+                if (d.getMarkings().isEmpty()) {
+                    emptydocs++;
+                }
+            }
+
+            amountOfEmptyDocuments.put(dataset, (double) emptydocs / (double) docs);
+        }
     }
 
     // collect goldstandard from documents

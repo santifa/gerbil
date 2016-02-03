@@ -114,6 +114,7 @@ public class ExperimentOverviewController {
         JSONObject o = new JSONObject();
         o.put("overallAmount", metadataUtils.getAmountOfEntities());
         o.put("filters", metadataUtils.getAmountOfEntitiesPerFilterAsJson());
+        o.put("empty", metadataUtils.getAmountOfEmptyDocsAsJson());
         o.put("words", metadataUtils.getAnnotationsPerWordAsJson());
 
         // add all experiment scores

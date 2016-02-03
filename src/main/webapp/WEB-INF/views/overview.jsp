@@ -16,7 +16,7 @@
     <script type="text/javascript" src="/gerbil/webResources/js/highcharts.js"></script>
     <script type="text/javascript" src="/gerbil/webResources/js/highcharts-more.js"></script>
     <script type="text/javascript" src="/gerbil/webResources/js/charts.js""></script>
-    <script src="http://code.highcharts.com/highcharts-3d.js"></script>
+    <script type="text/javascript" src="/gerbil/webResources/js/highcharts-3d.js"></script>
 </head>
 <style>
  table {
@@ -310,15 +310,15 @@
      };
      
      function prepareOverviewCharts() {
-         $('#resultsChartBody').html('<div id="fscore" style="display: inline"></div>'
+         $('#resultsChartBody').html('<div id="fscore" style="display: inline; width: 900px"></div>'
                                    + '<div id="entities" style=display: inline></div>'
                                    + '<div id="entityMetadata" style="display: inline"></div>'
+                                   + '<div id="emptydocs" style="display: inline; width: 900px"></div>'
                                    + '<div id="words" style="display: inline; width: 900px"></div>'
                                    + '<div id="ambiguityEntities" style="display: inline"></div>'
                                    + '<div id="ambiguitySurface" style="display: inline"></div>'
                                    + '<div id="diversityEntities" style="display: inline"></div>'
                                    + '<div id="diversitySurface" style="display: inline"></div>');
-         $('#fscore').html('<div id="mediumChart" data-slidr="1" style="width: 900px"></div>');
          $('#entities').html('<div id="entitiesabs1" data-slidr="1" style="width: 900px"></div>'
                            + '<div id="entitiesabs2" data-slidr="2" style="width: 900px"></div>'
                            + '<div id="entitiesabs3" data-slidr="3" style="width: 900px"></div>'
@@ -353,7 +353,6 @@
 
          $.getJSON('${ambiguitySurface}',
                    function (data) {
-                       console.log(data);
                        drawSurfaceAmbiguityCharts(data);
                        createSlidr('ambiguitySurface');
                  });
@@ -367,7 +366,6 @@
 
          $.getJSON('${diversitySurface}',
                    function (data) {
-                       console.log(data);
                        drawSurfaceDiversityCharts(data);
                        createSlidr('diversitySurface');
                    });
