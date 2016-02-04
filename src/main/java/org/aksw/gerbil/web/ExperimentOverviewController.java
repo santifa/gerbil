@@ -116,13 +116,6 @@ public class ExperimentOverviewController {
         o.put("filters", metadataUtils.getAmountOfEntitiesPerFilterAsJson());
         o.put("empty", metadataUtils.getAmountOfEmptyDocsAsJson());
         o.put("words", metadataUtils.getAnnotationsPerWordAsJson());
-
-        // add all experiment scores
-        Matching matching = MainController.getMatching(matchingString);
-        ExperimentType eType = ExperimentType.valueOf(experimentType);
-        FilterHolder holder = isNotFilteredExperiment(eType) ?
-                new FilterFactory(true).getFilters() : filterFactory.getFilters();
-        o.put("scores", loadAllExperimts(eType, matching, holder));
         return o;
     }
 

@@ -281,7 +281,9 @@
              innerHtmlCom += '<div id="compare' + i +'" data-slidr="'+ i +'" style="width: 900px">' + filters[i] +'</div>';
          }
          
-         $('#resultsChartBody').html('<div id="resultsChart" style="display: inline"></div><div id="compareChart" style="display: inline"></div>');
+         $('#resultsChartBody').html('<div id="fscore" style="display: inline; width: 900px"></div>'
+                                   + '<div id="resultsChart" style="display: inline"></div>' 
+                                   + '<div id="compareChart" style="display: inline"></div>');
          $('#resultsChart').html(innerHtmlRes);
          $('#compareChart').html(innerHtmlCom);
          $('#resultsTable').html('<thead></thead><tbody></tbody>');
@@ -297,6 +299,7 @@
                  return value.filter;
              }));
 
+             drawMediumScoreChart(data);
              for (var i = 0; i < data.length; i++) {
                  var categories = data[i].data[0][0].slice(1, data[i].data[0][0].length);
                  var chartData = prepareDataForSpider(data[i].data[0]);
@@ -310,8 +313,7 @@
      };
      
      function prepareOverviewCharts() {
-         $('#resultsChartBody').html('<div id="fscore" style="display: inline; width: 900px"></div>'
-                                   + '<div id="entities" style=display: inline></div>'
+         $('#resultsChartBody').html('<div id="entities" style=display: inline></div>'
                                    + '<div id="entityMetadata" style="display: inline"></div>'
                                    + '<div id="emptydocs" style="display: inline; width: 900px"></div>'
                                    + '<div id="words" style="display: inline; width: 900px"></div>'
@@ -328,9 +330,6 @@
          $('#resultsTable').html('<thead></thead><tbody></tbody');
      };
 
-
-
-
      function overviewChart() {
          prepareOverviewCharts();
          
@@ -338,7 +337,6 @@
              experimentType : $('#expTypes input:checked').val(),
 	           matching : $('#matching input:checked').val(),
          }, function (data) {
-             drawMediumScoreChart(data.scores);
              drawAbsoluteEntityCharts(data.filters, data.overallAmount);
              drawRelativeEntityChart(data.filters, data.overallAmount);
              drawMetadataCharts(data);
@@ -347,18 +345,21 @@
 
          $.getJSON('${ambiguityEntities}',
                    function (data) {
+                       console.log(data);
                        drawEntitiesAmbiguityCharts(data);
                        createSlidr('ambiguityEntities');
                    });
 
          $.getJSON('${ambiguitySurface}',
                    function (data) {
+                       console.log(data);
                        drawSurfaceAmbiguityCharts(data);
                        createSlidr('ambiguitySurface');
                  });
         
          $.getJSON('${diversityEntities}',
                    function (data) {
+                       console.log(data);
                        drawEntitiesDiversityCharts(data);
                        createSlidr('diversityEntities');
                    });
@@ -366,6 +367,7 @@
 
          $.getJSON('${diversitySurface}',
                    function (data) {
+                       console.log(data);
                        drawSurfaceDiversityCharts(data);
                        createSlidr('diversitySurface');
                    });

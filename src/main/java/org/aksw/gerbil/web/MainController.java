@@ -178,7 +178,7 @@ public class MainController {
         for (String annotator : annotators) {
             for (String dataset : datasets) {
                 DatasetConfiguration c = adapterManager.getDatasetConfig(dataset, expType);
-                if (!metadataUtils.isAlreadyProcess(c)) {
+                if (!metadataUtils.isAlreadyProcessed(c)) {
                     metadataUtils.processDataset(c, filterFactory.getFilters());
                 }
                 configs[count] = new ExperimentTaskConfiguration(adapterManager.getAnnotatorConfig(annotator, expType),

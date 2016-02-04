@@ -19,7 +19,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test the metadata creation.
+ * Test parts of the metadata creation.
+ * Mostly simply printouts, due to complexity of resulting data.
  *
  * Created by Henrik Jürges (juerges.henrik@gmail.com)
  */

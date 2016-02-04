@@ -88,15 +88,15 @@ public class MetadataUtils {
      */
     public MetadataUtils(AdapterList<DatasetConfiguration> configurations, FilterHolder holder) {
         LOGGER.info("Creating metadata...");
-        alreadyProcessed = new HashSet<>();
         Multimap<String, Document> datasets = preloadDatasets(configurations);
 
-        amountOfEmptyDocuments = new HashMap<>();
-        // Row: Filter, Column: Dataset
-        entitiesPerFilterAndDataset = HashBasedTable.create(holder.getFilterList().size(),
-                datasets.size());
+        // initialize tables, maps and sets
         int size = (int)Math.round(datasets.size() * 1.3);
+        alreadyProcessed = new HashSet<>(size);
+        amountOfEmptyDocuments = new HashMap<>(size);
         annotationsPerWords = new HashMap<>(size);
+        // Row: Filter, Column: Dataset
+        entitiesPerFilterAndDataset = HashBasedTable.create(holder.getFilterList().size(), size);
 
         createFilterMetadata(datasets, holder);
         findEmptyDocuments(datasets);
@@ -109,8 +109,8 @@ public class MetadataUtils {
         ambiguitySurface = HashBasedTable.create(rowSize, columnsSize);
         calculateAmbiguity(datasets);
 
-        entityDiversity = HashBasedTable.create();
-        surfaceDiversity = HashBasedTable.create();
+        entityDiversity = HashBasedTable.create(rowSize, columnsSize);
+        surfaceDiversity = HashBasedTable.create(rowSize, columnsSize);
         calculateDiversity(datasets);
         alreadyProcessed.addAll(configurations.getConfigurations());
     }
@@ -133,7 +133,13 @@ public class MetadataUtils {
         alreadyProcessed.add(conf);
     }
 
-    public boolean isAlreadyProcess(DatasetConfiguration conf) {
+    /**
+     * Checks if a dataset is already processed.
+     *
+     * @param conf dataset configuration
+     * @return true if processed
+     */
+    public boolean isAlreadyProcessed(DatasetConfiguration conf) {
         return alreadyProcessed.contains(conf);
     }
 
@@ -148,6 +154,12 @@ public class MetadataUtils {
         return amountOfEntities;
     }
 
+    public JSONObject getAmountOfEmptyDocsAsJson() {
+        JSONObject o = new JSONObject();
+        o.putAll(amountOfEmptyDocuments);
+        return o;
+    }
+
     /**
      * Gets amount of entities per filter.
      *
@@ -155,12 +167,6 @@ public class MetadataUtils {
      */
     public Map<String, Map<String, Integer>> getAmountOfEntitiesPerFilter() {
         return entitiesPerFilterAndDataset.rowMap();
-    }
-
-    public JSONObject getAmountOfEmptyDocsAsJson() {
-        JSONObject o = new JSONObject();
-        o.putAll(amountOfEmptyDocuments);
-        return o;
     }
 
     /**
@@ -254,16 +260,6 @@ public class MetadataUtils {
         return ambig;
     }
 
-
-    /**
-     * Gets entity diversity table.
-     *
-     * @return the entity diversity
-     */
-    public Table<String, String, HashSet<String>> getEntityDiversity() {
-        return entityDiversity;
-    }
-
     /**
      * Gets entity diversity table as json.
      *
@@ -272,47 +268,15 @@ public class MetadataUtils {
     @SuppressWarnings("rawtypes")
     public JSONObject getEntityDiversityAsJson() {
         JSONObject div = new JSONObject();
-        JSONArray a = new JSONArray();
-        for (String row : entityDiversity.rowKeySet()) {
-            if (ambiguityEntities.contains(row, ENTITIES_AMBIGUITY)) {
-                JSONObject o = new JSONObject();
-                o.put("entity", row);
-
-                for (String s : entityDiversity.row(row).keySet()) {
-                    double diversity = (double)entityDiversity.get(row, s).size() / (double)ambiguityEntities.get(row, ENTITIES_AMBIGUITY);
-                    o.put(s, diversity);
-                }
-                a.add(o);
-            }
-        }
-
-        div.put("data", a);
+        div.put("data", convertDiversityTable(entityDiversity, ambiguityEntities, ENTITIES_AMBIGUITY, "entity"));
         div.put("medium", calculateMediumDiversity(entityDiversity, ambiguityEntities.column(ENTITIES_AMBIGUITY)));
         return div;
-    }
-
-    public Table<String, String, HashSet<String>> getSurfaceDiversity() {
-        return surfaceDiversity;
     }
 
     @SuppressWarnings("rawtypes")
     public JSONObject getSurfaceDiversityAsJson() {
         JSONObject div = new JSONObject();
-        JSONArray a = new JSONArray();
-        for (String row : surfaceDiversity.rowKeySet()) {
-            if (ambiguitySurface.contains(row, SURFACE_AMBIGUITY)) {
-                JSONObject o = new JSONObject();
-                o.put("entity", row);
-
-                for (String s : surfaceDiversity.row(row).keySet()) {
-                    double diversity = (double)surfaceDiversity.get(row, s).size() / (double)ambiguitySurface.get(row, SURFACE_AMBIGUITY);
-                    o.put(s, diversity);
-                }
-                a.add(o);
-            }
-        }
-
-        div.put("data", a);
+        div.put("data", convertDiversityTable(surfaceDiversity, ambiguitySurface, SURFACE_AMBIGUITY, "surface"));
         div.put("medium", calculateMediumDiversity(surfaceDiversity, ambiguitySurface.column(SURFACE_AMBIGUITY)));
         return div;
     }
@@ -339,10 +303,29 @@ public class MetadataUtils {
     }
 
     @SuppressWarnings("rawtypes")
-    private JSONArray convertAmbiguityTable(Table<String, String, Integer> table, String ambiguityColumn, String name) {
+    private JSONArray convertDiversityTable(Table<String, String, HashSet<String>> table,
+                                            Table<String, String, Integer> refTable, String column, String name) {
         JSONArray a = new JSONArray();
         for (String row : table.rowKeySet()) {
-            if (table.contains(row, ambiguityColumn)) {
+            if (refTable.contains(row, column)) {
+                JSONObject o = new JSONObject();
+                o.put(name, row);
+
+                for (String s : table.row(row).keySet()) {
+                    double diversity = (double)table.get(row, s).size() / (double)refTable.get(row, column);
+                    o.put(s, diversity);
+                }
+                a.add(o);
+            }
+        }
+        return a;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private JSONArray convertAmbiguityTable(Table<String, String, Integer> table, String column, String name) {
+        JSONArray a = new JSONArray();
+        for (String row : table.rowKeySet()) {
+            if (table.contains(row, column)) {
                 JSONObject o = new JSONObject();
                 o.put(name, row);
                 o.putAll(table.row(row));

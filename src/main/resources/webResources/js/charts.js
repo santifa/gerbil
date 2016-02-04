@@ -84,7 +84,7 @@ function drawGeneralChart(data, name, tagname, xAxis, yAxis, subtitle, plotOptio
         series: data,
         tooltip: {
             borderWidth: 0,
-            valueSuffix: ' ' + yAxis.name
+            valueSuffix: ' ' + yAxis.title
         }
     });  
 };
@@ -190,19 +190,9 @@ function drawRelativeChart(filters, datasets, data, name, tagname) {
 
 
 function drawMediumScoreChart(data) {
-    var xAxis = {
-        title: 'Filters',
-        categories: data.map(function (value) {
-            return value.filter;
-        })
-    };
-    
-    var yAxis = {
-        title: 'F1 Score'
-    };
-    
+    var axis = getAxis(data.map(curr => curr.filter), 'Filters', 'F1 Score', null);
     drawGeneralChart(caclulateMediumScores(data), 'Medium Micro F1 Scores', 'fscore',
-                       xAxis, yAxis, 'Scores of 0 are not included in calculation, they indicate an error or an empty dataset', {});
+                       axis.x, axis.y, 'Scores of 0 are not included in calculation, they indicate an error or an empty dataset', {});
 };
 
 // we ignore 0.0 values because either the dataset is not run with an annotator or
@@ -342,9 +332,7 @@ function drawAbsoluteEntityCharts(data, overallAmount) {
     hit_pie[0].data.push(getRemaining(hit_pie[0].data, overallAmount));
     page_pie[0].data.push(getRemaining(page_pie[0].data, overallAmount));
 
-    var yAxis = {
-        title: 'Entities'
-    };
+    var yAxis = {title: 'Entities'};
     
     drawGeneralChart(type_pie, 'Absolute Entities Per Filter (Amount ' + overallAmount + ')', 'entitiesabs2',
                        {}, yAxis, '', {});
@@ -353,26 +341,14 @@ function drawAbsoluteEntityCharts(data, overallAmount) {
     drawGeneralChart(page_pie, 'Absolute Entities Per Filter (Amount ' + overallAmount + ')', 'entitiesabs4',
                        {}, yAxis, '', {});
 
-    var xAxis = {
-        title: 'Datasets',
-        categories: datasets
-    };
-
-    yAxis = {
-        title: 'Entities',
-        type: 'logarithmic'
-    };
-
+    var axis = getAxis(datasets, 'Datasets', 'Entities', 'logarithmic');
     var plotOptions = {
         column: {
             stacking: 'normal'
         }
     };
-       
-    drawAmbiguityChart(absoluteSeries, 'Absolute Amount of Filtered Entities per Dataset', 'entitiesabs1',
-                       xAxis, yAxis, '', plotOptions);
-    
-    //drawAbsoluteDatasetChart(datasets, absoluteSeries, 'Absolute Amount of Filtered Entities per Dataset', 'entitiesabs1');
+    drawGeneralChart(absoluteSeries, 'Absolute Amount of Filtered Entities per Dataset', 'entitiesabs1',
+                       axis.x, axis.y, '', plotOptions);
 };
 
 function drawRelativeEntityChart(filterData, overallAmount) {
@@ -527,21 +503,13 @@ function drawMetadataCharts(data) {
         }
     }
 
-    var xAxis = {
-        title: 'Datasets',
-        categories: densityCategories
-    };
-
-    var yAxis = {
-        title: 'Annotations Per Word'
-    };
-      
+    var axis = getAxis(densityCategories, 'Datasets', 'Annotations per Word', null);
     drawGeneralChart(density, 'Densitiy Distribution', 'words',
-                       xAxis, yAxis, 'Higher is better, to high is nonsense.', {});
+                       axis.x, axis.y, 'Higher is better, to high is nonsense.', {});
 
-    xAxis.categories = emptyCategories;
-    yAxis.title = 'Percent';
-    drawGeneralChart(empty, 'Empty Documents', 'emptydocs', xAxis, yAxis,
+    axis.x.categories = emptyCategories;
+    axis.y.title = 'Percent';
+    drawGeneralChart(empty, 'Empty Documents', 'emptydocs', axis.x, axis.y,
                        '0 indicates all documents have annotations.', {});
     
 }
@@ -561,26 +529,17 @@ function drawEntitiesAmbiguityCharts(data, parentDiv) {
         data: values
     }];
     $('#ambiguityEntities').html(html + createDivs('entitiesAmbig', datasets));
-    var xAxis = {
-        title: 'Datasets',
-        categories: datasets
-    };
-    
-    var yAxis = {
-        title: 'Surface Forms',
-        type: 'logarithmic'
-    };
-    
+    var axis = getAxis(datasets, 'Datasets', 'Surface Forms used', 'logarithmic');
     drawGeneralChart(mediumSeries, 'Medium Entity Ambiguity', 'entitiesAmbigMedium',
-                       xAxis, yAxis, 'Show the medium ambiguity of an entity within a dataset.', {});
+                       axis.x, axis.y, 'Show the medium ambiguity of all entities used within a dataset.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
-        chartData = createChartData(datasets[i], ' Ambiguity', data);
-        xAxis.categories = chartData.cat;
-        xAxis.title = 'Entities';
+        chartData = createChartData(datasets[i], ' Ambiguity', data, 'entity', 'Entity Ambiguity');
+        axis.x.categories = chartData.cat;
+        axis.x.title = 'Entities';
         drawGeneralChart(chartData.series, datasets[i] + ' Entity Ambiguity', 'entitiesAmbig' + i,
-                           xAxis, yAxis, 'Scrollable and zoomable through <Shift>-<Left-Mouse> and <Left-Mouse>', {});
+                           axis.x, axis.y, '', {});
     }
 };
 
@@ -600,25 +559,17 @@ function drawSurfaceAmbiguityCharts(data) {
         data: values
     }];
     $('#ambiguitySurface').html(html + createDivs('surfaceAmbig', datasets));
-    var xAxis = {
-        title: 'Datasets',
-        categories: datasets
-    };
-        
-    var yAxis = {
-        title: 'Entities',
-        type: 'logarithmic'
-    };
+    var axis = getAxis(datasets, 'Datasets', 'Entities used', 'logarithmic');
     drawGeneralChart(mediumSeries, 'Medium Surface Ambiguity', 'surfaceAmbigMedium',
-                       xAxis, yAxis, 'Shows the medium ambiguity of a surface form within a dataset.', {});
+                       axis.x, axis.y, 'Shows the medium ambiguity of all surface forms used within a dataset.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
-        chartData = createChartData(datasets[i], ' Ambiguity', data);
-        xAxis.categories = chartData.cat;
-        xAxis.title = 'Surface Forms'
+        chartData = createChartData(datasets[i], ' Ambiguity', data, 'surface', 'Surface Form Ambiguity');
+        axis.x.categories = chartData.cat;
+        axis.x.title = 'Surface Forms'
         drawGeneralChart(chartData.series, datasets[i] + ' Surface Form Ambiguity', 'surfaceAmbig' + i,
-                           xAxis, yAxis,  'Scrollable and zoomable through <Shift>-<Left-Mouse> and <Left-Mouse>', {});
+                           axis.x, axis.y,  '', {});
     }
 };
 
@@ -638,24 +589,17 @@ function drawEntitiesDiversityCharts(data) {
         data: values
     }];
     $('#diversityEntities').html(html + createDivs('entitiesDivers', datasets));
-    var xAxis = {
-        title: 'Datasets',
-        categories: datasets
-    };
-        
-    var yAxis = {
-        title: 'Surface Forms used'
-    };
+    var axis = getAxis(datasets, 'Datasets', 'Surface Forms used', null);
     drawGeneralChart(mediumSeries, 'Medium Entity Diversity', 'entitiesDiversMedium',
-                       xAxis, yAxis, 'Shows the medium diversity of an entity has within a dataset', {});
+                       axis.x, axis.y, 'Shows the relative amount of surface forms used for every entity.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
-        chartData = createChartData(datasets[i], ' Diversity', data);
-        xAxis.categories = chartData.cat;
-        xAxis.title = 'Entities';
-        drawGeneralChart(chartData.cat, chartData.series, datasets[i] + ' Entity Diversity', 'entitiesDivers' + i,
-                           xAxis, yAxis, 'Scrollable and zoomable through \<Shift\>-\<Left-Mouse\> and \<Left-Mouse\>', {});
+        chartData = createChartData(datasets[i], ' Diversity', data, 'entity', datasets[i]);
+        axis.x.categories = chartData.cat;
+        axis.x.title = 'Entities';
+        drawGeneralChart(chartData.series, datasets[i] + ' Entity Diversity', 'entitiesDivers' + i,
+                           axis.x, axis.y, 'Values above 1 indicates missing informations in the knowledgebase.', {});
     }
 };
 
@@ -674,38 +618,31 @@ function drawSurfaceDiversityCharts(data) {
         data: values
     }];
     $('#diversitySurface').html(html + createDivs('surfaceDivers', datasets));
-    var xAxis = {
-        title: 'Datasets',
-        categories: datasets
-    };
-        
-    var yAxis = {
-        title: 'Entities used'
-    };
+    var axis = getAxis(datasets, 'Datasets', 'Entities', null);
     drawGeneralChart(mediumSeries, 'Medium Surface Form Diversity', 'surfaceDiversMedium',
-                       xAxis, yAxis, 'Shows the medium diversity of a surface form has within tha datasets.', {});
+                       axis.x, axis.y, 'Shows the relative amount of entities used for every surface form.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
-        chartData = createChartData(datasets[i], ' Diversity', data);
-        xAxis.categories = chartData.cat;
-        xAxis.title = 'Surface Forms';
+        chartData = createChartData(datasets[i], ' Diversity', data, 'surface', datasets[i]);
+        axis.x.categories = chartData.cat;
+        axis.x.title = 'Surface Forms';
         drawGeneralChart(chartData.series, datasets[i] + ' Surface Form Diversity', 'surfaceDivers' + i,
-                           xAxis, yAxis,  'Scrollable and zoomable through <Shift>-<Left-Mouse> and <Left-Mouse>', {});
+                         axis.x, axis.y, 'Values above 1 indicates missing informations in the knowledgebase.', {});
     }
 };
 
 // create chart data for ambiguity and diversity charts
-function createChartData(dataset, name, data) {
+function createChartData(dataset, name, data, key1, key2) {
+//    console.log(data);
     var categories = [];
     values = [];
     for (var j = 0; j < data.data.length; j++) {
-        if (data.data[j].hasOwnProperty(dataset)) {
-            categories.push(data.data[j].entity);
-            values.push(data.data[j][dataset]);
+        if (data.data[j].hasOwnProperty(dataset)) {     
+            categories.push(data.data[j][key1]);
+            values.push(data.data[j][key2]);
         }
     }
-        
     return {
         cat: categories,
         series: [{
@@ -722,4 +659,19 @@ function createDivs(tag, datasets) {
         html += '<div id="' + tag + i + '" data-slidr="' + i + '" style="width: 900px"></div>';             
     }
     return html;
+};
+
+// create chart axis
+function getAxis(categories, xName, yName, type) {
+    var axis = {
+        x: {
+            title: xName,
+            categories: categories
+        },
+        y: {title: yName}
+    };
+    if (type != null) {
+        axis.y.type = type;
+    }
+    return axis;
 };
