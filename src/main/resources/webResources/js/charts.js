@@ -516,21 +516,11 @@ function drawMetadataCharts(data) {
 
 function drawEntitiesAmbiguityCharts(data, parentDiv) {
     var html = '<div id="entitiesAmbigMedium" data-slidr="med" style="width: 900px"></div>'; 
-    var datasets = []
+    var datasets = getDatasets(data);
     
-    // create medium average and collect dataset names
-    var values = [];
-    for (var key in data.medium) {
-        datasets.push(key);
-        values.push(parseFloat(data.medium[key].toFixed(4)));
-    }
-    var mediumSeries = [{
-        name: 'Medium Ambiguity',
-        data: values
-    }];
     $('#ambiguityEntities').html(html + createDivs('entitiesAmbig', datasets));
-    var axis = getAxis(datasets, 'Datasets', 'Surface Forms used', 'logarithmic');
-    drawGeneralChart(mediumSeries, 'Medium Entity Ambiguity', 'entitiesAmbigMedium',
+    var axis = getAxis(datasets, 'Datasets', 'Surface Forms', 'logarithmic');
+    drawGeneralChart(createMediumData(data), 'Medium Entity Ambiguity', 'entitiesAmbigMedium',
                        axis.x, axis.y, 'Show the medium ambiguity of all entities used within a dataset.', {});
     
     // creat all single charts
@@ -539,28 +529,18 @@ function drawEntitiesAmbiguityCharts(data, parentDiv) {
         axis.x.categories = chartData.cat;
         axis.x.title = 'Entities';
         drawGeneralChart(chartData.series, datasets[i] + ' Entity Ambiguity', 'entitiesAmbig' + i,
-                           axis.x, axis.y, '', {});
+                           axis.x, axis.y, 'A higher value makes disambiguation harder.', {});
     }
 };
 
 
 function drawSurfaceAmbiguityCharts(data) {
     var html = '<div id="surfaceAmbigMedium" data-slidr="med" style="width: 900px"></div>'; 
-    var datasets = []
+    var datasets = getDatasets(data);
     
-    // create medium average and collect dataset names
-    var values = [];
-    for (var key in data.medium) {
-            datasets.push(key);
-            values.push(parseFloat(data.medium[key].toFixed(4)));
-    }
-    var mediumSeries = [{
-        name: 'Medium Ambiguity',
-        data: values
-    }];
     $('#ambiguitySurface').html(html + createDivs('surfaceAmbig', datasets));
-    var axis = getAxis(datasets, 'Datasets', 'Entities used', 'logarithmic');
-    drawGeneralChart(mediumSeries, 'Medium Surface Ambiguity', 'surfaceAmbigMedium',
+    var axis = getAxis(datasets, 'Datasets', 'Entities', 'logarithmic');
+    drawGeneralChart(createMediumData(data), 'Medium Surface Ambiguity', 'surfaceAmbigMedium',
                        axis.x, axis.y, 'Shows the medium ambiguity of all surface forms used within a dataset.', {});
     
     // creat all single charts
@@ -569,29 +549,19 @@ function drawSurfaceAmbiguityCharts(data) {
         axis.x.categories = chartData.cat;
         axis.x.title = 'Surface Forms'
         drawGeneralChart(chartData.series, datasets[i] + ' Surface Form Ambiguity', 'surfaceAmbig' + i,
-                           axis.x, axis.y,  '', {});
+                           axis.x, axis.y,  'A higher value makes disambiguation harder.', {});
     }
 };
 
 
 function drawEntitiesDiversityCharts(data) {
     var html = '<div id="entitiesDiversMedium" data-slidr="med" style="width: 900px"></div>'; 
-    var datasets = []
+    var datasets = getDatasets(data);
     
-    // create medium average and collect dataset names
-    var values = [];
-    for (var key in data.medium) {
-        datasets.push(key);
-        values.push(parseFloat(data.medium[key].toFixed(4)));
-    }
-    var mediumSeries = [{
-        name: 'Medium Diversity',
-        data: values
-    }];
     $('#diversityEntities').html(html + createDivs('entitiesDivers', datasets));
     var axis = getAxis(datasets, 'Datasets', 'Surface Forms used', null);
-    drawGeneralChart(mediumSeries, 'Medium Entity Diversity', 'entitiesDiversMedium',
-                       axis.x, axis.y, 'Shows the relative amount of surface forms used for every entity.', {});
+    drawGeneralChart(createMediumData(data), 'Medium Entity Diversity', 'entitiesDiversMedium',
+                       axis.x, axis.y, 'Shows the relative amount of surface forms used for every entity, see ambiguity.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
@@ -605,22 +575,12 @@ function drawEntitiesDiversityCharts(data) {
 
 function drawSurfaceDiversityCharts(data) {
     var html = '<div id="surfaceDiversMedium" data-slidr="med" style="width: 900px"></div>'; 
-    var datasets = []
+    var datasets = getDatasets(data);
     
-    // create medium average and collect dataset names
-    var values = [];
-    for (var key in data.medium) {
-        datasets.push(key);
-        values.push(parseFloat(data.medium[key].toFixed(4)));
-    }
-    var mediumSeries = [{
-        name: 'Medium Diversity',
-        data: values
-    }];
     $('#diversitySurface').html(html + createDivs('surfaceDivers', datasets));
     var axis = getAxis(datasets, 'Datasets', 'Entities', null);
-    drawGeneralChart(mediumSeries, 'Medium Surface Form Diversity', 'surfaceDiversMedium',
-                       axis.x, axis.y, 'Shows the relative amount of entities used for every surface form.', {});
+    drawGeneralChart(createMediumData(data), 'Medium Surface Form Diversity', 'surfaceDiversMedium',
+                       axis.x, axis.y, 'Shows the relative amount of entities used for every surface form, see ambiguity.', {});
     
     // creat all single charts
     for (var i = 0; i < datasets.length; i++) {
@@ -651,6 +611,27 @@ function createChartData(dataset, name, data, key1, key2) {
         }]
     };   
 };
+
+// get the datasets from medium object keys
+function getDatasets(data) {
+    var datasets = [];
+    for (var key in data.medium) {
+        datasets.push(key);
+    }
+    return datasets;
+}
+
+// create data for medium charts
+function createMediumData(data) {
+    var values = [];
+    for (var key in data.medium) {
+        values.push(parseFloat(data.medium[key].toFixed(4)));
+    }
+    return mediumSeries = [{
+        name: 'Medium Diversity',
+        data: values
+    }];
+}
 
 // create divs
 function createDivs(tag, datasets) {
