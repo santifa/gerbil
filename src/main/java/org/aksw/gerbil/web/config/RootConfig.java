@@ -180,6 +180,7 @@ public class RootConfig {
             filter.registerFilter(SparqlFilter.class, filter.getBasicFilterResolver());
             filter.registerFilter(FileFilter.class, filter.getFileFilterResolver());
             filter.registerFilter(PopularityFilter.class, filter.getPopularityFilterResolver());
+            filter.registerFilterCombinator(filter.getFilterCombinatorResolver());
             return filter;
         } else {
             return new FilterFactory(true);

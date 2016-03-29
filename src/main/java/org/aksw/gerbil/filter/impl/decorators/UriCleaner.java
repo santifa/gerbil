@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class UriCleaner extends FilterDecorator {
 
+    private Filter service;
+
     /**
      * Instantiates a new Uri cleaner step.
      *
@@ -25,6 +27,7 @@ public class UriCleaner extends FilterDecorator {
      */
     public UriCleaner(Filter service) {
         super(service);
+        this.service = service;
     }
 
     @Override
@@ -64,5 +67,10 @@ public class UriCleaner extends FilterDecorator {
             }
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "UriCleaner{" + service.toString() + "}";
     }
 }

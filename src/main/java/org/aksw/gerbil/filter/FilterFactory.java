@@ -36,6 +36,8 @@ public class FilterFactory {
 
     private List<ConcreteFilter> filters = new ArrayList<>(42);
 
+    private List<Filter> filterCombinator = new ArrayList<>(10);
+
     private final List<String> whiteList = new ArrayList<>();
 
     private final String[] prefixes;
@@ -81,6 +83,28 @@ public class FilterFactory {
         }
     }
 
+    /**
+     * Register new filter combinators.
+     * The filter for combining has to be registered in advance.
+     *
+     * @param resolver the resolver
+     */
+    public void registerFilterCombinator(ConfigResolver<FilterDefinition> resolver) {
+        List<FilterDefinition> configurations = resolver.resolve();
+        for (FilterDefinition conf : configurations) {
+
+            List<Filter> combinedFilter = new ArrayList<>();
+            for (String filterName : conf.getFilter().split(",")) {
+                for (ConcreteFilter filter : filters) {
+                    if (filterName.equalsIgnoreCase(filter.getConfiguration().getName())) {
+                        combinedFilter.add(filter);
+                    }
+                }
+            }
+            filterCombinator.add(new FilterCombinator(combinedFilter, conf));
+        }
+    }
+
     private Filter decorateFilter(Filter service) {
         // chunk filter requests
         if (service.getConfiguration().getChunksize() > 0) {
@@ -116,23 +140,16 @@ public class FilterFactory {
                     clone = decorateFilter(clone);
                     clonedFilters.add(new FilterWrapperImpl(clone));
                 }
+
+                for (Filter f : filterCombinator) {
+                    clonedFilters.add(new FilterWrapperImpl(f)); //FIXME not really cloned
+                }
             } catch (CloneNotSupportedException e) {
                 LOGGER.error("Filter could not be cloned. " + e.getMessage(), e);
             }
 
             return new FilterHolder(clonedFilters);
         }
-    }
-
-    /**
-     * @return the names of all registered filters
-     */
-    public String[] getRegisteredFilterNames() {
-        String[] names = new String[filters.size()];
-        for (int i = 0; i < filters.size(); i++) {
-            names[i] = filters.get(i).getConfiguration().getName();
-        }
-        return names;
     }
 
     // returns a set of prefixes defined in the filter.properties
@@ -252,6 +269,33 @@ public class FilterFactory {
                                 GerbilConfiguration.getInstance().getString(FILTER_POP + counter + ".service")));
                     }
 
+                    return ++counter;
+                }
+                return -1;
+            }
+        };
+    }
+
+    /**
+     * Gets filter combinator resolver.
+     *
+     * @return the filter combinator resolver
+     */
+    public final ConfigResolver<FilterDefinition> getFilterCombinatorResolver() {
+        return new ConfigResolver<FilterDefinition>() {
+            private static final String FILTER_COMB = "org.aksw.gerbil.util.filter.combinator.";
+
+            @Override
+            int resolve(int counter, List<FilterDefinition> result) {
+                if (GerbilConfiguration.getInstance().containsKey(FILTER_COMB + counter + ".name") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_COMB + counter + ".filter") &&
+                        GerbilConfiguration.getInstance().containsKey(FILTER_COMB + counter + ".service")) {
+
+                    String filter = Joiner.on(",")
+                            .join(GerbilConfiguration.getInstance().getStringArray(FILTER_COMB + counter + ".filter"));
+                    result.add(new FilterDefinition(GerbilConfiguration.getInstance().getString(FILTER_COMB + counter + ".name"),
+                            filter, whiteList,
+                            GerbilConfiguration.getInstance().getString(FILTER_COMB + counter + ".service")));
                     return ++counter;
                 }
                 return -1;
